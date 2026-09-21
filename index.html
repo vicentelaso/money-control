@@ -126,7 +126,58 @@ button,input{font:inherit;color:inherit}
 }
 #monto:focus{outline:none}
 #monto::placeholder{color:var(--muted);opacity:.35}
-.chips{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:10px}
+/* ---------- selector de categoría ---------- */
+.picker{margin-bottom:2px}
+.picker-btn{
+  width:100%;display:flex;align-items:center;gap:10px;background:var(--bg);
+  border:1px solid var(--line);border-radius:10px;padding:11px 12px;cursor:pointer;text-align:left;font-size:15px;
+}
+.picker-btn:hover{border-color:var(--muted)}
+.picker-btn[aria-expanded="true"]{border-color:var(--muted);border-radius:10px 10px 0 0}
+.picker-val{flex:1;display:flex;align-items:center;gap:9px;min-width:0}
+.picker-val i{width:10px;height:10px;border-radius:99px;flex:none}
+.picker-val span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.picker-val .ph{color:var(--muted)}
+.chev{width:18px;height:18px;flex:none;fill:none;stroke:var(--muted);stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round;transition:transform .15s}
+.picker-btn[aria-expanded="true"] .chev{transform:rotate(180deg)}
+.picker-panel{border:1px solid var(--muted);border-top:none;border-radius:0 0 10px 10px;background:var(--card);overflow:hidden}
+.picker-cap{font-size:12px;color:var(--muted);padding:10px 14px 2px}
+.picker-list{list-style:none;margin:0;padding:4px 0;max-height:min(46vh,330px);overflow-y:auto;-webkit-overflow-scrolling:touch}
+.picker-list li{display:flex;align-items:center;gap:2px;padding-right:6px}
+.opt{
+  flex:1;min-width:0;display:flex;align-items:center;gap:10px;background:none;border:none;
+  cursor:pointer;padding:11px 8px 11px 14px;text-align:left;font-size:14.5px;
+}
+.opt:hover{background:var(--bg)}
+.opt i{width:10px;height:10px;border-radius:99px;flex:none}
+.opt .nm{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.opt small{color:var(--muted);font-size:12px;margin-left:auto;white-space:nowrap;padding-left:8px}
+.opt .check{width:16px;height:16px;flex:none;fill:none;stroke:var(--ink);stroke-width:2.2;stroke-linecap:round;stroke-linejoin:round;visibility:hidden}
+.picker-list li[aria-selected="true"] .opt{font-weight:600}
+.picker-list li[aria-selected="true"] .check{visibility:visible}
+.icon-btn{
+  width:36px;height:36px;border-radius:9px;background:none;border:1px solid transparent;
+  color:var(--muted);display:grid;place-items:center;cursor:pointer;flex:none;
+}
+.icon-btn:hover{background:var(--bg);border-color:var(--line);color:var(--ink)}
+.icon-btn svg{width:16px;height:16px;fill:none;stroke:currentColor;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round}
+.picker-list li.fila-edit,.picker-foot .fila-edit{display:block;padding:12px 14px;background:var(--bg)}
+.fila-edit .inp{background:var(--card)}
+.edit-acc{display:flex;gap:7px;margin-top:9px;flex-wrap:wrap}
+.mini-btn{border-radius:8px;padding:8px 13px;font-size:13px;font-weight:500;cursor:pointer;border:1px solid var(--line);background:var(--card)}
+.mini-btn:hover{border-color:var(--muted)}
+.mini-btn.ok{background:var(--deep);color:var(--on-deep);border-color:var(--deep)}
+.mini-btn.peligro{color:var(--danger)}
+.mini-btn.peligro:hover{border-color:var(--danger)}
+.mini-btn.der{margin-left:auto}
+.edit-hint{font-size:12px;color:var(--muted);margin-top:8px}
+.picker-foot{border-top:1px solid var(--line-soft)}
+.picker-new{
+  width:100%;display:flex;align-items:center;gap:10px;background:none;border:none;
+  padding:13px 14px;font-size:14.5px;font-weight:500;cursor:pointer;text-align:left;
+}
+.picker-new:hover{background:var(--bg)}
+.picker-new b{width:10px;text-align:center;color:var(--muted);font-weight:400;font-size:18px;line-height:1}
 .chip{
   display:inline-flex;align-items:center;gap:7px;background:var(--bg);
   border:1px solid var(--line);border-radius:99px;padding:6px 12px;font-size:13.5px;cursor:pointer;
@@ -205,7 +256,7 @@ label{display:block;font-size:12.5px;color:var(--muted);margin-bottom:5px}
 /* ---------- aviso de deshacer ---------- */
 .toast{
   position:fixed;left:50%;transform:translateX(-50%);
-  bottom:calc(env(safe-area-inset-bottom, 0px) + 20px);z-index:40;
+  bottom:calc(env(safe-area-inset-bottom, 0px) + 20px);z-index:70;
   background:var(--deep);color:var(--on-deep);border-radius:13px;
   padding:11px 12px 11px 17px;display:flex;align-items:center;gap:14px;
   box-shadow:0 12px 30px -10px rgba(0,0,0,.5);font-size:14px;max-width:calc(100vw - 32px);
@@ -355,9 +406,14 @@ textarea.inp{min-height:110px;resize:vertical;font-size:12.5px;font-family:ui-mo
             <span>$</span>
             <input id="monto" type="text" inputmode="numeric" autocomplete="off" placeholder="0" aria-label="Monto" enterkeyhint="done">
           </div>
-          <label for="cat">Categoría</label>
-          <div class="chips" id="chips"></div>
-          <input id="cat" class="inp" type="text" autocomplete="off" placeholder="O escribe una nueva">
+          <label for="catBtn">Categoría</label>
+          <div class="picker" id="picker">
+            <button type="button" class="picker-btn" id="catBtn" aria-haspopup="listbox" aria-expanded="false">
+              <span class="picker-val" id="catVal"><span class="ph">Elige una categoría</span></span>
+              <svg class="chev" viewBox="0 0 20 20"><path d="M5 8l5 5 5-5"/></svg>
+            </button>
+            <div class="picker-panel" id="catPanel" hidden></div>
+          </div>
           <div class="duo">
             <div>
               <label for="nota">Detalle (opcional)</label>
@@ -455,6 +511,7 @@ var $ = function(id){ return document.getElementById(id); };
 function plata(n){ return "$" + new Intl.NumberFormat("es-CL",{maximumFractionDigits:0}).format(Math.round(n||0)); }
 function colorDe(nombre){
   var n = String(nombre||"").toLowerCase();
+  if (estado.colores && estado.colores[n]) return estado.colores[n];
   var i = (estado.cats || []).findIndex(function(c){ return String(c).toLowerCase() === n; });
   if (i >= 0) return PALETA[i % PALETA.length];
   var h = 0;
@@ -474,9 +531,10 @@ function nuevoId(){ return Date.now().toString(36) + Math.random().toString(36).
 function esc(t){ var d=document.createElement("div"); d.textContent = t==null?"":t; return d.innerHTML; }
 
 /* ============ estado ============ */
-var estado = { cats: [], meses: {} };
+var estado = { cats: [], meses: {}, colores: {} };
 var mesActual = claveMes(hoyISO());
-var almacen = null, editandoCats = false, LS = "gastos-v1";
+var almacen = null, LS = "gastos-v1";
+var catSel = "", catEditando = null, catCreando = false;
 
 function leerCache(){ try{ var v=JSON.parse(localStorage.getItem(LS)); if(v&&v.meses) return v; }catch(e){} return null; }
 function guardarCache(){ try{ localStorage.setItem(LS, JSON.stringify(estado)); }catch(e){} }
@@ -543,22 +601,158 @@ function pintar(){
       + esc(g.nota || g.cat) + '"><svg viewBox="0 0 20 20"><path d="M4 6h12M8 6V4h4v2M7 6l.8 10h4.4L13 6"/></svg></button></li>';
   }).join("") : '<li class="empty">Sin movimientos este mes.</li>';
 
-  pintarChips();
+  pintarCats();
   pintarHistorico();
 }
 
-function pintarChips(){
-  var input = $("cat"), fuente = estado.cats.length ? estado.cats : SUGERENCIAS;
+/* ============ categorías ============ */
+function mismaCat(a, b){ return String(a).toLowerCase() === String(b).toLowerCase(); }
+function buscarCat(n){ return estado.cats.find(function(c){ return mismaCat(c, n); }); }
+
+function colorLibre(){
+  var usados = {};
+  estado.cats.forEach(function(c){ var v = estado.colores[String(c).toLowerCase()]; if (v) usados[v] = 1; });
+  for (var i=0;i<PALETA.length;i++) if (!usados[PALETA[i]]) return PALETA[i];
+  return PALETA[estado.cats.length % PALETA.length];
+}
+/* cada categoría guarda su color, así no cambia al renombrar o eliminar otras */
+function normColores(){
+  if (!estado.colores || typeof estado.colores !== "object") estado.colores = {};
+  var primeraVez = Object.keys(estado.colores).length === 0;
+  estado.cats.forEach(function(c, i){
+    var k = String(c).toLowerCase();
+    if (!estado.colores[k]) estado.colores[k] = primeraVez ? PALETA[i % PALETA.length] : colorLibre();
+  });
+}
+function contarPorCat(){
+  var n = {};
+  Object.keys(estado.meses).forEach(function(k){
+    estado.meses[k].forEach(function(g){ var c = String(g.cat).toLowerCase(); n[c] = (n[c]||0) + 1; });
+  });
+  return n;
+}
+function agregarCat(nombre){
+  estado.cats = estado.cats.concat([nombre]);
+  var k = nombre.toLowerCase();
+  if (!estado.colores[k]) estado.colores[k] = colorLibre();
+  persistirCats();
+}
+function reetiquetar(viejo, nuevo){
+  Object.keys(estado.meses).forEach(function(m){
+    var cambio = false;
+    estado.meses[m] = estado.meses[m].map(function(g){
+      if (mismaCat(g.cat, viejo)){ cambio = true; return Object.assign({}, g, {cat:nuevo}); }
+      return g;
+    });
+    if (cambio) persistirMes(m);
+  });
+}
+function renombrarCat(viejo, nuevo){
+  var kv = viejo.toLowerCase(), kn = nuevo.toLowerCase();
+  var otra = estado.cats.find(function(c){ return mismaCat(c, nuevo) && !mismaCat(c, viejo); });
+  if (otra){
+    if (!window.confirm('Ya tienes "' + otra + '". ¿Unir "' + viejo + '" dentro de ella? Todos sus gastos pasan a "' + otra + '".')) return false;
+    estado.cats = estado.cats.filter(function(c){ return !mismaCat(c, viejo); });
+    delete estado.colores[kv];
+    reetiquetar(viejo, otra);
+    if (mismaCat(catSel, viejo)) catSel = otra;
+    persistirCats();
+    pista('Uní "' + viejo + '" dentro de "' + otra + '".');
+    return true;
+  }
+  estado.cats = estado.cats.map(function(c){ return mismaCat(c, viejo) ? nuevo : c; });
+  if (kv !== kn){ estado.colores[kn] = estado.colores[kv]; delete estado.colores[kv]; }
+  reetiquetar(viejo, nuevo);
+  if (mismaCat(catSel, viejo)) catSel = nuevo;
+  persistirCats();
+  pista('Renombré "' + viejo + '" a "' + nuevo + '", también en los gastos ya anotados.');
+  return true;
+}
+function eliminarCat(nombre){
+  var antes = { cats: estado.cats.slice(), sel: catSel };
+  estado.cats = estado.cats.filter(function(c){ return c !== nombre; });
+  if (catSel === nombre) catSel = "";
+  catEditando = null;
+  persistirCats();
+  pintar();
+  mostrarDeshacer('Eliminaste "' + nombre + '"', function(){
+    estado.cats = antes.cats; catSel = antes.sel;
+    persistirCats(); pintar();
+  });
+}
+
+var ICO_LAPIZ = '<svg viewBox="0 0 20 20"><path d="M13.5 3.5l3 3L7 16H4v-3z"/></svg>';
+var ICO_CHECK = '<svg class="check" viewBox="0 0 20 20"><path d="M4.5 10.5l3.5 3.5 7.5-8"/></svg>';
+
+function pintarCatVal(){
+  $("catVal").innerHTML = catSel
+    ? '<i style="background:' + colorDe(catSel) + '"></i><span>' + esc(catSel) + '</span>'
+    : '<span class="ph">Elige una categoría</span>';
+}
+
+function pintarCats(){
+  if (catSel && estado.cats.length && !buscarCat(catSel) && SUGERENCIAS.indexOf(catSel) === -1) catSel = "";
+  pintarCatVal();
   var propias = estado.cats.length > 0;
-  $("chips").innerHTML = fuente.map(function(c){
-    var on = input.value.trim().toLowerCase() === c.toLowerCase();
-    return '<button type="button" class="chip" aria-pressed="'+on+'" data-cat="'+esc(c)+'">'
-      + '<i style="background:'+colorDe(c)+'"></i>' + esc(c)
-      + (editandoCats && propias ? '<span class="x" data-quitar="'+esc(c)+'" title="Quitar categoría">×</span>' : '')
-      + '</button>';
-  }).join("")
-  + (propias ? '<button type="button" class="chip" id="toggleCats" style="color:var(--muted)">'
-      + (editandoCats ? "Listo" : "Editar") + '</button>' : "");
+  var fuente = propias ? estado.cats : SUGERENCIAS;
+  var cuentas = contarPorCat();
+
+  var filas = fuente.map(function(c){
+    if (propias && catEditando === c){
+      var n = cuentas[c.toLowerCase()] || 0;
+      return '<li class="fila-edit">'
+        + '<input class="inp" id="catEditInp" type="text" autocomplete="off" value="' + esc(c) + '" aria-label="Nuevo nombre">'
+        + '<div class="edit-acc">'
+        +   '<button type="button" class="mini-btn ok" data-acc="renombrar">Guardar</button>'
+        +   '<button type="button" class="mini-btn" data-acc="cancelar">Cancelar</button>'
+        +   '<button type="button" class="mini-btn peligro der" data-acc="eliminar">Eliminar</button>'
+        + '</div>'
+        + '<div class="edit-hint">' + (n
+            ? 'Tiene ' + n + (n===1?' gasto':' gastos') + '. Si la renombras, se actualizan; si la eliminas, se mantienen con este nombre.'
+            : 'Todavía no tiene gastos.') + '</div>'
+        + '</li>';
+    }
+    var sel = catSel && mismaCat(catSel, c);
+    var n2 = cuentas[c.toLowerCase()] || 0;
+    return '<li role="option" aria-selected="' + (sel ? "true" : "false") + '">'
+      + '<button type="button" class="opt" data-acc="elegir" data-cat="' + esc(c) + '">'
+      +   '<i style="background:' + colorDe(c) + '"></i><span class="nm">' + esc(c) + '</span>'
+      +   (propias && n2 ? '<small>' + n2 + (n2===1?' gasto':' gastos') + '</small>' : '<small></small>') + ICO_CHECK
+      + '</button>'
+      + (propias ? '<button type="button" class="icon-btn" data-acc="editar" data-cat="' + esc(c) + '" aria-label="Editar ' + esc(c) + '" title="Editar">' + ICO_LAPIZ + '</button>' : '')
+      + '</li>';
+  }).join("");
+
+  var pie = catCreando
+    ? '<div class="fila-edit">'
+      + '<input class="inp" id="catNuevaInp" type="text" autocomplete="off" placeholder="Nombre de la categoría" aria-label="Nombre de la categoría nueva">'
+      + '<div class="edit-acc">'
+      +   '<button type="button" class="mini-btn ok" data-acc="agregar">Agregar</button>'
+      +   '<button type="button" class="mini-btn" data-acc="cancelar">Cancelar</button>'
+      + '</div></div>'
+    : '<button type="button" class="picker-new" data-acc="nueva"><b>+</b>Nueva categoría</button>';
+
+  $("catPanel").innerHTML =
+    (propias ? '' : '<div class="picker-cap">Sugerencias: elige una o crea la tuya</div>')
+    + '<ul class="picker-list" role="listbox">' + filas + '</ul>'
+    + '<div class="picker-foot">' + pie + '</div>';
+
+  if (!$("catPanel").hidden){
+    var foco = $("catEditInp") || $("catNuevaInp");
+    if (foco){ foco.focus(); if (foco.id === "catEditInp") foco.select(); }
+  }
+}
+
+function abrirPanel(){
+  $("catPanel").hidden = false;
+  $("catBtn").setAttribute("aria-expanded", "true");
+  pintarCats();
+}
+function cerrarPanel(){
+  catEditando = null; catCreando = false;
+  $("catPanel").hidden = true;
+  $("catBtn").setAttribute("aria-expanded", "false");
+  pintarCats();
 }
 
 function pintarHistorico(){
@@ -621,49 +815,92 @@ $("monto").addEventListener("input", function(){
   this.value = d ? new Intl.NumberFormat("es-CL").format(parseInt(d,10)) : "";
 });
 
-$("chips").addEventListener("click", function(e){
-  var quitar = e.target.closest("[data-quitar]");
-  if (quitar){
-    e.stopPropagation();
-    var c = quitar.getAttribute("data-quitar");
-    estado.cats = estado.cats.filter(function(x){ return x !== c; });
-    listo.then(persistirCats);
-    pintarChips();
-    pista('Quité "' + c + '" de tus categorías. Los gastos ya anotados no cambian.');
-    return;
-  }
-  if (e.target.closest("#toggleCats")){ editandoCats = !editandoCats; pintarChips(); return; }
-  var b = e.target.closest(".chip"); if (!b || !b.dataset.cat) return;
-  $("cat").value = b.dataset.cat;
-  pintarChips();
-  $("monto").focus();
+$("catBtn").addEventListener("click", function(){
+  if ($("catPanel").hidden) abrirPanel(); else cerrarPanel();
 });
 
-$("cat").addEventListener("input", pintarChips);
-["monto","cat","nota"].forEach(function(id){
+$("catPanel").addEventListener("click", function(e){
+  e.stopPropagation();   /* el panel se redibuja; que el clic no cuente como "tocar fuera" */
+  var b = e.target.closest("[data-acc]"); if (!b) return;
+  var acc = b.dataset.acc;
+
+  if (acc === "elegir"){
+    catSel = b.dataset.cat;
+    cerrarPanel();
+    if (!$("monto").value) $("monto").focus();
+    return;
+  }
+  if (acc === "editar"){ catEditando = b.dataset.cat; catCreando = false; pintarCats(); return; }
+  if (acc === "nueva"){ catCreando = true; catEditando = null; pintarCats(); return; }
+  if (acc === "cancelar"){ catEditando = null; catCreando = false; pintarCats(); return; }
+  if (acc === "eliminar"){ eliminarCat(catEditando); return; }
+
+  if (acc === "renombrar"){
+    var nuevo = $("catEditInp").value.trim();
+    if (!nuevo){ $("catEditInp").focus(); return; }
+    var viejo = catEditando;
+    if (nuevo === viejo){ catEditando = null; pintarCats(); return; }
+    if (renombrarCat(viejo, nuevo)){ catEditando = null; pintar(); }
+    return;
+  }
+  if (acc === "agregar"){
+    var nombre = $("catNuevaInp").value.trim();
+    if (!nombre){ $("catNuevaInp").focus(); return; }
+    var ya = buscarCat(nombre);
+    if (ya){
+      catSel = ya; pista('"' + ya + '" ya existía, la dejé elegida.');
+    } else {
+      agregarCat(nombre); catSel = nombre; pista('Agregué "' + nombre + '".');
+    }
+    cerrarPanel();
+    if (!$("monto").value) $("monto").focus();
+  }
+});
+
+/* Enter confirma y Escape cancela dentro de los campos del selector */
+$("catPanel").addEventListener("keydown", function(e){
+  if (e.target.id !== "catEditInp" && e.target.id !== "catNuevaInp") return;
+  if (e.key === "Enter"){
+    e.preventDefault();
+    var btn = $("catPanel").querySelector(e.target.id === "catEditInp" ? '[data-acc="renombrar"]' : '[data-acc="agregar"]');
+    if (btn) btn.click();
+  } else if (e.key === "Escape"){
+    e.stopPropagation();
+    catEditando = null; catCreando = false; pintarCats();
+  }
+});
+
+/* cerrar el selector al tocar fuera */
+document.addEventListener("click", function(e){
+  if (!e.target.isConnected) return;
+  if (!$("catPanel").hidden && !$("picker").contains(e.target)) cerrarPanel();
+});
+
+["monto","nota"].forEach(function(id){
   $(id).addEventListener("keydown", function(e){ if (e.key === "Enter") guardar(); });
 });
 $("guardar").addEventListener("click", guardar);
 
 function guardar(){
   var monto = parseInt(soloDigitos($("monto").value) || "0", 10);
-  var cat = $("cat").value.trim();
+  var cat = catSel;
   var nota = $("nota").value.trim();
   var fecha = $("fecha").value || hoyISO();
 
   if (!monto){ pista("Escribe un monto mayor que cero.", true); $("monto").focus(); return; }
-  if (!cat){ pista("Elige o escribe una categoría.", true); $("cat").focus(); return; }
+  if (!cat){ pista("Elige una categoría.", true); abrirPanel(); return; }
 
-  var existente = estado.cats.find(function(c){ return c.toLowerCase() === cat.toLowerCase(); });
+  var existente = buscarCat(cat);
   var nueva = !existente;
-  if (nueva) estado.cats = estado.cats.concat([cat]); else cat = existente;
+  if (nueva) agregarCat(cat); else cat = existente;
+  catSel = cat;
 
   var k = claveMes(fecha);
   var nuevoGasto = {id:nuevoId(), monto:monto, cat:cat, nota:nota, fecha:fecha};
   estado.meses[k] = itemsDe(k).concat([nuevoGasto]);
   mesActual = k;
 
-  listo.then(function(){ if (nueva) persistirCats(); persistirMes(k); });
+  listo.then(function(){ persistirMes(k); });
 
   $("monto").value = ""; $("nota").value = "";
   var aviso = nueva ? 'Guardado. "' + cat + '" quedó como categoría nueva.' : "Gasto guardado.";
@@ -759,7 +996,7 @@ window.addEventListener("resize", function(){
 /* ============ respaldo ============ */
 function respaldoJSON(){
   return JSON.stringify({app:"money-control", version:1, fecha:new Date().toISOString(),
-                         cats:estado.cats, meses:estado.meses}, null, 2);
+                         cats:estado.cats, colores:estado.colores, meses:estado.meses}, null, 2);
 }
 function avisoResp(t){
   var n = $("notaResp"), previo = n.dataset.base || n.textContent;
@@ -806,7 +1043,9 @@ function leerRespaldo(){
 }
 $("impReemplazar").addEventListener("click", function(){
   var d = leerRespaldo(); if (!d) return;
-  estado = { cats: Array.isArray(d.cats) ? d.cats : [], meses: d.meses };
+  estado = { cats: Array.isArray(d.cats) ? d.cats : [], meses: d.meses,
+             colores: (d.colores && typeof d.colores === "object") ? d.colores : {} };
+  normColores(); catSel = "";
   guardarCache(); $("impBox").hidden = true; $("impTxt").value = "";
   pintar(); avisoResp("Listo: reemplacé todo con el respaldo.");
 });
@@ -824,6 +1063,10 @@ $("impSumar").addEventListener("click", function(){
   (Array.isArray(d.cats) ? d.cats : []).forEach(function(c){
     if (!estado.cats.some(function(x){ return x.toLowerCase() === String(c).toLowerCase(); })) estado.cats.push(c);
   });
+  if (d.colores && typeof d.colores === "object"){
+    Object.keys(d.colores).forEach(function(k){ if (!estado.colores[k]) estado.colores[k] = d.colores[k]; });
+  }
+  normColores();
   guardarCache(); $("impBox").hidden = true; $("impTxt").value = "";
   pintar(); avisoResp(nuevos ? "Sumé " + nuevos + (nuevos===1?" gasto nuevo.":" gastos nuevos.") : "No había gastos nuevos que sumar.");
 });
@@ -870,7 +1113,8 @@ if ("serviceWorker" in navigator){
 
 /* ============ arranque ============ */
 var cache = leerCache();
-if (cache) estado = { cats: cache.cats || [], meses: cache.meses || {} };
+if (cache) estado = { cats: cache.cats || [], meses: cache.meses || {}, colores: cache.colores || {} };
+normColores(); guardarCache();
 $("fecha").value = hoyISO();
 pintar();
 })();
