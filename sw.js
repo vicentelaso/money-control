@@ -2,7 +2,7 @@
    Guarda la app en el teléfono para que abra sin internet.
    Si editas index.html, sube el número de CACHE para que el celular tome la versión nueva. */
 
-var CACHE = "money-control-v6";
+var CACHE = "money-control-v7";
 var ARCHIVOS = [
   "./",
   "./index.html",
