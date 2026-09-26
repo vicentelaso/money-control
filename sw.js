@@ -2,11 +2,12 @@
    Guarda la app en el teléfono para que abra sin internet.
    Si editas index.html, sube el número de CACHE para que el celular tome la versión nueva. */
 
-var CACHE = "money-control-v9";
+var CACHE = "money-control-v10";
 var ARCHIVOS = [
   "./",
   "./index.html",
   "./manifest.webmanifest",
+  "./config.js",
   "./icons/favicon.png",
   "./icons/icon-192.png",
   "./icons/icon-512.png",
@@ -41,8 +42,8 @@ self.addEventListener("fetch", function (e) {
 
   var url = new URL(e.request.url);
 
-  // Las tipografías de Google: se usan si están en caché, si no se piden y se guardan.
-  if (url.origin.indexOf("fonts.g") !== -1) {
+  // Tipografías y la librería de la cuenta: primero el caché, si no se piden y se guardan.
+  if (url.origin.indexOf("fonts.g") !== -1 || url.origin.indexOf("cdn.jsdelivr.net") !== -1) {
     e.respondWith(
       caches.match(e.request).then(function (hit) {
         return hit || fetch(e.request).then(function (res) {
