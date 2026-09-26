@@ -142,6 +142,13 @@ button{cursor:pointer}
   border-radius:99px;padding:6px 12px;font-size:12.5px;font-weight:500;
 }
 .hoy-btn:hover{background:rgba(255,255,255,.16);opacity:1}
+.panel-ico{
+  width:30px;height:30px;border-radius:99px;background:rgba(255,255,255,.07);border:none;
+  color:var(--on-deep);opacity:.75;display:grid;place-items:center;flex:none;transition:background .15s,opacity .15s;
+}
+.panel-ico:hover{background:rgba(255,255,255,.16);opacity:1}
+.panel-ico svg{width:15px;height:15px;fill:none;stroke:currentColor;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round}
+.panel-top .der{margin-left:auto;display:flex;align-items:center;gap:6px}
 .total{font-size:clamp(40px,11vw,60px);line-height:1;display:block;word-break:break-word}
 .meta{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-top:11px;position:relative}
 .meta .txt{color:var(--on-deep-mute);font-size:13px}
@@ -186,12 +193,22 @@ button{cursor:pointer}
 }
 .dia:first-child{padding-top:0}
 .dia span:last-child{font-weight:500;letter-spacing:0;text-transform:none;font-size:12px}
-.mov{
-  width:100%;display:flex;align-items:center;gap:12px;text-align:left;
-  background:none;border:none;padding:10px;margin:0 -10px;width:calc(100% + 20px);
-  border-radius:var(--r-sm);transition:background .15s;
-}
+.mov{display:flex;align-items:center;gap:6px;margin:0 -10px;border-radius:var(--r-sm);transition:background .15s}
 .mov:hover{background:var(--bg)}
+.mov-main{
+  flex:1;min-width:0;display:flex;align-items:center;gap:12px;text-align:left;
+  background:none;border:none;padding:10px;border-radius:var(--r-sm);
+}
+.mov-del{
+  width:36px;height:36px;margin-right:6px;border-radius:var(--r-sm);flex:none;
+  background:none;border:1px solid transparent;color:var(--faint);display:grid;place-items:center;
+  opacity:0;transition:opacity .15s,color .15s,border-color .15s;
+}
+.mov:hover .mov-del{opacity:1}
+.mov-del:hover{color:var(--danger);border-color:var(--line)}
+.mov-del:focus-visible{opacity:1}
+.mov-del svg{width:16px;height:16px;fill:none;stroke:currentColor;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round}
+@media (hover:none){.mov-del{opacity:1}}
 .mov .dot{
   width:34px;height:34px;border-radius:11px;flex:none;display:grid;place-items:center;
   font-size:12.5px;font-weight:600;color:#fff;
@@ -337,6 +354,13 @@ body.hoja-abierta,body.win-abierta{overflow:hidden}
   padding:22px;box-shadow:var(--sh-3);opacity:0;transition:opacity .18s,transform .18s;
 }
 .win.on{opacity:1;transform:translate(-50%,-50%) scale(1)}
+.win.confirm{z-index:80;width:min(370px,calc(100vw - 36px));padding:22px}
+body.conf-abierta .backdrop{opacity:1;pointer-events:auto;z-index:75}
+.conf-acc{display:flex;gap:9px;margin-top:20px}
+.conf-acc .btn2{flex:none;padding:12px 18px}
+.conf-acc .save{margin:0;flex:1;padding:12px}
+.save.peligro{background:var(--danger)}
+.save.peligro:hover{background:var(--danger);filter:brightness(1.08)}
 .win-top{
   display:flex;align-items:center;justify-content:space-between;gap:12px;
   position:sticky;top:-22px;z-index:2;background:var(--card);
@@ -418,6 +442,12 @@ textarea.inp{min-height:110px;resize:vertical;font-size:12.5px;font-family:ui-mo
   .cerrar-hoja{display:grid;place-items:center;width:30px;height:30px;border-radius:9px;background:var(--bg);border:1px solid var(--line);color:var(--muted);font-size:18px;line-height:1}
 
   .win-top{top:-18px}
+  .win.confirm{
+    left:50%;right:auto;bottom:auto;top:50%;width:min(370px,calc(100vw - 36px));
+    transform:translate(-50%,-50%) scale(.98);border-radius:var(--r-lg);border-bottom:1px solid var(--line);
+    padding:22px;
+  }
+  .win.confirm.on{transform:translate(-50%,-50%) scale(1)}
   .win{
     left:0;right:0;bottom:0;top:auto;transform:translateY(103%);width:auto;max-height:88dvh;
     border-radius:20px 20px 0 0;border-bottom:none;
@@ -481,7 +511,12 @@ textarea.inp{min-height:110px;resize:vertical;font-size:12.5px;font-family:ui-mo
           <div class="mes" id="mesLabel">—</div>
           <button id="next" aria-label="Mes siguiente">›</button>
         </div>
-        <button class="hoy-btn" id="btnHoy" hidden>Hoy</button>
+        <div class="der">
+          <button class="hoy-btn" id="btnHoy" hidden>Hoy</button>
+          <button class="panel-ico" id="btnBorrarMes" hidden aria-label="Borrar el mes" title="Borrar el mes">
+            <svg viewBox="0 0 20 20"><path d="M4 6h12M8 6V4h4v2M7 6l.8 10h4.4L13 6"/></svg>
+          </button>
+        </div>
       </div>
       <span class="total num" id="total">$0</span>
       <div class="meta">
@@ -640,6 +675,15 @@ textarea.inp{min-height:110px;resize:vertical;font-size:12.5px;font-family:ui-mo
   <div class="pie"><span>Money Control</span><span id="pieDatos"></span></div>
 </div>
 
+<div class="win confirm" id="winConfirm" hidden role="dialog" aria-modal="true" aria-labelledby="confTitulo">
+  <div class="win-top" style="position:static;padding:0;margin:0 0 6px"><h2 id="confTitulo">¿Seguro?</h2></div>
+  <p class="bajada" id="confTexto"></p>
+  <div class="conf-acc">
+    <button class="btn2" id="confNo">Cancelar</button>
+    <button class="save" id="confSi">Confirmar</button>
+  </div>
+</div>
+
 <div class="toast" id="toast" hidden role="status">
   <span id="toastTxt"></span>
   <button id="undo">Deshacer</button>
@@ -754,6 +798,14 @@ function normColores(){
   });
 }
 function buscarCat(n){ return estado.cats.find(function(c){ return mismaCat(c,n); }); }
+/* las más usadas primero; empate, alfabético */
+function catsOrdenadas(){
+  var n = contarPorCat();
+  return estado.cats.slice().sort(function(a,b){
+    var da = n[String(a).toLowerCase()] || 0, db = n[String(b).toLowerCase()] || 0;
+    return db - da || String(a).localeCompare(String(b), "es");
+  });
+}
 function contarPorCat(){
   var n = {};
   Object.keys(estado.meses).forEach(function(k){
@@ -774,20 +826,18 @@ function reetiquetar(viejo, nuevo){
     });
   });
 }
+function unirCat(viejo, otra){
+  var kv = viejo.toLowerCase();
+  estado.cats = estado.cats.filter(function(c){ return !mismaCat(c,viejo); });
+  delete estado.colores[kv];
+  delete estado.presupuestos[kv];
+  reetiquetar(viejo, otra);
+  if (mismaCat(catSel, viejo)) catSel = otra;
+  guardarCache(true);
+  avisar('Uní "' + viejo + '" con "' + otra + '"');
+}
 function renombrarCat(viejo, nuevo){
   var kv = viejo.toLowerCase(), kn = nuevo.toLowerCase();
-  var otra = estado.cats.find(function(c){ return mismaCat(c,nuevo) && !mismaCat(c,viejo); });
-  if (otra){
-    if (!window.confirm('Ya existe "' + otra + '". ¿Unir "' + viejo + '" con ella?')) return false;
-    estado.cats = estado.cats.filter(function(c){ return !mismaCat(c,viejo); });
-    delete estado.colores[kv];
-    delete estado.presupuestos[kv];
-    reetiquetar(viejo, otra);
-    if (mismaCat(catSel, viejo)) catSel = otra;
-    guardarCache(true);
-    avisar('Uní "' + viejo + '" con "' + otra + '"');
-    return true;
-  }
   estado.cats = estado.cats.map(function(c){ return mismaCat(c,viejo) ? nuevo : c; });
   if (kv !== kn){
     estado.colores[kn] = estado.colores[kv]; delete estado.colores[kv];
@@ -901,6 +951,34 @@ function revisarResumen(){
 }
 
 /* ============================================================
+   Confirmación
+   ============================================================ */
+var confOk = null;
+function confirmar(o){
+  return new Promise(function(res){
+    confOk = res;
+    $("confTitulo").textContent = o.titulo;
+    $("confTexto").textContent = o.texto || "";
+    $("confSi").textContent = o.ok || "Confirmar";
+    $("confSi").className = "save" + (o.peligro ? " peligro" : "");
+    $("winConfirm").hidden = false;
+    document.body.classList.add("conf-abierta");
+    requestAnimationFrame(function(){ $("winConfirm").classList.add("on"); });
+    setTimeout(function(){ $("confSi").focus(); }, 60);
+  });
+}
+function cerrarConfirm(v){
+  if (!confOk) return;
+  var r = confOk; confOk = null;
+  $("winConfirm").classList.remove("on");
+  document.body.classList.remove("conf-abierta");
+  setTimeout(function(){ $("winConfirm").hidden = true; }, lento ? 0 : 180);
+  r(v);
+}
+$("confSi").addEventListener("click", function(){ cerrarConfirm(true); });
+$("confNo").addEventListener("click", function(){ cerrarConfirm(false); });
+
+/* ============================================================
    Aviso flotante (con deshacer)
    ============================================================ */
 var deshacer = null, tmToast = null;
@@ -946,6 +1024,7 @@ function pintar(){
 
   $("mesLabel").textContent = nombreMes(mesActual);
   $("btnHoy").hidden = (mesActual === claveMes(hoyISO()));
+  $("btnBorrarMes").hidden = !items.length;
   animarTotal(total);
 
   /* comparación con el mes anterior */
@@ -991,10 +1070,16 @@ function pintar(){
         var tot = items.filter(function(x){ return x.fecha === dia; }).reduce(function(a,b){ return a+b.monto; },0);
         html += '<div class="dia"><span>' + fechaLarga(dia) + '</span><span>' + plata(tot) + '</span></div>';
       }
-      html += '<button class="mov" data-id="'+g.id+'">'
-        + '<span class="dot" style="background:'+colorDe(g.cat)+'">' + esc(String(g.cat).charAt(0).toUpperCase()) + '</span>'
-        + '<span class="d"><b>' + esc(g.nota || g.cat) + '</b><small>' + esc(g.cat) + '</small></span>'
-        + '<span class="m">' + plata(g.monto) + '</span></button>';
+      html += '<div class="mov">'
+        + '<button class="mov-main" data-id="'+g.id+'">'
+        +   '<span class="dot" style="background:'+colorDe(g.cat)+'">' + esc(String(g.cat).charAt(0).toUpperCase()) + '</span>'
+        +   '<span class="d"><b>' + esc(g.nota || g.cat) + '</b>'
+        +     (g.nota ? '<small>' + esc(g.cat) + '</small>' : '') + '</span>'
+        +   '<span class="m">' + plata(g.monto) + '</span>'
+        + '</button>'
+        + '<button class="mov-del" data-del="'+g.id+'" aria-label="Eliminar gasto">'
+        +   '<svg viewBox="0 0 20 20"><path d="M4 6h12M8 6V4h4v2M7 6l.8 10h4.4L13 6"/></svg>'
+        + '</button></div>';
     });
     $("movs").innerHTML = html;
   }
@@ -1089,7 +1174,7 @@ function pintarCats(){
   if (catSel && estado.cats.length && !buscarCat(catSel) && SUGERENCIAS.indexOf(catSel) === -1) catSel = "";
   pintarCatVal();
   var propias = estado.cats.length > 0;
-  var fuente = propias ? estado.cats : SUGERENCIAS;
+  var fuente = propias ? catsOrdenadas() : SUGERENCIAS;
   var cuentas = contarPorCat();
 
   var filas = fuente.map(function(c){
@@ -1145,12 +1230,30 @@ $("catPanel").addEventListener("click", function(e){
   if (acc === "editar"){ catEditando = b.dataset.cat; catCreando = false; pintarCats(); return; }
   if (acc === "nueva"){ catCreando = true; catEditando = null; pintarCats(); return; }
   if (acc === "cancelar"){ catEditando = null; catCreando = false; pintarCats(); return; }
-  if (acc === "eliminar"){ eliminarCat(catEditando); return; }
+  if (acc === "eliminar"){
+    var cE = catEditando, nE = contarPorCat()[cE.toLowerCase()] || 0;
+    confirmar({
+      titulo: "¿Eliminar la categoría?",
+      texto: '"' + cE + '" sale de la lista.' + (nE ? (nE===1 ? " Su gasto se mantiene con ese nombre."
+                                                              : " Sus " + nE + " gastos se mantienen con ese nombre.") : ""),
+      ok: "Eliminar", peligro: true
+    }).then(function(si){ if (si) eliminarCat(cE); });
+    return;
+  }
   if (acc === "renombrar"){
     var nuevo = $("catEditInp").value.trim(); if (!nuevo) return $("catEditInp").focus();
     var viejo = catEditando;
     if (nuevo === viejo){ catEditando = null; return pintarCats(); }
-    if (renombrarCat(viejo, nuevo)){ catEditando = null; pintar(); }
+    var otra = estado.cats.find(function(c){ return mismaCat(c,nuevo) && !mismaCat(c,viejo); });
+    if (otra){
+      confirmar({
+        titulo: "¿Unir las categorías?",
+        texto: 'Ya existe "' + otra + '". Los gastos de "' + viejo + '" pasarán a ella y "' + viejo + '" desaparecerá.',
+        ok: "Unir", peligro: true
+      }).then(function(si){ if (si){ unirCat(viejo, otra); catEditando = null; pintar(); } });
+      return;
+    }
+    renombrarCat(viejo, nuevo); catEditando = null; pintar();
     return;
   }
   if (acc === "agregar"){
@@ -1188,17 +1291,12 @@ $("monto").addEventListener("input", function(){
 });
 $("guardar").addEventListener("click", guardar);
 $("borrarGasto").addEventListener("click", function(){
-  if (!editandoId) return;
-  var r = quitarGasto(editandoId);
-  cerrarHoja(); pintar();
-  if (r) avisar("Gasto eliminado", function(){
-    estado.meses[r.mes] = itemsDe(r.mes).concat([r.g]);
-    guardarCache(true); pintar();
-  });
+  if (editandoId) eliminarGasto(editandoId);
 });
 
 function limpiarForm(){
   editandoId = null;
+  catSel = "";                 /* no se arrastra la categoría del gasto anterior */
   $("monto").value = ""; $("nota").value = ""; $("hint").textContent = "";
   $("fecha").value = hoyISO();
   $("hojaTitulo").textContent = "Anotar un gasto";
@@ -1218,10 +1316,33 @@ function cargarForm(id){
   $("borrarGasto").hidden = false;
   pintarCatVal();
 }
+function textoGasto(g){ return (g.nota ? g.nota + " · " : "") + g.cat + " · " + plata(g.monto) + " · " + fechaLarga(g.fecha); }
+
+function eliminarGasto(id){
+  var r = buscarGasto(id); if (!r) return;
+  confirmar({
+    titulo: "¿Eliminar este gasto?",
+    texto: textoGasto(r.g),
+    ok: "Eliminar", peligro: true
+  }).then(function(si){
+    if (!si) return;
+    quitarGasto(id);
+    if (editandoId === id) { cerrarHoja(); }
+    pintar();
+    avisar("Gasto eliminado", function(){
+      estado.meses[r.mes] = itemsDe(r.mes).concat([r.g]);
+      guardarCache(true); pintar();
+    });
+  });
+}
+
 $("movs").addEventListener("click", function(e){
-  var b = e.target.closest(".mov"); if (!b) return;
-  cargarForm(b.dataset.id);
-  abrirHoja(true);
+  var del = e.target.closest("[data-del]");
+  if (del){ eliminarGasto(del.dataset.del); return; }
+  var b = e.target.closest("[data-id]"); if (!b) return;
+  var r = buscarGasto(b.dataset.id); if (!r) return;
+  confirmar({ titulo: "¿Editar este gasto?", texto: textoGasto(r.g), ok: "Editar" })
+    .then(function(si){ if (si){ cargarForm(b.dataset.id); abrirHoja(true); } });
 });
 
 function guardar(){
@@ -1230,8 +1351,12 @@ function guardar(){
   var nota = $("nota").value.trim();
   var fecha = $("fecha").value || hoyISO();
 
-  if (!monto){ $("hint").textContent = "Falta el monto."; $("monto").focus(); return; }
-  if (!cat){ $("hint").textContent = "Falta la categoría."; abrirPanel(); return; }
+  if (!monto){ $("hint").textContent = "Falta ingresar el monto."; $("monto").focus(); return; }
+  if (!cat){
+    $("hint").textContent = "Falta elegir la categoría.";
+    setTimeout(abrirPanel, 0);   /* después de que este clic termine de propagarse */
+    return;
+  }
 
   var existente = buscarCat(cat);
   if (!existente) agregarCat(cat); else cat = existente;
@@ -1265,6 +1390,7 @@ function esMovil(){ return window.matchMedia("(max-width:760px)").matches; }
 function abrirHoja(sinLimpiar){
   verTab("mes");
   if (!sinLimpiar && !editandoId) limpiarForm();
+  pintarCatVal();
   if (!esMovil()){
     $("hoja").scrollIntoView({block:"center", behavior: lento ? "auto" : "smooth"});
     $("monto").focus();
@@ -1303,10 +1429,14 @@ $("btnPresu").addEventListener("click", function(){ abrirWin("winPresu"); });
 $("btnCfg").addEventListener("click", function(){ abrirWin("winCfg"); });
 $("cerrarPresu").addEventListener("click", cerrarWins);
 $("cerrarCfg").addEventListener("click", cerrarWins);
-$("backdrop").addEventListener("click", function(){ cerrarWins(); cerrarHoja(); });
+$("backdrop").addEventListener("click", function(){
+  if (confOk){ cerrarConfirm(false); return; }
+  cerrarWins(); cerrarHoja();
+});
 document.addEventListener("keydown", function(e){
   if (e.key !== "Escape") return;
-  if (!$("winPresu").hidden || !$("winCfg").hidden) cerrarWins();
+  if (confOk) cerrarConfirm(false);
+  else if (!$("winPresu").hidden || !$("winCfg").hidden) cerrarWins();
   else if (document.body.classList.contains("hoja-abierta")) cerrarHoja();
 });
 
@@ -1328,6 +1458,24 @@ function verTab(cual){
 $("prev").addEventListener("click", function(){ mesActual = mesVecino(mesActual,-1); pintar(); });
 $("next").addEventListener("click", function(){ mesActual = mesVecino(mesActual, 1); pintar(); });
 $("btnHoy").addEventListener("click", function(){ mesActual = claveMes(hoyISO()); pintar(); });
+$("btnBorrarMes").addEventListener("click", function(){
+  var k = mesActual, items = itemsDe(k);
+  if (!items.length) return;
+  confirmar({
+    titulo: "¿Borrar todo " + nombreMes(k) + "?",
+    texto: "Se eliminan sus " + items.length + (items.length===1?" gasto":" gastos") + ", " + plata(totalDe(k))
+         + " en total. Las categorías y los presupuestos no se tocan.",
+    ok: "Borrar el mes", peligro: true
+  }).then(function(si){
+    if (!si) return;
+    var copia = items.slice();
+    delete estado.meses[k];
+    guardarCache(true); pintar();
+    avisar("Borré " + nombreMes(k), function(){
+      estado.meses[k] = copia; guardarCache(true); pintar();
+    });
+  });
+});
 $("bars").addEventListener("click", function(e){
   var c = e.target.closest(".bcol"); if (!c) return;
   mesActual = c.dataset.mes; verTab("mes"); pintar();
@@ -1339,7 +1487,7 @@ $("bars").addEventListener("click", function(e){
    ============================================================ */
 function pintarPresu(){
   $("presuLista").innerHTML = estado.cats.length
-    ? estado.cats.map(function(c){
+    ? catsOrdenadas().map(function(c){
         var p = presuDe(c);
         return '<div class="fila"><i style="background:'+colorDe(c)+'"></i><span class="cn">'+esc(c)+'</span>'
           + '<input class="inp presu-inp" type="text" inputmode="numeric" data-cat="'+esc(c)+'" '
@@ -1462,6 +1610,13 @@ function leerRespaldo(){
 }
 $("impReemplazar").addEventListener("click", function(){
   var d = leerRespaldo(); if (!d) return;
+  confirmar({
+    titulo: "¿Reemplazar todo?",
+    texto: "Se borran los gastos, categorías y presupuestos actuales, y quedan los del respaldo.",
+    ok: "Reemplazar", peligro: true
+  }).then(function(si){ if (si) aplicarReemplazo(d); });
+});
+function aplicarReemplazo(d){
   estado = {
     cats: Array.isArray(d.cats) ? d.cats : [], meses: d.meses,
     colores: (d.colores && typeof d.colores === "object") ? d.colores : {},
@@ -1474,7 +1629,7 @@ $("impReemplazar").addEventListener("click", function(){
   $("impBox").hidden = true; $("impTxt").value = "";
   cerrarWins(); pintar();
   avisar("Respaldo restaurado");
-});
+}
 $("impSumar").addEventListener("click", function(){
   var d = leerRespaldo(); if (!d) return;
   var nuevos = 0;
