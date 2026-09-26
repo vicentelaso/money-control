@@ -86,7 +86,8 @@ button{cursor:pointer}
   border-bottom:1px solid var(--line);
 }
 .bar-in{max-width:980px;margin:0 auto;display:flex;align-items:center;gap:14px}
-.brand{display:flex;align-items:center;gap:9px;font-weight:600;font-size:16.5px;letter-spacing:-.02em;padding-bottom:12px}
+.brand{display:flex;align-items:center;gap:9px;min-width:0;font-weight:600;font-size:16.5px;letter-spacing:-.02em;padding-bottom:12px}
+.brand .nom{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .brand .mark{
   width:25px;height:25px;border-radius:8px;background:var(--deep);
   display:grid;place-items:center;color:var(--gold);
@@ -168,7 +169,8 @@ button{cursor:pointer}
    ============================================================ */
 .grid2{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:16px;align-items:start;margin-top:16px}
 @media (max-width:760px){.grid2{grid-template-columns:1fr;gap:12px;margin-top:12px}}
-.col{display:grid;gap:16px;align-content:start}
+.grid2 > *{min-width:0}
+.col{display:grid;gap:16px;align-content:start;min-width:0}
 @media (max-width:760px){.col{gap:12px}}
 .card{background:var(--card);border:1px solid var(--line);border-radius:var(--r-md);padding:18px 20px;box-shadow:var(--sh-1)}
 .card > h2{
@@ -453,7 +455,7 @@ textarea.inp{min-height:110px;resize:vertical;font-size:12.5px;font-family:ui-mo
   #hoja{
     position:fixed;left:0;right:0;bottom:0;top:auto;z-index:60;margin:0;
     border-radius:20px 20px 0 0;border-bottom:none;border-color:var(--line);
-    max-height:88dvh;overflow-y:auto;
+    max-height:88vh;max-height:88dvh;overflow-y:auto;
     padding:8px 16px calc(20px + env(safe-area-inset-bottom, 0px));
     transform:translateY(103%);transition:transform .26s cubic-bezier(.2,.85,.3,1);
     box-shadow:0 -16px 44px -14px rgba(0,0,0,.45);
@@ -477,7 +479,7 @@ textarea.inp{min-height:110px;resize:vertical;font-size:12.5px;font-family:ui-mo
   }
   .win.confirm.on{transform:translate(-50%,-50%) scale(1)}
   .win{
-    left:0;right:0;bottom:0;top:auto;transform:translateY(103%);width:auto;max-height:88dvh;
+    left:0;right:0;bottom:0;top:auto;transform:translateY(103%);width:auto;max-height:88vh;max-height:88dvh;
     border-radius:20px 20px 0 0;border-bottom:none;
     padding:18px 16px calc(20px + env(safe-area-inset-bottom, 0px));
   }
@@ -505,6 +507,27 @@ textarea.inp{min-height:110px;resize:vertical;font-size:12.5px;font-family:ui-mo
   .toast{bottom:calc(env(safe-area-inset-bottom, 0px) + 82px)}
   .mov .m,.mov .d b,.nom span,.val{font-size:14px}
 }
+@media (max-width:360px){
+  .wrap{padding:14px 11px 104px}
+  .card{padding:14px}
+  .panel{padding:16px 15px 18px}
+  .bar{padding:calc(env(safe-area-inset-top, 0px) + 9px) 11px 0}
+  .brand{font-size:15.5px;gap:7px}
+  .brand .nom{display:none}      /* en pantallas muy chicas basta el ícono */
+  .brand .mark{width:24px;height:24px;font-size:13px}
+  .ghost{width:33px;height:33px}
+  .cta{padding:7px 12px;font-size:12.5px}
+  .total{font-size:clamp(32px,10.5vw,44px)}
+  .mes-nav .mes{font-size:12.5px;padding:0 6px}
+  .mes-nav button{width:26px;height:26px}
+  .fila .inp{width:96px}
+  .conf-acc{flex-wrap:wrap}
+  .conf-acc .btn2,.conf-acc .save{flex:1 1 100%}
+  .kpi{padding:12px 13px}
+  .kpi .v{font-size:18px}
+  .opt{padding-left:11px;font-size:14px}
+  .toast{padding:11px 11px 11px 14px;font-size:13.5px}
+}
 @media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
 </style>
 </head>
@@ -512,7 +535,7 @@ textarea.inp{min-height:110px;resize:vertical;font-size:12.5px;font-family:ui-mo
 
 <header class="bar">
   <div class="bar-in">
-    <div class="brand"><span class="mark">$</span>Money Control</div>
+    <div class="brand"><span class="mark">$</span><span class="nom">Money Control</span></div>
     <nav class="tabs" role="tablist">
       <button class="tab" id="tabMes" role="tab" aria-selected="true">Este mes</button>
       <button class="tab" id="tabHist" role="tab" aria-selected="false">Histórico</button>
@@ -736,6 +759,28 @@ textarea.inp{min-height:110px;resize:vertical;font-size:12.5px;font-family:ui-mo
   </div>
 
   <div class="pie"><span>Money Control</span><span id="pieDatos"></span></div>
+</div>
+
+<div class="win" id="winInstalar" hidden role="dialog" aria-label="Instalar la app">
+  <div class="win-top"><h2>Instalar la app</h2><button class="cerrar-x" id="cerrarInst" aria-label="Cerrar">×</button></div>
+  <p class="bajada">Queda con ícono propio en la pantalla de inicio y abre a pantalla completa.</p>
+
+  <div class="sec" id="instIOS" style="border-top:none;padding-top:0">
+    <h3>iPhone o iPad</h3>
+    <div class="acc-b" style="padding-bottom:0">
+      <p>Tiene que ser <b>Safari</b>: desde Chrome en iPhone no se puede.</p>
+      <p>Toca el botón <b>Compartir</b> —el cuadrito con la flecha hacia arriba— y baja hasta <b>Añadir a pantalla de inicio</b>.</p>
+    </div>
+  </div>
+
+  <div class="sec" id="instAndroid">
+    <h3>Android</h3>
+    <div class="acc-b" style="padding-bottom:0">
+      <p>Tiene que ser <b>Chrome</b>: el navegador que viene por defecto en algunos teléfonos no instala apps web.</p>
+      <p>Menú <b>⋮</b> arriba a la derecha → <b>Instalar aplicación</b> o <b>Agregar a pantalla principal</b>.</p>
+      <p>Si Chrome dice que la instaló pero el ícono no aparece, en Xiaomi hay que permitirlo: Ajustes → Aplicaciones → Chrome → Otros permisos → <b>Accesos directos en pantalla de inicio</b>.</p>
+    </div>
+  </div>
 </div>
 
 <div class="win confirm" id="winConfirm" hidden role="dialog" aria-modal="true" aria-labelledby="confTitulo">
@@ -1496,7 +1541,7 @@ function abrirWin(id){
   requestAnimationFrame(function(){ w.classList.add("on"); });
 }
 function cerrarWins(){
-  ["winPresu","winCfg"].forEach(function(id){
+  ["winPresu","winCfg","winInstalar"].forEach(function(id){
     var w = $(id);
     if (w.hidden) return;
     w.classList.remove("on");
@@ -1515,7 +1560,7 @@ $("backdrop").addEventListener("click", function(){
 document.addEventListener("keydown", function(e){
   if (e.key !== "Escape") return;
   if (confOk) cerrarConfirm(false);
-  else if (!$("winPresu").hidden || !$("winCfg").hidden) cerrarWins();
+  else if (!$("winPresu").hidden || !$("winCfg").hidden || !$("winInstalar").hidden) cerrarWins();
   else if (document.body.classList.contains("hoja-abierta")) cerrarHoja();
 });
 
@@ -1738,14 +1783,30 @@ $("impSumar").addEventListener("click", function(){
    Instalación
    ============================================================ */
 var promptInstalar = null;
+function yaInstalada(){
+  return window.navigator.standalone === true ||
+         (window.matchMedia && window.matchMedia("(display-mode: standalone)").matches);
+}
 window.addEventListener("beforeinstallprompt", function(e){
   e.preventDefault(); promptInstalar = e; $("btnInstalar").hidden = false;
 });
+/* Safari y varios navegadores no avisan que se puede instalar: igual se ofrece, con instrucciones */
+if (!yaInstalada()) setTimeout(function(){ $("btnInstalar").hidden = false; }, 1500);
 $("btnInstalar").addEventListener("click", function(){
-  if (!promptInstalar) return;
-  promptInstalar.prompt();
-  promptInstalar.userChoice.then(function(){ promptInstalar = null; $("btnInstalar").hidden = true; });
+  if (promptInstalar){
+    promptInstalar.prompt();
+    promptInstalar.userChoice.then(function(){ promptInstalar = null; $("btnInstalar").hidden = true; });
+    return;
+  }
+  var esIOS = /iphone|ipad|ipod/i.test(navigator.userAgent) ||
+              (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1);
+  $("winInstalar").insertBefore(esIOS ? $("instIOS") : $("instAndroid"), $("instIOS"));
+  cerrarHoja();
+  $("winInstalar").hidden = false;
+  document.body.classList.add("win-abierta");
+  requestAnimationFrame(function(){ $("winInstalar").classList.add("on"); });
 });
+$("cerrarInst").addEventListener("click", cerrarWins);
 window.addEventListener("appinstalled", function(){ promptInstalar = null; $("btnInstalar").hidden = true; });
 
 /* ============================================================
