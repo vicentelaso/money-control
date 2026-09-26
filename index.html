@@ -15,6 +15,7 @@
 <meta name="mobile-web-app-capable" content="yes">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<script src="config.js"></script>
 <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500&family=Inter+Tight:wght@400;500;600&display=swap" rel="stylesheet">
 <style>
 /* ============================================================
@@ -398,6 +399,31 @@ textarea.inp{min-height:110px;resize:vertical;font-size:12.5px;font-family:ui-mo
 .acc-b b{color:var(--ink);font-weight:500}
 .pie{margin-top:20px;padding-top:14px;border-top:1px solid var(--line);font-size:12px;color:var(--faint);display:flex;justify-content:space-between;gap:10px}
 
+/* ---------- acceso ---------- */
+.acceso{
+  position:fixed;inset:0;z-index:90;display:grid;place-items:center;padding:24px;
+  padding-top:calc(24px + env(safe-area-inset-top, 0px));
+  padding-bottom:calc(24px + env(safe-area-inset-bottom, 0px));
+  background:linear-gradient(160deg,var(--deep) 0%,var(--deep-2) 120%);overflow-y:auto;
+}
+.acceso-caja{width:min(370px,100%);background:var(--card);border-radius:var(--r-lg);padding:26px 24px;box-shadow:var(--sh-3)}
+.acceso .logo{display:flex;align-items:center;gap:10px;font-weight:600;font-size:17px;letter-spacing:-.02em;margin-bottom:6px}
+.acceso .logo .mark{width:26px;height:26px;border-radius:8px;background:var(--deep);display:grid;place-items:center;color:var(--gold);font-family:"Fraunces",serif;font-size:14px}
+.acceso p.bajada{margin:0 0 18px}
+.acceso label{margin-top:12px}
+.acceso .check{margin-top:14px}
+.acceso .save{margin-top:18px}
+.acceso .err{color:var(--danger);font-size:13px;min-height:1.2em;margin-top:10px;line-height:1.4}
+.acceso .alt{display:flex;justify-content:space-between;align-items:center;gap:10px;margin-top:14px;flex-wrap:wrap}
+.acceso .cargando{text-align:center;color:var(--muted);font-size:13.5px;padding:24px 0}
+.sync{display:inline-flex;align-items:center;gap:7px;font-size:12.5px;color:var(--muted)}
+.sync i{width:7px;height:7px;border-radius:99px;background:var(--faint);flex:none}
+.sync.ok i{background:var(--ok)}
+.sync.pend i{background:var(--gold)}
+.sync.mal i{background:var(--danger)}
+.cuenta-fila{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap}
+.cuenta-fila .quien{font-size:14.5px;font-weight:500;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+
 .toast{
   position:fixed;left:50%;transform:translateX(-50%) translateY(0);
   bottom:calc(env(safe-area-inset-bottom, 0px) + 20px);z-index:70;
@@ -584,6 +610,29 @@ textarea.inp{min-height:110px;resize:vertical;font-size:12.5px;font-family:ui-mo
 
 </main>
 
+<div class="acceso" id="acceso" hidden>
+  <div class="acceso-caja">
+    <div class="logo"><span class="mark">$</span>Money Control</div>
+
+    <div id="accCargando" class="cargando">Conectando…</div>
+
+    <div id="accForm" hidden>
+      <p class="bajada" id="accBajada">Entra con tu cuenta para ver tus gastos en cualquier dispositivo.</p>
+      <label for="accUser">Usuario</label>
+      <input class="inp" id="accUser" type="text" autocomplete="username" autocapitalize="none" spellcheck="false" placeholder="tu nombre de usuario">
+      <label for="accPass">Contraseña</label>
+      <input class="inp" id="accPass" type="password" autocomplete="current-password" placeholder="mínimo 6 caracteres">
+      <label class="check"><input type="checkbox" id="accRecordar" checked><span>Mantener la sesión iniciada en este dispositivo</span></label>
+      <button class="save" id="accEntrar">Entrar</button>
+      <div class="err" id="accErr"></div>
+      <div class="alt">
+        <button class="linkbtn" id="accCambiar">Crear una cuenta</button>
+        <button class="linkbtn" id="accLocal">Usar sin cuenta</button>
+      </div>
+    </div>
+  </div>
+</div>
+
 <div class="backdrop" id="backdrop"></div>
 
 <nav class="bottombar" aria-label="Navegación">
@@ -610,7 +659,19 @@ textarea.inp{min-height:110px;resize:vertical;font-size:12.5px;font-family:ui-mo
 <div class="win" id="winCfg" hidden role="dialog" aria-label="Ajustes">
   <div class="win-top"><h2>Ajustes</h2><button class="cerrar-x" id="cerrarCfg" aria-label="Cerrar">×</button></div>
 
-  <div class="sec" style="border-top:none;margin-top:14px;padding-top:0">
+  <div class="sec" id="secCuenta" style="border-top:none;margin-top:14px;padding-top:0" hidden>
+    <h3>Cuenta</h3>
+    <div class="cuenta-fila">
+      <span class="quien" id="cuentaQuien">—</span>
+      <button class="btn2" id="btnSalir">Cerrar sesión</button>
+    </div>
+    <div class="cuenta-fila" style="margin-top:12px">
+      <span class="sync" id="syncEstado"><i></i>—</span>
+      <button class="linkbtn" id="btnSync">Sincronizar ahora</button>
+    </div>
+  </div>
+
+  <div class="sec" id="secNotif">
     <h3>Notificaciones</h3>
     <label class="check"><input type="checkbox" id="cfgNotif"><span>Avisarme del presupuesto 5 minutos después de anotar un gasto</span></label>
     <label class="check"><input type="checkbox" id="cfgResumen"><span>Resumen diario del mes</span></label>
@@ -729,21 +790,30 @@ var lento = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 /* ============================================================
    Estado y persistencia
    ============================================================ */
-var estado = { cats:[], meses:{}, colores:{}, presupuestos:{},
-               notif:false, resumen:false, horaResumen:"09:00",
-               pendientes:[], ultimoResumen:"" };
+function estadoVacio(){
+  return { cats:[], meses:{}, colores:{}, presupuestos:{},
+           notif:false, resumen:false, horaResumen:"09:00",
+           pendientes:[], ultimoResumen:"", ts:0 };
+}
+var estado = estadoVacio();
 var mesActual = claveMes(hoyISO());
 var catSel = "", catEditando = null, catCreando = false;
 var alertasAbierto = false, editandoId = null;
 
-function leerCache(){ try{ var v=JSON.parse(localStorage.getItem(LS)); if(v&&v.meses) return v; }catch(e){} return null; }
+var usuario = null;                       /* {id, nombre} cuando hay sesión */
+function claveLS(){ return usuario ? LS + ":" + usuario.id : LS; }
+function leerCache(clave){ try{ var v=JSON.parse(localStorage.getItem(clave || claveLS())); if(v&&v.meses) return v; }catch(e){} return null; }
 var guardarPend = null;
 function guardarCache(ya){
+  estado.ts = Date.now();
   if (ya){ escribir(); return; }
   if (guardarPend) return;                       /* se agrupan las escrituras seguidas */
   guardarPend = setTimeout(function(){ guardarPend = null; escribir(); }, 120);
 }
-function escribir(){ try{ localStorage.setItem(LS, JSON.stringify(estado)); }catch(e){} }
+function escribir(){
+  try{ localStorage.setItem(claveLS(), JSON.stringify(estado)); }catch(e){}
+  programarSubida();
+}
 window.addEventListener("pagehide", function(){ if (guardarPend) escribir(); });
 
 function itemsDe(k){ return estado.meses[k] || []; }
@@ -1523,6 +1593,8 @@ function notaNotif(){
   $("cfgNota").textContent = t;
 }
 function pintarCfg(){
+  $("secCuenta").hidden = !usuario;
+  if (usuario){ $("cuentaQuien").textContent = usuario.nombre; estadoSync(); }
   $("cfgNotif").checked = !!estado.notif;
   $("cfgResumen").checked = !!estado.resumen;
   $("cfgHora").value = estado.horaResumen || "09:00";
@@ -1679,8 +1751,17 @@ function ponerseAlDia(){
   var m = claveMes(hoy);
   if (m !== mesDeHoy){ mesDeHoy = m; mesActual = m; pintar(); }
 }
-function latido(){ ponerseAlDia(); revisarPendientes(); revisarResumen(); }
-document.addEventListener("visibilitychange", function(){ if (document.visibilityState === "visible") latido(); });
+function latido(){
+  ponerseAlDia(); revisarPendientes(); revisarResumen();
+  if (sb && usuario && (hayPendiente || sinRed)) subir();
+}
+document.addEventListener("visibilitychange", function(){
+  if (document.visibilityState !== "visible") return;
+  latido();
+  if (sb && usuario) bajar();            /* trae lo que se haya anotado en otro dispositivo */
+});
+window.addEventListener("online", function(){ sinRed = false; if (sb && usuario) subir().then(bajar); });
+window.addEventListener("offline", function(){ sinRed = true; estadoSync(); });
 window.addEventListener("focus", latido);
 setInterval(latido, 30000);
 
@@ -1699,19 +1780,258 @@ if ("serviceWorker" in navigator){
 }
 
 /* ============================================================
+   Cuenta en la nube (Supabase)
+   ------------------------------------------------------------
+   Cada usuario guarda TODO su estado en una fila propia. La copia
+   local sigue siendo la que manda mientras se usa la app: la nube
+   se sincroniza aparte, así la app funciona igual sin internet.
+   ============================================================ */
+var CFG = window.MC_CONFIG || {};
+var nubeOn = !!(CFG.url && CFG.key);
+var SDK = "https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.js";
+var sb = null, subTm = null, subiendo = false, hayPendiente = false, sinRed = false;
+
+function recordarme(){ return localStorage.getItem("mc-recordar") !== "0"; }
+function cargarSDK(){
+  return new Promise(function(res, rej){
+    if (window.supabase && window.supabase.createClient) return res();
+    var t = document.createElement("script");
+    t.src = SDK; t.async = true;
+    t.onload = function(){ (window.supabase && window.supabase.createClient) ? res() : rej(new Error("sdk")); };
+    t.onerror = function(){ rej(new Error("sdk")); };
+    document.head.appendChild(t);
+  });
+}
+function crearCliente(){
+  sb = window.supabase.createClient(CFG.url, CFG.key, {
+    auth: { storage: recordarme() ? window.localStorage : window.sessionStorage,
+            persistSession: true, autoRefreshToken: true, detectSessionInUrl: false }
+  });
+}
+/* Supabase pide un correo; si el usuario escribe solo un nombre, se arma uno interno */
+function aCorreo(u){
+  u = String(u || "").trim();
+  return u.indexOf("@") > 0 ? u.toLowerCase() : u.toLowerCase().replace(/\s+/g,"") + "@money.control";
+}
+function nombreDe(correo){
+  correo = String(correo||"");
+  return correo.indexOf("@money.control") > 0 ? correo.split("@")[0] : correo;
+}
+
+function pintarSync(clase, texto){
+  var e = $("syncEstado"); if (!e) return;
+  e.className = "sync " + clase;
+  e.innerHTML = '<i></i>' + esc(texto);
+}
+function estadoSync(){
+  if (!usuario) return pintarSync("", "Sin cuenta");
+  if (subiendo) return pintarSync("pend", "Guardando…");
+  if (hayPendiente || sinRed) return pintarSync("pend", "Cambios sin subir");
+  pintarSync("ok", "Todo sincronizado");
+}
+
+function programarSubida(){
+  if (!sb || !usuario) return;
+  hayPendiente = true;
+  estadoSync();
+  clearTimeout(subTm);
+  subTm = setTimeout(subir, 1200);
+}
+function subir(){
+  if (!sb || !usuario || subiendo) return Promise.resolve();
+  subiendo = true; estadoSync();
+  var copia = JSON.parse(JSON.stringify(estado));
+  return sb.from("datos").upsert({ user_id: usuario.id, payload: copia, ts: copia.ts || Date.now() })
+    .then(function(r){
+      subiendo = false;
+      if (r.error){ sinRed = true; estadoSync(); return; }
+      hayPendiente = false; sinRed = false; estadoSync();
+    })
+    .catch(function(){ subiendo = false; sinRed = true; estadoSync(); });
+}
+function bajar(){
+  if (!sb || !usuario) return Promise.resolve();
+  return sb.from("datos").select("payload, ts").eq("user_id", usuario.id).maybeSingle()
+    .then(function(r){
+      if (r.error){ sinRed = true; estadoSync(); return; }
+      sinRed = false;
+      var remoto = r.data && r.data.payload;
+      var tsR = r.data ? (r.data.ts || 0) : 0;
+      if (!remoto){
+        /* cuenta nueva: si este dispositivo ya tenía gastos sueltos, se ofrecen */
+        var viejo = leerCache(LS);
+        var nGastos = viejo ? Object.keys(viejo.meses).reduce(function(a,k){ return a + viejo.meses[k].length; },0) : 0;
+        if (nGastos && !Object.keys(estado.meses).length){
+          confirmar({
+            titulo: "¿Traer tus gastos a esta cuenta?",
+            texto: "Este dispositivo tiene " + nGastos + (nGastos===1?" gasto":" gastos") + " guardados sin cuenta. Puedes copiarlos aquí.",
+            ok: "Copiarlos"
+          }).then(function(si){
+            if (!si) return subir();
+            estado = Object.assign(estadoVacio(), viejo, {ts: Date.now()});
+            normColores(); escribir(); pintar();
+            avisar("Gastos copiados a tu cuenta");
+          });
+          return;
+        }
+        return subir();
+      }
+      if (tsR > (estado.ts || 0)){
+        estado = Object.assign(estadoVacio(), remoto, {ts: tsR});
+        normColores();
+        try{ localStorage.setItem(claveLS(), JSON.stringify(estado)); }catch(e){}
+        limpiarForm(); pintar();
+        estadoSync();
+      } else if ((estado.ts || 0) > tsR){
+        subir();
+      } else estadoSync();
+    })
+    .catch(function(){ sinRed = true; estadoSync(); });
+}
+
+/* ---------- pantalla de acceso ---------- */
+var modoCrear = false;
+function verAcceso(cargando){
+  $("acceso").hidden = false;
+  $("accCargando").hidden = !cargando;
+  $("accForm").hidden = !!cargando;
+  document.body.style.overflow = "hidden";
+}
+function ocultarAcceso(){
+  $("acceso").hidden = true;
+  document.body.style.overflow = "";
+}
+function pintarModo(){
+  $("accBajada").textContent = modoCrear
+    ? "Elige un usuario y una contraseña. Quedan guardados en tu cuenta, no en el teléfono."
+    : "Entra con tu cuenta para ver tus gastos en cualquier dispositivo.";
+  $("accEntrar").textContent = modoCrear ? "Crear cuenta" : "Entrar";
+  $("accCambiar").textContent = modoCrear ? "Ya tengo cuenta" : "Crear una cuenta";
+  $("accPass").setAttribute("autocomplete", modoCrear ? "new-password" : "current-password");
+  $("accErr").textContent = "";
+}
+function errorLegible(msg){
+  msg = String(msg || "");
+  if (/Invalid login/i.test(msg)) return "Usuario o contraseña incorrectos.";
+  if (/already registered|already exists/i.test(msg)) return "Ese usuario ya existe. Entra con tu contraseña.";
+  if (/at least 6|Password should be/i.test(msg)) return "La contraseña necesita al menos 6 caracteres.";
+  if (/valid email|invalid format/i.test(msg)) return "Ese nombre de usuario no sirve. Usa letras y números, sin espacios.";
+  if (/rate|too many/i.test(msg)) return "Demasiados intentos seguidos. Espera un momento.";
+  if (/fetch|network|Failed/i.test(msg)) return "Sin conexión con el servidor. Revisa tu internet.";
+  return msg || "No se pudo completar.";
+}
+function entrarConSesion(user){
+  usuario = { id: user.id, nombre: nombreDe(user.email) };
+  try{ localStorage.setItem("mc-uid", usuario.id); localStorage.setItem("mc-nombre", usuario.nombre); }catch(e){}
+  ocultarAcceso();
+  arrancarApp();
+  bajar();
+}
+function accionAcceso(){
+  var u = $("accUser").value.trim(), pw = $("accPass").value;
+  if (!u) return ($("accErr").textContent = "Falta el usuario.", $("accUser").focus());
+  if (!pw) return ($("accErr").textContent = "Falta la contraseña.", $("accPass").focus());
+  try{ localStorage.setItem("mc-recordar", $("accRecordar").checked ? "1" : "0"); }catch(e){}
+  crearCliente();
+  $("accEntrar").disabled = true;
+  $("accErr").textContent = "";
+  var correo = aCorreo(u);
+  var op = modoCrear ? sb.auth.signUp({ email:correo, password:pw })
+                     : sb.auth.signInWithPassword({ email:correo, password:pw });
+  op.then(function(r){
+    $("accEntrar").disabled = false;
+    if (r.error) { $("accErr").textContent = errorLegible(r.error.message); return; }
+    var user = r.data && r.data.user;
+    var ses  = r.data && r.data.session;
+    if (!user){ $("accErr").textContent = "No se pudo completar."; return; }
+    if (modoCrear && !ses){
+      $("accErr").textContent = "Cuenta creada, pero falta confirmar el correo. Desactiva esa opción en Supabase.";
+      return;
+    }
+    entrarConSesion(user);
+  }).catch(function(e){
+    $("accEntrar").disabled = false;
+    $("accErr").textContent = errorLegible(e && e.message);
+  });
+}
+if ($("accEntrar")){
+  $("accEntrar").addEventListener("click", accionAcceso);
+  ["accUser","accPass"].forEach(function(id){
+    $(id).addEventListener("keydown", function(e){ if (e.key === "Enter") accionAcceso(); });
+  });
+  $("accCambiar").addEventListener("click", function(){ modoCrear = !modoCrear; pintarModo(); });
+  $("accLocal").addEventListener("click", function(){
+    confirmar({
+      titulo: "¿Usar sin cuenta?",
+      texto: "Los gastos quedan solo en este dispositivo y no se sincronizan. Puedes entrar con tu cuenta más adelante."
+    }).then(function(si){ if (si){ usuario = null; ocultarAcceso(); arrancarApp(); } });
+  });
+}
+$("btnSalir").addEventListener("click", function(){
+  confirmar({ titulo: "¿Cerrar sesión?", texto: "Tus datos quedan guardados en tu cuenta." , ok:"Cerrar sesión" })
+    .then(function(si){
+      if (!si) return;
+      subir().then(function(){
+        if (sb) sb.auth.signOut().catch(function(){});
+        try{ localStorage.removeItem("mc-uid"); localStorage.removeItem("mc-nombre"); }catch(e){}
+        usuario = null;
+        cerrarWins();
+        estado = estadoVacio(); pintar();
+        modoCrear = false; pintarModo(); verAcceso(false);
+      });
+    });
+});
+$("btnSync").addEventListener("click", function(){
+  if (!usuario) return;
+  pintarSync("pend","Sincronizando…");
+  subir().then(bajar);
+});
+
+function iniciarCuenta(){
+  if (!nubeOn){ arrancarApp(); return; }           /* sin configurar: modo local de siempre */
+  verAcceso(true);
+  cargarSDK().then(function(){
+    crearCliente();
+    return sb.auth.getSession();
+  }).then(function(r){
+    var ses = r && r.data && r.data.session;
+    if (ses && ses.user){ entrarConSesion(ses.user); return; }
+    pintarModo(); verAcceso(false);
+    $("accRecordar").checked = recordarme();
+  }).catch(function(){
+    /* sin internet: si ya había sesión en este equipo, se abre la copia local */
+    var uid = null;
+    try{ uid = localStorage.getItem("mc-uid"); }catch(e){}
+    if (uid){
+      usuario = { id: uid, nombre: (localStorage.getItem("mc-nombre") || "tu cuenta") };
+      sinRed = true;
+      ocultarAcceso(); arrancarApp();
+      avisar("Sin conexión: verás la copia guardada");
+    } else {
+      pintarModo(); verAcceso(false);
+      $("accErr").textContent = "No se pudo conectar. Revisa tu internet o entra sin cuenta.";
+    }
+  });
+}
+
+/* ============================================================
    Arranque
    ============================================================ */
-var cache = leerCache();
-if (cache) estado = {
-  cats: cache.cats || [], meses: cache.meses || {}, colores: cache.colores || {},
-  presupuestos: cache.presupuestos || {}, notif: !!cache.notif,
-  resumen: !!cache.resumen, horaResumen: cache.horaResumen || "09:00",
-  pendientes: cache.pendientes || [], ultimoResumen: cache.ultimoResumen || ""
-};
-normColores();
-limpiarForm();
-pintar();
-latido();
+function arrancarApp(){
+  var cache = leerCache();
+  estado = cache ? {
+    cats: cache.cats || [], meses: cache.meses || {}, colores: cache.colores || {},
+    presupuestos: cache.presupuestos || {}, notif: !!cache.notif,
+    resumen: !!cache.resumen, horaResumen: cache.horaResumen || "09:00",
+    pendientes: cache.pendientes || [], ultimoResumen: cache.ultimoResumen || "",
+    ts: cache.ts || 0
+  } : estadoVacio();
+  normColores();
+  limpiarForm();
+  pintar();
+  latido();
+}
+iniciarCuenta();
 })();
 </script>
 </body>
