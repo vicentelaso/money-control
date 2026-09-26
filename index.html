@@ -262,7 +262,7 @@ label{display:block;font-size:12.5px;color:var(--muted);margin-bottom:5px}
   box-shadow:0 12px 30px -10px rgba(0,0,0,.5);font-size:14px;max-width:calc(100vw - 32px);
 }
 .toast[hidden]{display:none}
-.toast span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.toast span{overflow:hidden;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;line-height:1.35}
 .toast button{
   background:rgba(255,255,255,.12);border:none;color:var(--gold);
   border-radius:9px;padding:7px 13px;font-weight:600;font-size:13.5px;cursor:pointer;flex:none;
@@ -285,7 +285,57 @@ label{display:block;font-size:12.5px;color:var(--muted);margin-bottom:5px}
   .appbar{padding:calc(env(safe-area-inset-top, 0px) + 10px) 14px 0;border-bottom:none}
   .appbar-in{padding-bottom:10px}
   .tabs{display:none}
-  .instalar{margin-left:auto}
+  /* ---------- avisos de presupuesto ---------- */
+.avisos{display:grid;gap:8px;margin-top:14px}
+.avisos:empty{display:none}
+.av{
+  display:flex;align-items:flex-start;gap:10px;padding:12px 14px;border-radius:12px;
+  font-size:13.5px;line-height:1.4;border:1px solid var(--line);background:var(--card);
+}
+.av svg{width:17px;height:17px;flex:none;margin-top:1px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+.av b{font-weight:600}
+.av.cerca{border-left:3px solid var(--gold)}
+.av.cerca svg{stroke:var(--gold)}
+.av.pasado{border-left:3px solid var(--danger)}
+.av.pasado svg{stroke:var(--danger)}
+.val .presu{color:var(--muted);font-size:12.5px;margin-left:8px;font-weight:400}
+.val .presu.rojo{color:var(--danger);font-weight:500}
+
+/* ---------- ventana de presupuestos ---------- */
+.icon-top{
+  width:34px;height:34px;border-radius:99px;background:none;border:1px solid var(--line);
+  color:var(--muted);display:grid;place-items:center;cursor:pointer;margin-left:12px;flex:none;
+}
+.icon-top:hover{border-color:var(--muted);color:var(--ink)}
+.icon-top svg{width:17px;height:17px;fill:none;stroke:currentColor;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round}
+.modal{
+  position:fixed;z-index:65;left:50%;top:50%;transform:translate(-50%,-50%);
+  width:min(440px,calc(100vw - 32px));max-height:82vh;overflow-y:auto;
+  background:var(--card);border:1px solid var(--line);border-radius:16px;
+  padding:20px;box-shadow:0 20px 50px -18px rgba(0,0,0,.55);
+}
+body.cfg-abierta .backdrop{opacity:1;pointer-events:auto}
+body.cfg-abierta{overflow:hidden}
+.modal > h2{font-size:15px;color:var(--ink);margin:0 0 6px;border:none;padding:0;
+  display:flex;align-items:center;justify-content:space-between;gap:10px}
+.modal .cerrar-x{display:grid;place-items:center;width:30px;height:30px;border-radius:9px;
+  background:var(--bg);border:1px solid var(--line);color:var(--muted);font-size:18px;line-height:1;cursor:pointer;flex:none}
+.cfg-fila{display:flex;align-items:center;gap:10px;padding:9px 0;border-bottom:1px solid var(--line-soft)}
+.cfg-fila i{width:10px;height:10px;border-radius:99px;flex:none}
+.cfg-fila .cn{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:14.5px}
+.cfg-fila .inp{width:120px;flex:none;text-align:right;padding:8px 10px;font-size:14px}
+.cfg-lista{margin:12px 0 4px}
+.cfg-check{display:flex;align-items:flex-start;gap:10px;margin-top:16px;font-size:13.5px;cursor:pointer}
+.cfg-check input{width:18px;height:18px;flex:none;margin-top:1px;accent-color:var(--deep)}
+@media (max-width:740px){
+  .modal{
+    left:0;right:0;bottom:0;top:auto;transform:none;width:auto;max-height:86dvh;
+    border-radius:20px 20px 0 0;border-bottom:none;
+    padding:18px 16px calc(20px + env(safe-area-inset-bottom, 0px));
+  }
+  .icon-top{margin-left:auto}
+}
+.instalar{margin-left:8px}
 
   /* el formulario pasa a ser una hoja que sube desde abajo */
   #hoja{
@@ -373,6 +423,9 @@ textarea.inp{min-height:110px;resize:vertical;font-size:12.5px;font-family:ui-mo
       <button class="tab" id="tabMes" role="tab" aria-selected="true">Este mes</button>
       <button class="tab" id="tabHist" role="tab" aria-selected="false">Histórico</button>
     </nav>
+    <button class="icon-top" id="btnCfg" aria-label="Presupuestos" title="Presupuestos">
+      <svg viewBox="0 0 24 24"><path d="M4 7h10M18 7h2M4 12h4M12 12h8M4 17h10M18 17h2"/><circle cx="16" cy="7" r="2"/><circle cx="10" cy="12" r="2"/><circle cx="16" cy="17" r="2"/></svg>
+    </button>
     <button class="instalar" id="btnInstalar" hidden>Instalar app</button>
   </div>
 </header>
@@ -397,6 +450,8 @@ textarea.inp{min-height:110px;resize:vertical;font-size:12.5px;font-family:ui-mo
       <div class="panel-sub" id="totalSub">Sin movimientos todavía.</div>
       <div id="ribbonBox"></div>
     </div>
+
+    <div class="avisos" id="avisos"></div>
 
     <div class="grid2">
       <div>
@@ -480,6 +535,15 @@ textarea.inp{min-height:110px;resize:vertical;font-size:12.5px;font-family:ui-mo
 
 <div class="backdrop" id="backdrop"></div>
 
+<div class="modal" id="hojaCfg" hidden role="dialog" aria-label="Presupuestos por categoría">
+  <h2><span>Presupuesto por categoría</span><button class="cerrar-x" id="cerrarCfg" aria-label="Cerrar">×</button></h2>
+  <div class="edit-hint">Cuánto quieres gastar como máximo al mes en cada una. Déjala en blanco si no quieres controlarla. El conteo parte de cero cada mes.</div>
+  <div class="cfg-lista" id="cfgLista"></div>
+  <label class="cfg-check"><input type="checkbox" id="cfgNotif"><span>Avisarme también con una notificación del teléfono cuando quede poco o me pase.</span></label>
+  <div class="edit-hint" id="cfgNotifNota"></div>
+  <button class="save" id="guardarCfg">Guardar</button>
+</div>
+
 <nav class="bottombar" aria-label="Navegación principal">
   <button id="mTabMes" aria-selected="true">
     <svg viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="16" rx="3"/><path d="M8 3v4M16 3v4M3 10h18"/></svg>
@@ -531,10 +595,11 @@ function nuevoId(){ return Date.now().toString(36) + Math.random().toString(36).
 function esc(t){ var d=document.createElement("div"); d.textContent = t==null?"":t; return d.innerHTML; }
 
 /* ============ estado ============ */
-var estado = { cats: [], meses: {}, colores: {} };
+var estado = { cats: [], meses: {}, colores: {}, presupuestos: {}, notif: false };
 var mesActual = claveMes(hoyISO());
 var almacen = null, LS = "gastos-v1";
 var catSel = "", catEditando = null, catCreando = false;
+var UMBRAL = 5000;   /* a cuánto del tope empieza el aviso */
 
 function leerCache(){ try{ var v=JSON.parse(localStorage.getItem(LS)); if(v&&v.meses) return v; }catch(e){} return null; }
 function guardarCache(){ try{ localStorage.setItem(LS, JSON.stringify(estado)); }catch(e){} }
@@ -555,12 +620,23 @@ function porCategoria(items){
   return Object.keys(m).map(function(c){ return {cat:c, monto:m[c]}; })
     .sort(function(a,b){ return b.monto - a.monto; });
 }
-function filaRank(g, total){
-  var pct = total ? g.monto/total*100 : 0;
-  return '<li><div class="r1"><div class="nom"><i style="background:'+colorDe(g.cat)+'"></i><span>'
-    + esc(g.cat) + '</span></div><div class="val">' + plata(g.monto)
-    + '<span class="pct">' + Math.round(pct) + '%</span></div></div>'
-    + '<div class="track"><div style="width:'+pct+'%;background:'+colorDe(g.cat)+'"></div></div></li>';
+function filaRank(g, total, mes){
+  var col = colorDe(g.cat);
+  var e = mes ? saldoPresu(g.cat, mes) : null;
+  var lado, ancho, colorBarra;
+  if (e){
+    var pasado = e.resta < 0;
+    lado = '<span class="presu' + (pasado ? ' rojo' : '') + '">de ' + plata(e.presu) + '</span>';
+    ancho = Math.min(g.monto / e.presu * 100, 100);
+    colorBarra = pasado ? "var(--danger)" : col;
+  } else {
+    var pct = total ? g.monto/total*100 : 0;
+    lado = '<span class="pct">' + Math.round(pct) + '%</span>';
+    ancho = pct; colorBarra = col;
+  }
+  return '<li><div class="r1"><div class="nom"><i style="background:'+col+'"></i><span>'
+    + esc(g.cat) + '</span></div><div class="val">' + plata(g.monto) + lado + '</div></div>'
+    + '<div class="track"><div style="width:'+ancho+'%;background:'+colorBarra+'"></div></div></li>';
 }
 
 /* ============ pintado ============ */
@@ -588,7 +664,7 @@ function pintar(){
       }).join("") + '</div>';
 
   $("rank").innerHTML = grupos.length
-    ? grupos.map(function(g){ return filaRank(g,total); }).join("")
+    ? grupos.map(function(g){ return filaRank(g,total,mesActual); }).join("")
     : '<li class="empty">Anota tu primer gasto y aquí aparece el desglose.</li>';
 
   $("modoBorrar").hidden = !items.length;
@@ -601,8 +677,57 @@ function pintar(){
       + esc(g.nota || g.cat) + '"><svg viewBox="0 0 20 20"><path d="M4 6h12M8 6V4h4v2M7 6l.8 10h4.4L13 6"/></svg></button></li>';
   }).join("") : '<li class="empty">Sin movimientos este mes.</li>';
 
+  pintarAvisos();
   pintarCats();
   pintarHistorico();
+}
+
+var ICO_ALERTA = '<svg viewBox="0 0 24 24"><path d="M12 8.5v5M12 17h.01M10.3 3.9L2.6 17.2A2 2 0 004.3 20h15.4a2 2 0 001.7-2.8L13.7 3.9a2 2 0 00-3.4 0z"/></svg>';
+function pintarAvisos(){
+  var lista = estado.cats.filter(function(c){ return presuDe(c); }).map(function(c){
+    var e = saldoPresu(c, mesActual);
+    if (e.resta < 0) return '<div class="av pasado">' + ICO_ALERTA + '<div>Te pasaste <b>'
+      + plata(-e.resta) + '</b> del presupuesto de <b>' + esc(c) + '</b>: llevas '
+      + plata(e.gastado) + ' de ' + plata(e.presu) + '.</div></div>';
+    if (e.resta <= UMBRAL) return '<div class="av cerca">' + ICO_ALERTA + '<div>Te quedan <b>'
+      + plata(e.resta) + '</b> de presupuesto en <b>' + esc(c) + '</b> este mes.</div></div>';
+    return "";
+  }).filter(Boolean);
+  $("avisos").innerHTML = lista.join("");
+}
+
+/* ============ presupuestos ============ */
+function presuDe(cat){
+  var v = estado.presupuestos ? estado.presupuestos[String(cat).toLowerCase()] : 0;
+  return (typeof v === "number" && v > 0) ? v : 0;
+}
+function gastadoEn(cat, mes){
+  var n = String(cat).toLowerCase();
+  return itemsDe(mes).reduce(function(a,g){
+    return a + (String(g.cat).toLowerCase() === n ? g.monto : 0);
+  }, 0);
+}
+/* null = sin presupuesto; si no, cuánto queda (negativo = pasado) */
+function saldoPresu(cat, mes){
+  var p = presuDe(cat); if (!p) return null;
+  var g = gastadoEn(cat, mes);
+  return { presu:p, gastado:g, resta:p - g };
+}
+function mensajePresu(cat, mes){
+  var e = saldoPresu(cat, mes); if (!e) return "";
+  if (e.resta < 0) return "Te pasaste " + plata(-e.resta) + " del presupuesto de " + cat;
+  if (e.resta <= UMBRAL) return "Te quedan " + plata(e.resta) + " de presupuesto en " + cat;
+  return "";
+}
+function avisarSistema(cuerpo){
+  if (!estado.notif || !cuerpo) return;
+  if (!("Notification" in window) || Notification.permission !== "granted") return;
+  if (!navigator.serviceWorker) return;
+  navigator.serviceWorker.ready.then(function(reg){
+    reg.showNotification("Money Control", {
+      body: cuerpo, icon: "icons/icon-192.png", badge: "icons/icon-192.png", tag: "presupuesto"
+    });
+  }).catch(function(){});
 }
 
 /* ============ categorías ============ */
@@ -903,22 +1028,18 @@ function guardar(){
   listo.then(function(){ persistirMes(k); });
 
   $("monto").value = ""; $("nota").value = "";
-  var aviso = nueva ? 'Guardado. "' + cat + '" quedó como categoría nueva.' : "Gasto guardado.";
-  if (esMovil()){
-    cerrarHoja();
+  if (esMovil()) cerrarHoja(); else $("monto").focus();
+  pintar();
+
+  var alerta = mensajePresu(cat, k);
+  mostrarDeshacer(alerta || (plata(monto) + " en " + cat), function(){
+    estado.meses[k] = itemsDe(k).filter(function(x){ return x.id !== nuevoGasto.id; });
+    if (!estado.meses[k].length) delete estado.meses[k];
+    listo.then(function(){ persistirMes(k); });
     pintar();
-    mostrarDeshacer(plata(monto) + " en " + cat, function(){
-      estado.meses[k] = itemsDe(k).filter(function(x){ return x.id !== nuevoGasto.id; });
-      if (!estado.meses[k].length) delete estado.meses[k];
-      listo.then(function(){ persistirMes(k); });
-      pintar();
-    });
-    $("undo").textContent = "Deshacer";
-  } else {
-    $("monto").focus();
-    pintar();
-    pista(aviso);
-  }
+  });
+  if (alerta) avisarSistema(alerta);
+  else if (!esMovil() && nueva) pista('Guardé "' + cat + '" como categoría nueva.');
 }
 
 $("movs").addEventListener("click", function(e){
@@ -974,7 +1095,8 @@ function verTab(cual){
 /* ============ hoja de anotar (móvil) ============ */
 function esMovil(){ return window.matchMedia("(max-width:740px)").matches; }
 function abrirHoja(){
-  if (!esMovil()) { $("monto").focus(); return; }
+  verTab("mes");                     /* el + también sirve estando en Histórico */
+  if (!esMovil()) { $("monto").focus(); $("monto").scrollIntoView({block:"center", behavior:"smooth"}); return; }
   document.body.classList.add("hoja-abierta");
   setTimeout(function(){ $("monto").focus(); }, 260);
 }
@@ -993,10 +1115,79 @@ window.addEventListener("resize", function(){
   pintarHistorico();
 });
 
+/* ============ presupuestos: ventana ============ */
+function pintarCfg(){
+  if (!estado.cats.length){
+    $("cfgLista").innerHTML = '<div class="edit-hint" style="margin-top:14px">Todavía no tienes categorías. Crea una al anotar un gasto y vuelve acá.</div>';
+  } else {
+    $("cfgLista").innerHTML = estado.cats.map(function(c){
+      var p = presuDe(c);
+      return '<div class="cfg-fila"><i style="background:' + colorDe(c) + '"></i>'
+        + '<span class="cn">' + esc(c) + '</span>'
+        + '<input class="inp presu-inp" type="text" inputmode="numeric" data-cat="' + esc(c) + '" '
+        + 'placeholder="Sin tope" value="' + (p ? new Intl.NumberFormat("es-CL").format(p) : "") + '" '
+        + 'aria-label="Presupuesto de ' + esc(c) + '"></div>';
+    }).join("");
+  }
+  $("cfgNotif").checked = !!estado.notif;
+  notaNotif();
+}
+function notaNotif(){
+  var t = "";
+  if (!("Notification" in window)) t = "Este navegador no permite notificaciones.";
+  else if (Notification.permission === "denied") t = "Están bloqueadas para este sitio; se desbloquean en los ajustes del navegador.";
+  else if (estado.notif && Notification.permission === "granted") t = "Activadas. Llegan al anotar un gasto, con la app abierta.";
+  $("cfgNotifNota").textContent = t;
+}
+function abrirCfg(){
+  cerrarHoja();
+  pintarCfg();
+  $("hojaCfg").hidden = false;
+  document.body.classList.add("cfg-abierta");
+}
+function cerrarCfg(){
+  $("hojaCfg").hidden = true;
+  document.body.classList.remove("cfg-abierta");
+}
+$("btnCfg").addEventListener("click", abrirCfg);
+$("cerrarCfg").addEventListener("click", cerrarCfg);
+$("backdrop").addEventListener("click", cerrarCfg);
+document.addEventListener("keydown", function(e){
+  if (e.key === "Escape" && !$("hojaCfg").hidden) cerrarCfg();
+});
+$("cfgLista").addEventListener("input", function(e){
+  if (!e.target.classList.contains("presu-inp")) return;
+  var d = e.target.value.replace(/[^\d]/g, "");
+  e.target.value = d ? new Intl.NumberFormat("es-CL").format(parseInt(d,10)) : "";
+});
+$("cfgNotif").addEventListener("change", function(){
+  var self = this;
+  if (!self.checked){ estado.notif = false; notaNotif(); return; }
+  if (!("Notification" in window)){ self.checked = false; notaNotif(); return; }
+  if (Notification.permission === "granted"){ estado.notif = true; notaNotif(); return; }
+  Notification.requestPermission().then(function(r){
+    estado.notif = (r === "granted");
+    self.checked = estado.notif;
+    notaNotif();
+  });
+});
+$("guardarCfg").addEventListener("click", function(){
+  var nuevos = {};
+  Array.prototype.forEach.call($("cfgLista").querySelectorAll(".presu-inp"), function(inp){
+    var v = parseInt(inp.value.replace(/[^\d]/g,"") || "0", 10);
+    if (v > 0) nuevos[inp.dataset.cat.toLowerCase()] = v;
+  });
+  estado.presupuestos = nuevos;
+  guardarCache();
+  cerrarCfg();
+  pintar();
+});
+
 /* ============ respaldo ============ */
 function respaldoJSON(){
   return JSON.stringify({app:"money-control", version:1, fecha:new Date().toISOString(),
-                         cats:estado.cats, colores:estado.colores, meses:estado.meses}, null, 2);
+                         cats:estado.cats, colores:estado.colores, presupuestos:estado.presupuestos,
+                         notif:estado.notif, meses:estado.meses}, null, 2);
 }
 function avisoResp(t){
   var n = $("notaResp"), previo = n.dataset.base || n.textContent;
@@ -1044,7 +1235,9 @@ function leerRespaldo(){
 $("impReemplazar").addEventListener("click", function(){
   var d = leerRespaldo(); if (!d) return;
   estado = { cats: Array.isArray(d.cats) ? d.cats : [], meses: d.meses,
-             colores: (d.colores && typeof d.colores === "object") ? d.colores : {} };
+             colores: (d.colores && typeof d.colores === "object") ? d.colores : {},
+             presupuestos: (d.presupuestos && typeof d.presupuestos === "object") ? d.presupuestos : {},
+             notif: !!d.notif };
   normColores(); catSel = "";
   guardarCache(); $("impBox").hidden = true; $("impTxt").value = "";
   pintar(); avisoResp("Listo: reemplacé todo con el respaldo.");
@@ -1065,6 +1258,11 @@ $("impSumar").addEventListener("click", function(){
   });
   if (d.colores && typeof d.colores === "object"){
     Object.keys(d.colores).forEach(function(k){ if (!estado.colores[k]) estado.colores[k] = d.colores[k]; });
+  }
+  if (d.presupuestos && typeof d.presupuestos === "object"){
+    Object.keys(d.presupuestos).forEach(function(k){
+      if (!estado.presupuestos[k]) estado.presupuestos[k] = d.presupuestos[k];
+    });
   }
   normColores();
   guardarCache(); $("impBox").hidden = true; $("impTxt").value = "";
@@ -1111,9 +1309,28 @@ if ("serviceWorker" in navigator){
   });
 }
 
+/* ============ cambio de día y de mes con la app abierta ============ */
+/* Una app instalada no se recarga al volver del segundo plano: si pasa la medianoche
+   o empieza un mes nuevo, hay que ponerse al día a mano. */
+var diaDeHoy = hoyISO(), mesDeHoy = claveMes(diaDeHoy);
+function ponerseAlDia(){
+  var hoy = hoyISO();
+  if (hoy === diaDeHoy) return;
+  diaDeHoy = hoy;
+  if (!document.body.classList.contains("hoja-abierta")) $("fecha").value = hoy;
+  var m = claveMes(hoy);
+  if (m !== mesDeHoy){ mesDeHoy = m; mesActual = m; pintar(); }
+}
+document.addEventListener("visibilitychange", function(){
+  if (document.visibilityState === "visible") ponerseAlDia();
+});
+window.addEventListener("focus", ponerseAlDia);
+setInterval(ponerseAlDia, 60000);
+
 /* ============ arranque ============ */
 var cache = leerCache();
-if (cache) estado = { cats: cache.cats || [], meses: cache.meses || {}, colores: cache.colores || {} };
+if (cache) estado = { cats: cache.cats || [], meses: cache.meses || {}, colores: cache.colores || {},
+                      presupuestos: cache.presupuestos || {}, notif: !!cache.notif };
 normColores(); guardarCache();
 $("fecha").value = hoyISO();
 pintar();
