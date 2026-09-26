@@ -44,8 +44,6 @@
   --sh-3:0 24px 60px -22px rgba(18,20,28,.5);
   color-scheme: light dark;
   box-sizing:border-box;
-  padding-top: env(safe-area-inset-top, 0px);
-  padding-bottom: env(safe-area-inset-bottom, 0px);
 }
 @media (prefers-color-scheme: dark){
   :root:not([data-theme="light"]){
@@ -445,7 +443,7 @@ textarea.inp{min-height:110px;resize:vertical;font-size:12.5px;font-family:ui-mo
    9. Móvil
    ============================================================ */
 @media (max-width:760px){
-  .wrap{padding:16px 14px 104px}
+  .wrap{padding:16px 14px calc(104px + env(safe-area-inset-bottom, 0px))}
   .card{padding:16px}
   .panel{padding:18px 18px 20px;border-radius:16px}
   .bar{padding:calc(env(safe-area-inset-top, 0px) + 10px) 14px 0;border-bottom:none}
@@ -508,7 +506,7 @@ textarea.inp{min-height:110px;resize:vertical;font-size:12.5px;font-family:ui-mo
   .mov .m,.mov .d b,.nom span,.val{font-size:14px}
 }
 @media (max-width:360px){
-  .wrap{padding:14px 11px 104px}
+  .wrap{padding:14px 11px calc(104px + env(safe-area-inset-bottom, 0px))}
   .card{padding:14px}
   .panel{padding:16px 15px 18px}
   .bar{padding:calc(env(safe-area-inset-top, 0px) + 9px) 11px 0}
