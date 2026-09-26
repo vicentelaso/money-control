@@ -285,15 +285,27 @@ label{display:block;font-size:12.5px;color:var(--muted);margin-bottom:5px}
   .appbar{padding:calc(env(safe-area-inset-top, 0px) + 10px) 14px 0;border-bottom:none}
   .appbar-in{padding-bottom:10px}
   .tabs{display:none}
-  /* ---------- avisos de presupuesto ---------- */
-.avisos{display:grid;gap:8px;margin-top:14px}
+  /* ---------- alertas de presupuesto ---------- */
+.avisos{margin-top:16px}
 .avisos:empty{display:none}
+.alertas-btn{
+  width:100%;display:flex;align-items:center;gap:10px;cursor:pointer;
+  background:var(--card);border:1px solid var(--line);border-radius:14px;
+  padding:13px 15px;font-size:14px;font-weight:500;box-shadow:var(--shadow);
+}
+.alertas-btn:hover{border-color:var(--muted)}
+.alertas-btn .puntos{display:flex;gap:4px;flex:none}
+.alertas-btn .puntos i{width:9px;height:9px;border-radius:99px}
+.alertas-btn .chev{margin-left:auto}
+.alertas-btn[aria-expanded="true"] .chev{transform:rotate(180deg)}
+.alertas-det{display:grid;gap:8px;margin-top:8px}
 .av{
   display:flex;align-items:flex-start;gap:10px;padding:12px 14px;border-radius:12px;
   font-size:13.5px;line-height:1.4;border:1px solid var(--line);background:var(--card);
 }
 .av svg{width:17px;height:17px;flex:none;margin-top:1px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
 .av b{font-weight:600}
+.av{box-shadow:var(--shadow)}
 .av.cerca{border-left:3px solid var(--gold)}
 .av.cerca svg{stroke:var(--gold)}
 .av.pasado{border-left:3px solid var(--danger)}
@@ -327,6 +339,9 @@ body.cfg-abierta{overflow:hidden}
 .cfg-lista{margin:12px 0 4px}
 .cfg-check{display:flex;align-items:flex-start;gap:10px;margin-top:16px;font-size:13.5px;cursor:pointer}
 .cfg-check input{width:18px;height:18px;flex:none;margin-top:1px;accent-color:var(--deep)}
+.cfg-hora{display:flex;align-items:center;gap:10px;margin:12px 0 0 28px;font-size:13.5px;color:var(--muted)}
+.cfg-hora input{width:112px;flex:none;padding:7px 10px;font-size:14px}
+.cfg-sep{border-top:1px solid var(--line);margin-top:18px}
 @media (max-width:740px){
   .modal{
     left:0;right:0;bottom:0;top:auto;transform:none;width:auto;max-height:86dvh;
@@ -451,8 +466,6 @@ textarea.inp{min-height:110px;resize:vertical;font-size:12.5px;font-family:ui-mo
       <div id="ribbonBox"></div>
     </div>
 
-    <div class="avisos" id="avisos"></div>
-
     <div class="grid2">
       <div>
         <div class="card" id="hoja" role="dialog" aria-label="Anotar un gasto">
@@ -494,6 +507,8 @@ textarea.inp{min-height:110px;resize:vertical;font-size:12.5px;font-family:ui-mo
         <ul class="movs" id="movs"></ul>
       </div>
     </div>
+
+    <div class="avisos" id="avisos"></div>
   </section>
 
   <section id="vistaHist" hidden>
@@ -539,8 +554,12 @@ textarea.inp{min-height:110px;resize:vertical;font-size:12.5px;font-family:ui-mo
   <h2><span>Presupuesto por categoría</span><button class="cerrar-x" id="cerrarCfg" aria-label="Cerrar">×</button></h2>
   <div class="edit-hint">Cuánto quieres gastar como máximo al mes en cada una. Déjala en blanco si no quieres controlarla. El conteo parte de cero cada mes.</div>
   <div class="cfg-lista" id="cfgLista"></div>
-  <label class="cfg-check"><input type="checkbox" id="cfgNotif"><span>Avisarme también con una notificación del teléfono cuando quede poco o me pase.</span></label>
+  <div class="cfg-sep"></div>
+  <label class="cfg-check"><input type="checkbox" id="cfgNotif"><span>Notificarme en el teléfono cuando quede poco o me pase, 5 minutos después de anotar el gasto.</span></label>
+  <label class="cfg-check"><input type="checkbox" id="cfgResumen"><span>Mandarme cada mañana un resumen del mes con el reparto por categoría.</span></label>
+  <div class="cfg-hora"><label for="cfgHora" style="margin:0">Hora del resumen</label><input class="inp" type="time" id="cfgHora" value="09:00"></div>
   <div class="edit-hint" id="cfgNotifNota"></div>
+  <button class="linkbtn" id="cfgProbar" style="padding:8px 0 0">Enviar una notificación de prueba</button>
   <button class="save" id="guardarCfg">Guardar</button>
 </div>
 
@@ -595,11 +614,15 @@ function nuevoId(){ return Date.now().toString(36) + Math.random().toString(36).
 function esc(t){ var d=document.createElement("div"); d.textContent = t==null?"":t; return d.innerHTML; }
 
 /* ============ estado ============ */
-var estado = { cats: [], meses: {}, colores: {}, presupuestos: {}, notif: false };
+var estado = { cats: [], meses: {}, colores: {}, presupuestos: {},
+               notif: false, resumen: false, horaResumen: "09:00",
+               pendientes: [], ultimoResumen: "" };
+var ESPERA_AVISO = 5*60*1000;   /* la notificación llega 5 minutos después del gasto */
 var mesActual = claveMes(hoyISO());
 var almacen = null, LS = "gastos-v1";
 var catSel = "", catEditando = null, catCreando = false;
 var UMBRAL = 5000;   /* a cuánto del tope empieza el aviso */
+var alertasAbierto = false;
 
 function leerCache(){ try{ var v=JSON.parse(localStorage.getItem(LS)); if(v&&v.meses) return v; }catch(e){} return null; }
 function guardarCache(){ try{ localStorage.setItem(LS, JSON.stringify(estado)); }catch(e){} }
@@ -664,7 +687,7 @@ function pintar(){
       }).join("") + '</div>';
 
   $("rank").innerHTML = grupos.length
-    ? grupos.map(function(g){ return filaRank(g,total,mesActual); }).join("")
+    ? grupos.map(function(g){ return filaRank(g,total); }).join("")
     : '<li class="empty">Anota tu primer gasto y aquí aparece el desglose.</li>';
 
   $("modoBorrar").hidden = !items.length;
@@ -683,17 +706,34 @@ function pintar(){
 }
 
 var ICO_ALERTA = '<svg viewBox="0 0 24 24"><path d="M12 8.5v5M12 17h.01M10.3 3.9L2.6 17.2A2 2 0 004.3 20h15.4a2 2 0 001.7-2.8L13.7 3.9a2 2 0 00-3.4 0z"/></svg>';
+var ICO_CHEV = '<svg class="chev" viewBox="0 0 20 20" style="width:18px;height:18px;fill:none;stroke:var(--muted);stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round;transition:transform .15s"><path d="M5 8l5 5 5-5"/></svg>';
+
 function pintarAvisos(){
-  var lista = estado.cats.filter(function(c){ return presuDe(c); }).map(function(c){
-    var e = saldoPresu(c, mesActual);
-    if (e.resta < 0) return '<div class="av pasado">' + ICO_ALERTA + '<div>Te pasaste <b>'
-      + plata(-e.resta) + '</b> del presupuesto de <b>' + esc(c) + '</b>: llevas '
-      + plata(e.gastado) + ' de ' + plata(e.presu) + '.</div></div>';
-    if (e.resta <= UMBRAL) return '<div class="av cerca">' + ICO_ALERTA + '<div>Te quedan <b>'
-      + plata(e.resta) + '</b> de presupuesto en <b>' + esc(c) + '</b> este mes.</div></div>';
-    return "";
-  }).filter(Boolean);
-  $("avisos").innerHTML = lista.join("");
+  var lista = alertasDe(mesActual);
+  if (!lista.length){ $("avisos").innerHTML = ""; return; }
+
+  var puntos = lista.map(function(a){
+    return '<i style="background:' + (a.tipo === "cerca" ? "var(--gold)" : "var(--danger)") + '"></i>';
+  }).join("");
+
+  var detalle = lista.map(function(a){
+    if (a.tipo === "cerca") return '<div class="av cerca">' + ICO_ALERTA + '<div>Te quedan <b>'
+      + plata(a.e.resta) + '</b> de presupuesto en <b>' + esc(a.cat) + '</b>: llevas '
+      + plata(a.e.gastado) + ' de ' + plata(a.e.presu) + '.</div></div>';
+    return '<div class="av pasado">' + ICO_ALERTA + '<div>Te pasaste <b>'
+      + plata(-a.e.resta) + '</b> del presupuesto de <b>' + esc(a.cat) + '</b>: llevas '
+      + plata(a.e.gastado) + ' de ' + plata(a.e.presu) + '.</div></div>';
+  }).join("");
+
+  $("avisos").innerHTML =
+    '<button class="alertas-btn" id="alertasBtn" aria-expanded="' + (alertasAbierto ? "true" : "false") + '">'
+    + '<span class="puntos">' + puntos + '</span>Alertas (' + lista.length + ')' + ICO_CHEV + '</button>'
+    + '<div class="alertas-det"' + (alertasAbierto ? "" : " hidden") + '>' + detalle + '</div>';
+
+  $("alertasBtn").addEventListener("click", function(){
+    alertasAbierto = !alertasAbierto;
+    pintarAvisos();
+  });
 }
 
 /* ============ presupuestos ============ */
@@ -719,15 +759,75 @@ function mensajePresu(cat, mes){
   if (e.resta <= UMBRAL) return "Te quedan " + plata(e.resta) + " de presupuesto en " + cat;
   return "";
 }
-function avisarSistema(cuerpo){
-  if (!estado.notif || !cuerpo) return;
+/* primero las amarillas (cerca del tope) y después las rojas (ya pasadas) */
+function alertasDe(mes){
+  var cerca = [], pasado = [];
+  estado.cats.forEach(function(c){
+    var e = saldoPresu(c, mes); if (!e) return;
+    if (e.resta < 0) pasado.push({ cat:c, e:e, tipo:"pasado" });
+    else if (e.resta <= UMBRAL) cerca.push({ cat:c, e:e, tipo:"cerca" });
+  });
+  return cerca.concat(pasado);
+}
+function avisarSistema(cuerpo, etiqueta){
+  if (!cuerpo) return;
   if (!("Notification" in window) || Notification.permission !== "granted") return;
   if (!navigator.serviceWorker) return;
   navigator.serviceWorker.ready.then(function(reg){
     reg.showNotification("Money Control", {
-      body: cuerpo, icon: "icons/icon-192.png", badge: "icons/icon-192.png", tag: "presupuesto"
+      body: cuerpo, icon: "icons/icon-192.png", badge: "icons/icon-192.png",
+      tag: etiqueta || ("aviso-" + Date.now())
     });
   }).catch(function(){});
+}
+
+/* ---- notificaciones diferidas ----
+   Una app web no puede despertarse sola con la app cerrada: los avisos pendientes
+   quedan guardados y salen cuando toca, o apenas se vuelve a abrir si ya pasó la hora. */
+function programarAviso(cuerpo){
+  if (!estado.notif || !cuerpo) return;
+  estado.pendientes = (estado.pendientes || []).concat([{ cuando: Date.now() + ESPERA_AVISO, cuerpo: cuerpo }]);
+  guardarCache();
+}
+function revisarPendientes(){
+  var lista = estado.pendientes || [];
+  if (!lista.length) return;
+  var ahora = Date.now(), quedan = [];
+  lista.forEach(function(a){
+    if (a.cuando <= ahora){ if (estado.notif) avisarSistema(a.cuerpo); }
+    else quedan.push(a);
+  });
+  if (quedan.length !== lista.length){ estado.pendientes = quedan; guardarCache(); }
+}
+function textoResumen(){
+  var mes = claveMes(hoyISO());
+  var items = itemsDe(mes);
+  var total = items.reduce(function(a,b){ return a + b.monto; }, 0);
+  if (!total) return "Todavía no anotas gastos este mes.";
+  var partes = porCategoria(items).slice(0, 4).map(function(g){
+    return g.cat + " " + Math.round(g.monto/total*100) + "%";
+  });
+  var txt = "Llevas " + plata(total) + " este mes · " + partes.join(" · ");
+  var al = alertasDe(mes);
+  if (al.length){
+    txt += "\n" + al.map(function(a){
+      return a.tipo === "cerca"
+        ? "Quedan " + plata(a.e.resta) + " en " + a.cat
+        : "Pasado " + plata(-a.e.resta) + " en " + a.cat;
+    }).join(" · ");
+  }
+  return txt;
+}
+function revisarResumen(){
+  if (!estado.notif || !estado.resumen) return;
+  var hoy = hoyISO();
+  if (estado.ultimoResumen === hoy) return;
+  var ahora = new Date();
+  var hm = ("0"+ahora.getHours()).slice(-2) + ":" + ("0"+ahora.getMinutes()).slice(-2);
+  if (hm < (estado.horaResumen || "09:00")) return;
+  estado.ultimoResumen = hoy;
+  guardarCache();
+  avisarSistema(textoResumen(), "resumen");
 }
 
 /* ============ categorías ============ */
@@ -1038,7 +1138,7 @@ function guardar(){
     listo.then(function(){ persistirMes(k); });
     pintar();
   });
-  if (alerta) avisarSistema(alerta);
+  if (alerta) programarAviso(alerta);
   else if (!esMovil() && nueva) pista('Guardé "' + cat + '" como categoría nueva.');
 }
 
@@ -1117,6 +1217,7 @@ window.addEventListener("resize", function(){
 
 /* ============ presupuestos: ventana ============ */
 function pintarCfg(){
+  $("cfgProbar").textContent = "Enviar una notificación de prueba";
   if (!estado.cats.length){
     $("cfgLista").innerHTML = '<div class="edit-hint" style="margin-top:14px">Todavía no tienes categorías. Crea una al anotar un gasto y vuelve acá.</div>';
   } else {
@@ -1130,13 +1231,16 @@ function pintarCfg(){
     }).join("");
   }
   $("cfgNotif").checked = !!estado.notif;
+  $("cfgResumen").checked = !!estado.resumen;
+  $("cfgHora").value = estado.horaResumen || "09:00";
   notaNotif();
 }
 function notaNotif(){
   var t = "";
   if (!("Notification" in window)) t = "Este navegador no permite notificaciones.";
   else if (Notification.permission === "denied") t = "Están bloqueadas para este sitio; se desbloquean en los ajustes del navegador.";
-  else if (estado.notif && Notification.permission === "granted") t = "Activadas. Llegan al anotar un gasto, con la app abierta.";
+  else if (estado.notif && Notification.permission === "granted")
+    t = "Activadas. Una app web no puede despertarse sola: si estaba cerrada a la hora del aviso, este llega apenas la vuelvas a abrir.";
   $("cfgNotifNota").textContent = t;
 }
 function abrirCfg(){
@@ -1171,6 +1275,22 @@ $("cfgNotif").addEventListener("change", function(){
     notaNotif();
   });
 });
+$("cfgResumen").addEventListener("change", function(){ estado.resumen = this.checked; });
+$("cfgProbar").addEventListener("click", function(){
+  var self = this;
+  function mandar(){
+    avisarSistema("Notificación de prueba: así se van a ver los avisos de presupuesto.", "prueba");
+    self.textContent = "Enviada. Si no la ves, revisa los permisos del navegador.";
+  }
+  if (!("Notification" in window)){ self.textContent = "Este navegador no permite notificaciones."; return; }
+  if (Notification.permission === "granted"){ mandar(); return; }
+  if (Notification.permission === "denied"){ self.textContent = "Están bloqueadas para este sitio."; return; }
+  Notification.requestPermission().then(function(r){
+    if (r === "granted"){ estado.notif = true; $("cfgNotif").checked = true; notaNotif(); mandar(); }
+    else self.textContent = "No diste el permiso.";
+  });
+});
+$("cfgHora").addEventListener("change", function(){ estado.horaResumen = this.value || "09:00"; });
 $("guardarCfg").addEventListener("click", function(){
   var nuevos = {};
   Array.prototype.forEach.call($("cfgLista").querySelectorAll(".presu-inp"), function(inp){
@@ -1178,6 +1298,9 @@ $("guardarCfg").addEventListener("click", function(){
     if (v > 0) nuevos[inp.dataset.cat.toLowerCase()] = v;
   });
   estado.presupuestos = nuevos;
+  estado.notif = $("cfgNotif").checked && ("Notification" in window) && Notification.permission === "granted";
+  estado.resumen = $("cfgResumen").checked;
+  estado.horaResumen = $("cfgHora").value || "09:00";
   guardarCache();
   cerrarCfg();
   pintar();
@@ -1187,7 +1310,8 @@ $("guardarCfg").addEventListener("click", function(){
 function respaldoJSON(){
   return JSON.stringify({app:"money-control", version:1, fecha:new Date().toISOString(),
                          cats:estado.cats, colores:estado.colores, presupuestos:estado.presupuestos,
-                         notif:estado.notif, meses:estado.meses}, null, 2);
+                         notif:estado.notif, resumen:estado.resumen, horaResumen:estado.horaResumen,
+                         meses:estado.meses}, null, 2);
 }
 function avisoResp(t){
   var n = $("notaResp"), previo = n.dataset.base || n.textContent;
@@ -1237,7 +1361,8 @@ $("impReemplazar").addEventListener("click", function(){
   estado = { cats: Array.isArray(d.cats) ? d.cats : [], meses: d.meses,
              colores: (d.colores && typeof d.colores === "object") ? d.colores : {},
              presupuestos: (d.presupuestos && typeof d.presupuestos === "object") ? d.presupuestos : {},
-             notif: !!d.notif };
+             notif: !!d.notif, resumen: !!d.resumen, horaResumen: d.horaResumen || "09:00",
+             pendientes: [], ultimoResumen: "" };
   normColores(); catSel = "";
   guardarCache(); $("impBox").hidden = true; $("impTxt").value = "";
   pintar(); avisoResp("Listo: reemplacé todo con el respaldo.");
@@ -1321,19 +1446,23 @@ function ponerseAlDia(){
   var m = claveMes(hoy);
   if (m !== mesDeHoy){ mesDeHoy = m; mesActual = m; pintar(); }
 }
+function latido(){ ponerseAlDia(); revisarPendientes(); revisarResumen(); }
 document.addEventListener("visibilitychange", function(){
-  if (document.visibilityState === "visible") ponerseAlDia();
+  if (document.visibilityState === "visible") latido();
 });
-window.addEventListener("focus", ponerseAlDia);
-setInterval(ponerseAlDia, 60000);
+window.addEventListener("focus", latido);
+setInterval(latido, 30000);
 
 /* ============ arranque ============ */
 var cache = leerCache();
 if (cache) estado = { cats: cache.cats || [], meses: cache.meses || {}, colores: cache.colores || {},
-                      presupuestos: cache.presupuestos || {}, notif: !!cache.notif };
+                      presupuestos: cache.presupuestos || {}, notif: !!cache.notif,
+                      resumen: !!cache.resumen, horaResumen: cache.horaResumen || "09:00",
+                      pendientes: cache.pendientes || [], ultimoResumen: cache.ultimoResumen || "" };
 normColores(); guardarCache();
 $("fecha").value = hoyISO();
 pintar();
+latido();
 })();
 </script>
 </body>
