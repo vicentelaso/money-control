@@ -16,6 +16,6 @@
    leer y escribir su propia fila.
    ============================================================ */
 window.MC_CONFIG = {
-  url: "",
-  key: ""
+  url: "https://zsalveqwvlbxolrjvxui.supabase.co",
+  key: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InpzYWx2ZXF3dmxieG9scmp2eHVpIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTA0NTA3NTYsImV4cCI6MjEwNjAyNjc1Nn0.axcuqGUju-j9WYlZVdujzs7ozA-euJPhJposjgRgW3s"
 };
