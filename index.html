@@ -312,6 +312,8 @@ label{display:block;font-size:12px;color:var(--muted);margin-bottom:6px}
 .chev{width:18px;height:18px;flex:none;fill:none;stroke:var(--faint);stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round;transition:transform .18s}
 .picker-btn[aria-expanded="true"] .chev{transform:rotate(180deg)}
 .picker-panel{border:1px solid var(--faint);border-top:none;border-radius:0 0 var(--r-sm) var(--r-sm);background:var(--card);overflow:hidden}
+.picker-intro{font-size:13px;color:var(--muted);line-height:1.45;padding:13px 14px 4px}
+.picker-intro b{color:var(--ink);font-weight:600;display:block;font-size:14px;margin-bottom:3px}
 .picker-list{list-style:none;margin:0;padding:4px 0;max-height:min(44vh,320px);overflow-y:auto}
 .picker-list li{display:flex;align-items:center;gap:2px;padding-right:6px}
 .opt{flex:1;min-width:0;display:flex;align-items:center;gap:10px;background:none;border:none;padding:11px 8px 11px 14px;text-align:left;font-size:14.5px}
@@ -758,7 +760,6 @@ textarea.inp{min-height:110px;resize:vertical;font-size:12.5px;font-family:ui-mo
    Utilidades
    ============================================================ */
 var PALETA = ["#2F6FB5","#E0803C","#3AA06B","#8E5BB5","#D4B12E","#2AA0A8","#D05C7E","#6E8F2E","#B8573A","#4E5D94"];
-var SUGERENCIAS = ["Comida","Transporte","Arriendo","Carrete","Universidad","Supermercado","Salud","Otros"];
 var MESES = ["enero","febrero","marzo","abril","mayo","junio","julio","agosto","septiembre","octubre","noviembre","diciembre"];
 var DIAS = ["dom","lun","mar","mié","jue","vie","sáb"];
 var UMBRAL = 5000;
@@ -1241,10 +1242,11 @@ function pintarCatVal(){
     : '<span class="ph">Elegir</span>';
 }
 function pintarCats(){
-  if (catSel && estado.cats.length && !buscarCat(catSel) && SUGERENCIAS.indexOf(catSel) === -1) catSel = "";
+  if (catSel && !buscarCat(catSel)) catSel = "";
   pintarCatVal();
   var propias = estado.cats.length > 0;
-  var fuente = propias ? catsOrdenadas() : SUGERENCIAS;
+  if (!propias) catCreando = true;      /* la primera vez, el campo aparece listo para escribir */
+  var fuente = propias ? catsOrdenadas() : [];
   var cuentas = contarPorCat();
 
   var filas = fuente.map(function(c){
@@ -1271,13 +1273,17 @@ function pintarCats(){
 
   var pie = catCreando
     ? '<div class="fila-edit">'
-      + '<input class="inp" id="catNuevaInp" type="text" autocomplete="off" placeholder="Nombre" aria-label="Categoría nueva">'
+      + '<input class="inp" id="catNuevaInp" type="text" autocomplete="off" placeholder="'
+      +   (propias ? "Nombre" : "Por ejemplo: Comida") + '" aria-label="Categoría nueva">'
       + '<div class="edit-acc"><button type="button" class="mini-btn ok" data-acc="agregar">Agregar</button>'
-      + '<button type="button" class="mini-btn" data-acc="cancelar">Cancelar</button></div></div>'
+      +   (propias ? '<button type="button" class="mini-btn" data-acc="cancelar">Cancelar</button>' : '')
+      + '</div></div>'
     : '<button type="button" class="picker-new" data-acc="nueva"><b>+</b>Nueva categoría</button>';
 
-  $("catPanel").innerHTML = '<ul class="picker-list" role="listbox">'+filas+'</ul>'
-    + '<div class="picker-foot">'+pie+'</div>';
+  $("catPanel").innerHTML =
+    (propias ? '' : '<div class="picker-intro"><b>Agrega tu primera categoría</b>Con el nombre que tú uses: comida, micro, arriendo, lo que sea.</div>')
+    + (propias ? '<ul class="picker-list" role="listbox">'+filas+'</ul>' : '')
+    + '<div class="picker-foot"' + (propias ? '' : ' style="border-top:none"') + '>'+pie+'</div>';
 
   if (!$("catPanel").hidden){
     var foco = $("catEditInp") || $("catNuevaInp");
@@ -1329,9 +1335,12 @@ $("catPanel").addEventListener("click", function(e){
   if (acc === "agregar"){
     var nombre = $("catNuevaInp").value.trim(); if (!nombre) return $("catNuevaInp").focus();
     var ya = buscarCat(nombre);
-    if (ya) catSel = ya; else { agregarCat(nombre); catSel = nombre; }
+    var primera = false;
+    if (ya) catSel = ya;
+    else { agregarCat(nombre); catSel = nombre; primera = (estado.cats.length === 1); }
     cerrarPanel();
     if (!$("monto").value) $("monto").focus();
+    if (primera) avisar('Guardada. Puedes crear las que quieras con "+ Nueva categoría" y quedan ahí para siempre.');
   }
 });
 $("catPanel").addEventListener("keydown", function(e){
