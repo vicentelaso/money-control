@@ -398,9 +398,13 @@ body.conf-abierta .backdrop{opacity:1;pointer-events:auto;z-index:75}
 .ed-volver{width:32px;height:32px;border-radius:10px;background:var(--bg);border:1px solid var(--line);color:var(--muted);display:grid;place-items:center;flex:none;font-size:17px}
 .ed-prev{display:flex;align-items:center;gap:12px;padding:14px;background:var(--bg);border-radius:var(--r-md);margin-bottom:16px}
 .ed-prev .txt{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-weight:500}
+.sw-tit{font-size:10.5px;font-weight:600;color:var(--faint);letter-spacing:.07em;text-transform:uppercase;margin:0 0 8px}
 .sw{display:flex;flex-wrap:wrap;gap:8px}
 .sw button{width:30px;height:30px;border-radius:99px;border:2px solid transparent;padding:0}
 .sw button[aria-pressed="true"]{border-color:var(--ink);box-shadow:0 0 0 2px var(--card) inset}
+.sw.tonos{gap:10px;margin-bottom:2px}
+.sw.tonos button{width:46px;height:34px;border-radius:11px}
+.sw-bloque{margin-bottom:16px}
 .rejilla{display:grid;grid-template-columns:repeat(auto-fill,minmax(58px,1fr));gap:8px;max-height:44vh;overflow-y:auto;padding:2px}
 .rejilla button{background:var(--bg);border:1px solid transparent;border-radius:12px;padding:9px 4px;display:grid;justify-items:center;gap:5px}
 .rejilla button:hover{border-color:var(--line)}
@@ -726,7 +730,14 @@ body.acceso-on #winInstalar{z-index:100}
       <h2 style="font-size:16px;margin:0;font-weight:600">Logo y color</h2>
     </div>
     <div class="ed-prev"><span class="chip lg" id="edChip"></span><span class="txt" id="edNombre"></span></div>
-    <div class="sw" id="edColores"></div>
+    <div class="sw-bloque">
+      <div class="sw-tit">Color</div>
+      <div class="sw" id="edFamilias"></div>
+    </div>
+    <div class="sw-bloque">
+      <div class="sw-tit">Tono</div>
+      <div class="sw tonos" id="edTonos"></div>
+    </div>
     <input class="inp" id="edBuscar" type="text" placeholder="Buscar logo" aria-label="Buscar logo" style="margin:16px 0 12px">
     <div class="rejilla" id="edRejilla"></div>
     <button class="save" id="edListo">Listo</button>
@@ -1047,6 +1058,42 @@ var ICONOS = [
 ];
 
 var PALETA = ["#2F6FB5","#E0803C","#3AA06B","#8E5BB5","#D4B12E","#2AA0A8","#D05C7E","#6E8F2E","#B8573A","#4E5D94","#16203A","#7A7F94"];
+/* paleta del editor: familias de color, cada una con cuatro tonos.
+   Todos lo bastante oscuros para que el logo blanco se lea encima. */
+var COLORES = [
+  {n:"Rojo",    t:["#E05252","#C73B3B","#A32C2C","#7A1F1F"]},
+  {n:"Naranjo", t:["#E8833A","#D26A22","#AE5417","#85400F"]},
+  {n:"Ámbar",   t:["#D9A72E","#C08F1E","#9C7315","#75560F"]},
+  {n:"Oliva",   t:["#8CA83D","#6E8F2E","#587324","#41571B"]},
+  {n:"Verde",   t:["#46A86E","#2F8D57","#256F45","#1B5333"]},
+  {n:"Turquesa",t:["#3BA8A8","#2A8F92","#1F7376","#165558"]},
+  {n:"Celeste", t:["#3E9BD6","#2D82BC","#226799","#194D74"]},
+  {n:"Azul",    t:["#3E6FD0","#2F5BB5","#244893","#1A356E"]},
+  {n:"Índigo",  t:["#5A5FC7","#4649AC","#37398A","#232A5E"]},
+  {n:"Morado",  t:["#9A5BC4","#8145AB","#663687","#4C2865"]},
+  {n:"Rosa",    t:["#D75B8A","#BE4472","#9B355C","#742845"]},
+  {n:"Café",    t:["#A9744B","#8C5C39","#70482C","#543620"]},
+  {n:"Gris",    t:["#8A8F9E","#6E7382","#555967","#3A3D48"]},
+  {n:"Tinta",   t:["#2C3A5E","#16203A","#111A30","#0B1222"]}
+];
+function rgb(h){
+  h = String(h||"").replace("#","");
+  if (h.length !== 6) return null;
+  return [parseInt(h.slice(0,2),16), parseInt(h.slice(2,4),16), parseInt(h.slice(4,6),16)];
+}
+/* para marcar la familia aunque la categoría traiga un color antiguo */
+function familiaDe(hex){
+  var c = rgb(hex); if (!c) return 0;
+  var mejor = 0, dist = Infinity;
+  COLORES.forEach(function(f, i){
+    f.t.forEach(function(h){
+      var o = rgb(h); if (!o) return;
+      var d = Math.pow(c[0]-o[0],2) + Math.pow(c[1]-o[1],2) + Math.pow(c[2]-o[2],2);
+      if (d < dist){ dist = d; mejor = i; }
+    });
+  });
+  return mejor;
+}
 var ICO = {};
 ICONOS.forEach(function(i){ ICO[i.id] = i; });
 
@@ -1878,9 +1925,14 @@ function pintarEditor(filtro){
     : '<b>' + esc(edCat.trim().charAt(0).toUpperCase()) + '</b>';
   $("edNombre").textContent = edCat;
 
-  $("edColores").innerHTML = PALETA.map(function(h){
+  var fam = familiaDe(col);
+  $("edFamilias").innerHTML = COLORES.map(function(f, i){
+    return '<button type="button" data-fam="'+i+'" aria-pressed="'+(i===fam)+'" '
+      + 'style="background:'+f.t[1]+'" title="'+esc(f.n)+'" aria-label="'+esc(f.n)+'"></button>';
+  }).join("");
+  $("edTonos").innerHTML = COLORES[fam].t.map(function(h){
     return '<button type="button" data-color="'+h+'" aria-pressed="'+(h.toLowerCase()===String(col).toLowerCase())+'" '
-      + 'style="background:'+h+'" aria-label="Color '+h+'"></button>';
+      + 'style="background:'+h+'" aria-label="Tono '+h+'"></button>';
   }).join("");
 
   var q = sinTildes(filtro || "");
@@ -1914,7 +1966,16 @@ function cerrarEditor(){
 $("edVolver").addEventListener("click", cerrarEditor);
 $("edListo").addEventListener("click", cerrarEditor);
 $("edBuscar").addEventListener("input", function(){ pintarEditor(this.value); });
-$("edColores").addEventListener("click", function(e){
+$("edFamilias").addEventListener("click", function(e){
+  var b = e.target.closest("[data-fam]"); if (!b || !edCat) return;
+  var f = COLORES[+b.dataset.fam];
+  /* al cambiar de familia se conserva la posición del tono */
+  var actual = String(colorDe(edCat)).toLowerCase();
+  var i = COLORES[familiaDe(actual)].t.map(function(h){ return h.toLowerCase(); }).indexOf(actual);
+  estado.colores[edCat.toLowerCase()] = f.t[i >= 0 ? i : 1];
+  guardarCache(); pintarEditor($("edBuscar").value); pintar();
+});
+$("edTonos").addEventListener("click", function(e){
   var b = e.target.closest("[data-color]"); if (!b || !edCat) return;
   estado.colores[edCat.toLowerCase()] = b.dataset.color;
   guardarCache(); pintarEditor($("edBuscar").value); pintar();
