@@ -106,8 +106,9 @@ button{cursor:pointer}
 .ghost:hover{border-color:var(--faint);color:var(--ink)}
 .ghost:active{transform:scale(.94)}
 .ghost svg{width:18px;height:18px;fill:none;stroke:currentColor;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round}
-.ghost.coin{background:var(--gold-soft);border-color:transparent}
-.ghost.coin svg{stroke:none}
+.ghost.cats{background:var(--gold);border-color:transparent;color:#2A2008}
+.ghost.cats:hover{background:var(--gold);filter:brightness(1.06);color:#2A2008}
+.ghost.cats svg{stroke-width:1.9}
 .cta{
   background:var(--deep);color:var(--on-deep);border:none;border-radius:99px;
   padding:8px 15px;font-size:13.5px;font-weight:600;
@@ -159,9 +160,12 @@ button{cursor:pointer}
   padding:3px 9px;font-size:12px;font-weight:500;background:rgba(255,255,255,.1);color:var(--on-deep);
 }
 .delta svg{width:11px;height:11px;fill:none;stroke:currentColor;stroke-width:2.4;stroke-linecap:round;stroke-linejoin:round}
-.ribbon{display:flex;height:9px;margin-top:20px;border-radius:99px;overflow:hidden;gap:2px;position:relative}
-.ribbon div{transition:width .35s cubic-bezier(.2,.8,.3,1)}
-.ribbon-empty{height:9px;margin-top:20px;border-radius:99px;background:rgba(255,255,255,.1)}
+/* ---------- insignias de categoría ---------- */
+.chip{--s:34px;width:var(--s);height:var(--s);border-radius:calc(var(--s)/3);display:grid;place-items:center;flex:none}
+.chip svg{width:60%;height:60%;fill:none;stroke:#fff;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round}
+.chip b{color:#fff;font-weight:600;font-size:calc(var(--s)*.42);line-height:1}
+.chip.sm{--s:25px}
+.chip.lg{--s:52px;border-radius:16px}
 
 /* ============================================================
    4. Tarjetas y listas
@@ -182,7 +186,6 @@ button{cursor:pointer}
 .rank li:first-child{padding-top:0}
 .r1{display:flex;align-items:baseline;justify-content:space-between;gap:12px}
 .nom{display:flex;align-items:center;gap:9px;min-width:0}
-.nom i{width:9px;height:9px;border-radius:99px;flex:none}
 .nom span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:14.5px}
 .val{white-space:nowrap;font-size:14.5px;font-weight:500}
 .val .pct{color:var(--muted);font-size:12.5px;margin-left:8px;font-weight:400}
@@ -307,7 +310,6 @@ label{display:block;font-size:12px;color:var(--muted);margin-bottom:6px}
 .picker-btn:hover{border-color:var(--faint)}
 .picker-btn[aria-expanded="true"]{border-color:var(--faint);border-radius:var(--r-sm) var(--r-sm) 0 0}
 .picker-val{flex:1;display:flex;align-items:center;gap:9px;min-width:0}
-.picker-val i{width:10px;height:10px;border-radius:99px;flex:none}
 .picker-val span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .picker-val .ph{color:var(--muted)}
 .chev{width:18px;height:18px;flex:none;fill:none;stroke:var(--faint);stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round;transition:transform .18s}
@@ -319,7 +321,6 @@ label{display:block;font-size:12px;color:var(--muted);margin-bottom:6px}
 .picker-list li{display:flex;align-items:center;gap:2px;padding-right:6px}
 .opt{flex:1;min-width:0;display:flex;align-items:center;gap:10px;background:none;border:none;padding:11px 8px 11px 14px;text-align:left;font-size:14.5px}
 .opt:hover{background:var(--bg)}
-.opt i{width:10px;height:10px;border-radius:99px;flex:none}
 .opt .nm{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .opt small{color:var(--faint);font-size:12px;margin-left:auto;white-space:nowrap;padding-left:8px}
 .opt .check{width:16px;height:16px;flex:none;fill:none;stroke:var(--ink);stroke-width:2.2;stroke-linecap:round;stroke-linejoin:round;visibility:hidden}
@@ -378,9 +379,37 @@ body.conf-abierta .backdrop{opacity:1;pointer-events:auto;z-index:75}
 .sec h3{font-size:11.5px;font-weight:600;color:var(--faint);letter-spacing:.07em;text-transform:uppercase;margin:0 0 12px}
 .fila{display:flex;align-items:center;gap:10px;padding:9px 0;border-bottom:1px solid var(--line-soft)}
 .fila:last-child{border-bottom:none}
-.fila i{width:10px;height:10px;border-radius:99px;flex:none}
 .fila .cn{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:14.5px}
-.fila .inp{width:124px;flex:none;text-align:right;padding:8px 10px;font-size:14px}
+.fila .inp{width:112px;flex:none;text-align:right;padding:8px 10px;font-size:14px}
+.fila .chipbtn{background:none;border:none;padding:0;border-radius:12px;flex:none}
+.fila .chipbtn:hover{filter:brightness(1.12)}
+.fila .quitar{width:32px;height:32px;border-radius:9px;background:none;border:1px solid transparent;color:var(--faint);display:grid;place-items:center;flex:none}
+.fila .quitar:hover{color:var(--danger);border-color:var(--line)}
+.fila .quitar svg{width:15px;height:15px;fill:none;stroke:currentColor;stroke-width:1.7;stroke-linecap:round}
+.fila .nomb{flex:1;min-width:0;background:none;border:none;border-bottom:1px solid transparent;padding:6px 2px;font-size:14.5px;text-overflow:ellipsis}
+.fila .nomb:hover{border-bottom-color:var(--line)}
+.fila .nomb:focus{outline:none;border-bottom-color:var(--faint)}
+.nueva-cat{width:100%;display:flex;align-items:center;gap:10px;background:none;border:1px dashed var(--line);border-radius:var(--r-sm);padding:12px 14px;font-size:14.5px;font-weight:500;margin-top:14px}
+.nueva-cat:hover{border-color:var(--faint)}
+.nueva-cat b{color:var(--faint);font-weight:400;font-size:18px;line-height:1}
+
+/* editor de logo */
+.ed-top{display:flex;align-items:center;gap:12px;margin-bottom:14px}
+.ed-volver{width:32px;height:32px;border-radius:10px;background:var(--bg);border:1px solid var(--line);color:var(--muted);display:grid;place-items:center;flex:none;font-size:17px}
+.ed-prev{display:flex;align-items:center;gap:12px;padding:14px;background:var(--bg);border-radius:var(--r-md);margin-bottom:16px}
+.ed-prev .txt{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-weight:500}
+.sw{display:flex;flex-wrap:wrap;gap:8px}
+.sw button{width:30px;height:30px;border-radius:99px;border:2px solid transparent;padding:0}
+.sw button[aria-pressed="true"]{border-color:var(--ink);box-shadow:0 0 0 2px var(--card) inset}
+.rejilla{display:grid;grid-template-columns:repeat(auto-fill,minmax(58px,1fr));gap:8px;max-height:44vh;overflow-y:auto;padding:2px}
+.rejilla button{background:var(--bg);border:1px solid transparent;border-radius:12px;padding:9px 4px;display:grid;justify-items:center;gap:5px}
+.rejilla button:hover{border-color:var(--line)}
+.rejilla button[aria-pressed="true"]{border-color:var(--ink);background:var(--card)}
+.rejilla svg{width:21px;height:21px;fill:none;stroke:var(--ink);stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round}
+.rejilla span{font-size:9.5px;color:var(--muted);line-height:1.15;text-align:center;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:100%}
+.rejilla .letra{font-family:"Fraunces",serif;font-size:19px;color:var(--ink)}
+.ed-grupo{font-size:10.5px;font-weight:600;color:var(--faint);letter-spacing:.07em;text-transform:uppercase;margin:14px 0 7px}
+.ed-grupo:first-child{margin-top:0}
 .check{display:flex;align-items:flex-start;gap:11px;font-size:13.5px;padding:7px 0;cursor:pointer}
 .check input{width:18px;height:18px;flex:none;margin:1px 0 0;accent-color:var(--deep)}
 .hora{display:flex;align-items:center;gap:10px;margin:6px 0 2px 29px;font-size:13px;color:var(--muted)}
@@ -541,8 +570,8 @@ textarea.inp{min-height:110px;resize:vertical;font-size:12.5px;font-family:ui-mo
     </nav>
     <div class="bar-acc">
       <button class="cta" id="btnInstalar" hidden>Instalar</button>
-      <button class="ghost coin" id="btnPresu" aria-label="Presupuestos" title="Presupuestos">
-        <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9.2" fill="var(--gold)"/><circle cx="12" cy="12" r="6.6" fill="none" stroke="rgba(0,0,0,.16)" stroke-width="1"/><path d="M12 7.4v9.2M14.3 9.4c-.5-.7-1.3-1-2.3-1-1.4 0-2.4.7-2.4 1.8 0 2.4 4.8 1.2 4.8 3.6 0 1.1-1 1.8-2.4 1.8-1.1 0-1.9-.4-2.4-1.1" fill="none" stroke="rgba(0,0,0,.55)" stroke-width="1.5" stroke-linecap="round"/></svg>
+      <button class="ghost cats" id="btnPresu" aria-label="Categorías" title="Categorías">
+        <svg viewBox="0 0 24 24"><path d="M3 12.3V4.6a1.6 1.6 0 011.6-1.6h7.7L21.4 12l-9.1 9.1z"/><circle cx="7.6" cy="7.6" r="1.5"/></svg>
       </button>
       <button class="ghost" id="btnCfg" aria-label="Ajustes" title="Ajustes">
         <svg viewBox="0 0 24 24"><path d="M4 7h9M18 7h2M4 12h4M13 12h7M4 17h9M18 17h2"/><circle cx="15.5" cy="7" r="2.1"/><circle cx="10.5" cy="12" r="2.1"/><circle cx="15.5" cy="17" r="2.1"/></svg>
@@ -573,7 +602,6 @@ textarea.inp{min-height:110px;resize:vertical;font-size:12.5px;font-family:ui-mo
         <span class="delta" id="delta" hidden></span>
         <span class="txt" id="metaTxt"></span>
       </div>
-      <div id="ribbonBox"></div>
     </div>
 
     <div class="grid2">
@@ -672,11 +700,33 @@ textarea.inp{min-height:110px;resize:vertical;font-size:12.5px;font-family:ui-mo
 </nav>
 
 <!-- Presupuestos -->
-<div class="win" id="winPresu" hidden role="dialog" aria-label="Presupuestos">
-  <div class="win-top"><h2>Presupuestos</h2><button class="cerrar-x" id="cerrarPresu" aria-label="Cerrar">×</button></div>
-  <p class="bajada">Tope mensual por categoría. En blanco, sin tope.</p>
-  <div id="presuLista"></div>
-  <button class="save" id="guardarPresu">Guardar</button>
+<div class="win" id="winPresu" hidden role="dialog" aria-label="Categorías">
+  <div id="catVista">
+    <div class="win-top"><h2>Categorías</h2><button class="cerrar-x" id="cerrarPresu" aria-label="Cerrar">×</button></div>
+    <p class="bajada">Toca el logo para cambiarlo, el nombre para editarlo, y pon un tope mensual si quieres controlarla.</p>
+    <div id="presuLista"></div>
+    <button class="nueva-cat" id="catNueva"><b>+</b>Nueva categoría</button>
+    <div id="catNuevaFila" hidden style="margin-top:14px">
+      <input class="inp" id="catNuevaWin" type="text" autocomplete="off" placeholder="Nombre de la categoría" aria-label="Categoría nueva">
+      <div class="btnrow" style="margin-top:10px">
+        <button class="btn2" id="catNuevaOk" style="background:var(--deep);color:var(--on-deep);border-color:var(--deep)">Agregar</button>
+        <button class="btn2" id="catNuevaNo">Cancelar</button>
+      </div>
+    </div>
+    <button class="save" id="guardarPresu">Guardar</button>
+  </div>
+
+  <div id="catEditor" hidden>
+    <div class="ed-top">
+      <button class="ed-volver" id="edVolver" aria-label="Volver">‹</button>
+      <h2 style="font-size:16px;margin:0;font-weight:600">Logo y color</h2>
+    </div>
+    <div class="ed-prev"><span class="chip lg" id="edChip"></span><span class="txt" id="edNombre"></span></div>
+    <div class="sw" id="edColores"></div>
+    <input class="inp" id="edBuscar" type="text" placeholder="Buscar logo" aria-label="Buscar logo" style="margin:16px 0 12px">
+    <div class="rejilla" id="edRejilla"></div>
+    <button class="save" id="edListo">Listo</button>
+  </div>
 </div>
 
 <!-- Ajustes -->
@@ -735,15 +785,15 @@ textarea.inp{min-height:110px;resize:vertical;font-size:12.5px;font-family:ui-mo
     <div class="acc">
       <button class="acc-h" data-acc="a2" aria-expanded="false">Categorías<svg class="chev" viewBox="0 0 20 20"><path d="M5 8l5 5 5-5"/></svg></button>
       <div class="acc-b" data-cuerpo="a2" hidden>
-        <p>Se eligen de la lista desplegable del formulario. Ahí mismo puedes crear una nueva.</p>
-        <p>El lápiz de cada una permite <b>renombrarla</b>, y el cambio se aplica a todos los gastos anteriores. Si la renombras con el nombre de otra existente, te ofrece unirlas.</p>
-        <p>Al eliminarla, los gastos ya anotados conservan el nombre; solo sale de la lista.</p>
+        <p>Se eligen de la lista desplegable del formulario, y ahí mismo puedes crear una nueva.</p>
+        <p>Todo lo demás vive en el botón de la <b>etiqueta dorada</b>: cambiar el logo y su color, renombrar, poner el tope mensual y eliminar.</p>
+        <p>Al renombrar, el cambio se aplica a todos los gastos anteriores; si usas el nombre de otra existente, te ofrece unirlas. Al eliminar, los gastos ya anotados conservan el nombre.</p>
       </div>
     </div>
     <div class="acc">
       <button class="acc-h" data-acc="a3" aria-expanded="false">Presupuestos y alertas<svg class="chev" viewBox="0 0 20 20"><path d="M5 8l5 5 5-5"/></svg></button>
       <div class="acc-b" data-cuerpo="a3" hidden>
-        <p>El botón de la moneda dorada fija un tope mensual por categoría. El conteo parte de cero cada mes.</p>
+        <p>El tope mensual de cada categoría se pone en el botón de la etiqueta dorada. El conteo parte de cero cada mes.</p>
         <p>Cuando quedan menos de <b>$5.000</b> aparece una alerta amarilla, y roja al pasarse. Se agrupan abajo, en <b>Alertas</b>.</p>
         <p>Las notificaciones del teléfono son opcionales. Una app web no puede despertarse sola: si estaba cerrada, el aviso llega apenas la abras.</p>
       </div>
@@ -803,7 +853,181 @@ textarea.inp{min-height:110px;resize:vertical;font-size:12.5px;font-family:ui-mo
 /* ============================================================
    Utilidades
    ============================================================ */
-var PALETA = ["#2F6FB5","#E0803C","#3AA06B","#8E5BB5","#D4B12E","#2AA0A8","#D05C7E","#6E8F2E","#B8573A","#4E5D94"];
+var ICONOS = [
+/* --- Comida y bebida --- */
+{id:"comida",  n:"Comida",        g:"Comida y bebida", k:"comida almuerzo cena plato restaurante restorán comer cocina",
+ s:'<path d="M6 3v5.5a2.5 2.5 0 005 0V3"/><path d="M8.5 11v10"/><path d="M17.5 3c-1.6 2.2-2.5 4.3-2.5 6.3 0 1.5.9 2.2 2 2.2h1.5"/><path d="M18.5 3v18"/>'},
+{id:"super",   n:"Supermercado",  g:"Comida y bebida", k:"supermercado compras mercado feria jumbo lider unimarc despensa",
+ s:'<path d="M2.5 4h2.2l2.5 10.5a1.8 1.8 0 001.8 1.4h7.6a1.8 1.8 0 001.8-1.4L20 8H5.7"/><circle cx="10" cy="19.5" r="1.4"/><circle cx="16.5" cy="19.5" r="1.4"/>'},
+{id:"cafe",    n:"Café",          g:"Comida y bebida", k:"cafe café te té desayuno starbucks cortado",
+ s:'<path d="M3.5 8.5h12v5a5 5 0 01-5 5h-2a5 5 0 01-5-5z"/><path d="M15.5 10h2a2.5 2.5 0 010 5h-2"/><path d="M3 21.5h14"/><path d="M7 3v2.5M11 2.5V5"/>'},
+{id:"pizza",   n:"Comida rápida", g:"Comida y bebida", k:"pizza rapida rápida hamburguesa completos chatarra delivery",
+ s:'<path d="M3.5 10c0-3.4 3.8-6.2 8.5-6.2s8.5 2.8 8.5 6.2"/><path d="M3 13.2h18"/><path d="M4 16.2h16a4.3 4.3 0 01-4.3 4.3H8.3A4.3 4.3 0 014 16.2z"/>'},
+{id:"postre",  n:"Postres",       g:"Comida y bebida", k:"postre dulce helado torta cumpleaños azucar azúcar",
+ s:'<path d="M5.5 11.5h13l-1.4 8.1a2 2 0 01-2 1.7H8.9a2 2 0 01-2-1.7z"/><path d="M7 11.5a3.2 3.2 0 01.7-6.1 3.8 3.8 0 017.2-1A2.8 2.8 0 0117 11.5"/>'},
+{id:"energ",   n:"Energéticas",   g:"Comida y bebida", k:"energetica energética bebida lata monster redbull gaseosa refresco",
+ s:'<path d="M8 4.5h8v14.5a2 2 0 01-2 2h-4a2 2 0 01-2-2z"/><path d="M8 8.5h8"/><path d="M12.8 11l-2.3 3.4h3L11.2 18"/>'},
+
+/* --- Carrete --- */
+{id:"copete",  n:"Copete",        g:"Carrete",         k:"copete alcohol botella licor pisco ron vodka daiquiri",
+ s:'<path d="M10 2.5h4v3.2l2.1 3.2c.6.9.9 1.9.9 2.9v7.7a2 2 0 01-2 2H9a2 2 0 01-2-2v-7.7c0-1 .3-2 .9-2.9L10 5.7z"/><path d="M7 13.5h10"/>'},
+{id:"trago",   n:"Tragos",        g:"Carrete",         k:"trago bar coctel cóctel copa daiquiri mojito pub",
+ s:'<path d="M3.5 4.5h17L12 13z"/><path d="M12 13v6.5"/><path d="M8 19.5h8"/><path d="M17 3l2.5-1.5"/>'},
+{id:"cerveza", n:"Cerveza",       g:"Carrete",         k:"cerveza chela schop birra jarra",
+ s:'<path d="M5 6.5h9.5v13a1.5 1.5 0 01-1.5 1.5H6.5A1.5 1.5 0 015 19.5z"/><path d="M14.5 9.5h2.8a2.2 2.2 0 012.2 2.2v2.6a2.2 2.2 0 01-2.2 2.2h-2.8"/><path d="M8 10.5v6M11.5 10.5v6"/>'},
+{id:"vino",    n:"Vino",          g:"Carrete",         k:"vino copa tinto blanco viña",
+ s:'<path d="M8 3h8l-.7 5.6A3.4 3.4 0 0112 11.7a3.4 3.4 0 01-3.3-3.1z"/><path d="M12 11.7V20"/><path d="M8.5 20h7"/>'},
+{id:"fiesta",  n:"Fiesta",        g:"Carrete",         k:"fiesta carrete party previa celebracion celebración cumpleaños",
+ s:'<path d="M3.2 20.8l5.2-11.4 6.2 6.2z"/><path d="M14.5 3.5l.8 1.8M19 2.8l-.6 1.9M20.8 7l-1.9.6M21 11.3l-1.9-.5"/>'},
+{id:"puchos",  n:"Puchos",        g:"Carrete",         k:"puchos cigarro cigarrillo tabaco fumar vape",
+ s:'<path d="M2.5 14.5h14v5h-14z"/><path d="M6.5 14.5v5M10.5 14.5v5"/><path d="M16.5 14.5h3a2 2 0 002-2v-1.5"/><path d="M18 11.5c1.2-1 1.2-2.4 0-3.4s-1.2-2.4 0-3.4"/><path d="M21.5 10c1-.8 1-2 0-2.8"/>'},
+{id:"disco",   n:"Discos",        g:"Carrete",         k:"disco vinilo musica música club disquera tocata",
+ s:'<circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="2.6"/><path d="M12 3a9 9 0 018.9 7.6"/>'},
+{id:"musica",  n:"Música",        g:"Carrete",         k:"musica música spotify cancion canción concierto",
+ s:'<path d="M9 18V5.5l10.5-2V16"/><circle cx="6" cy="18" r="3"/><circle cx="16.5" cy="16" r="3"/>'},
+
+/* --- Transporte --- */
+{id:"auto",    n:"Auto",          g:"Transporte",      k:"auto uber cabify didi taxi coche carro vehiculo vehículo",
+ s:'<path d="M3.5 16.5v-4l2-5.5h13l2 5.5v4"/><path d="M3.5 13.5h17"/><circle cx="7.5" cy="16.8" r="1.8"/><circle cx="16.5" cy="16.8" r="1.8"/><path d="M3.5 19.5h2M18.5 19.5h2"/>'},
+{id:"bus",     n:"Transporte púb.",g:"Transporte",     k:"bus micro metro transporte publico público bip locomocion tag",
+ s:'<path d="M4 4.5h16v12H4z"/><path d="M4 10.5h16"/><circle cx="7.5" cy="19" r="1.6"/><circle cx="16.5" cy="19" r="1.6"/><path d="M7.5 7.5h3M13.5 7.5h3"/><path d="M4 16.5h16"/>'},
+{id:"tren",    n:"Tren",          g:"Transporte",      k:"tren metro ferrocarril estacion estación",
+ s:'<path d="M5.5 3.5h13v12h-13z"/><path d="M5.5 9.5h13"/><circle cx="9" cy="12.6" r="1"/><circle cx="15" cy="12.6" r="1"/><path d="M8.5 15.5L6 20.5M15.5 15.5l2.5 5"/>'},
+{id:"bici",    n:"Bicicleta",     g:"Transporte",      k:"bici bicicleta scooter moto pedales",
+ s:'<circle cx="5.8" cy="16.5" r="3.6"/><circle cx="18.2" cy="16.5" r="3.6"/><path d="M5.8 16.5l4-8.5h4l3.5 8.5"/><path d="M9 8h4.5"/>'},
+{id:"bencina", n:"Bencina",       g:"Transporte",      k:"bencina combustible gasolina copec shell petroleo peaje",
+ s:'<path d="M3.5 20.5V5a2 2 0 012-2h5a2 2 0 012 2v15.5"/><path d="M2.5 20.5h12"/><path d="M6 6.5h4.5v4H6z"/><path d="M14.5 8h1.8a2 2 0 012 2v6.5a1.6 1.6 0 003.2 0V10l-2-3"/>'},
+{id:"avion",   n:"Avión",         g:"Transporte",      k:"avion avión vuelo viaje pasaje latam aeropuerto",
+ s:'<path d="M21 3.5L3.5 10.2l6.6 3.2 3.2 6.6z"/><path d="M10.1 13.4L21 3.5"/>'},
+
+/* --- Casa y cuentas --- */
+{id:"casa",    n:"Casa",          g:"Casa y cuentas",  k:"casa arriendo hogar depto departamento vivienda dividendo renta",
+ s:'<path d="M3 10.3L12 3l9 7.3V20a1 1 0 01-1 1H4a1 1 0 01-1-1z"/><path d="M9.2 21v-6.2h5.6V21"/>'},
+{id:"luz",     n:"Luz",           g:"Casa y cuentas",  k:"luz electricidad cuenta enel energia energía boleta",
+ s:'<path d="M13.2 2.5L5 13.8h6.2L10.8 21.5 19 10.2h-6.2z"/>'},
+{id:"agua",    n:"Agua",          g:"Casa y cuentas",  k:"agua cuenta aguas andinas boleta alcantarillado",
+ s:'<path d="M12 2.8s6.3 6.6 6.3 10.7A6.3 6.3 0 015.7 13.5C5.7 9.4 12 2.8 12 2.8z"/>'},
+{id:"gas",     n:"Gas",           g:"Casa y cuentas",  k:"gas lipigas abastible calefaccion calefacción cilindro",
+ s:'<path d="M12 21.5c3.9 0 6.2-2.4 6.2-6 0-4.2-3.4-6-3.4-10.3 0 0-2.4 1.4-2.4 4.3 0 1.6-1.1 2.2-1.8 1.2-.8-1.1-1.3-2.7-1.3-3.9-2.2 1.7-3.5 4.6-3.5 8.7 0 3.6 2.3 6 6.2 6z"/>'},
+{id:"wifi",    n:"Internet",      g:"Casa y cuentas",  k:"internet wifi cuenta fibra vtr movistar entel plan",
+ s:'<path d="M2.5 9.2a14.5 14.5 0 0119 0"/><path d="M5.8 12.7a9.8 9.8 0 0112.4 0"/><path d="M8.9 16.2a5.3 5.3 0 016.2 0"/><circle cx="12" cy="19.4" r="1.1"/>'},
+{id:"celular", n:"Celular",       g:"Casa y cuentas",  k:"celular telefono teléfono plan recarga movil móvil",
+ s:'<path d="M6.5 2.5h11v19h-11z"/><path d="M10 18.8h4"/>'},
+{id:"herram",  n:"Arreglos",      g:"Casa y cuentas",  k:"arreglo herramienta mantencion mantención reparacion reparación ferreteria",
+ s:'<path d="M14.6 6.8a4.2 4.2 0 105.6 3.9l-9.5 9.5a2.2 2.2 0 01-3.1-3.1z"/><path d="M17.2 7.1l-2.6-.3-.3-2.6"/>'},
+{id:"lavan",   n:"Lavandería",    g:"Casa y cuentas",  k:"lavanderia lavandería ropa lavado limpieza aseo",
+ s:'<path d="M5 2.5h14v19H5z"/><circle cx="12" cy="14" r="4.6"/><path d="M8 5.8h.01M11 5.8h.01"/>'},
+
+/* --- Compras --- */
+{id:"ropa",    n:"Ropa",          g:"Compras",         k:"ropa vestuario polera zapatillas tienda vestimenta moda",
+ s:'<path d="M8.2 3L3.5 5.8l2 4.2 2.2-1.2V21h8.6V8.8l2.2 1.2 2-4.2L15.8 3"/><path d="M8.2 3a3.8 3.8 0 007.6 0"/>'},
+{id:"regalo",  n:"Regalos",       g:"Compras",         k:"regalo cumpleaños navidad presente sorpresa",
+ s:'<path d="M3.5 10.5h17V21h-17z"/><path d="M3.5 10.5l1.4-4h14.2l1.4 4"/><path d="M12 6.5V21"/><path d="M12 6.5C10.8 6.5 8 6 8 4.4s2.4-1.5 4 2.1c1.6-3.6 4-3.7 4-2.1S13.2 6.5 12 6.5z"/>'},
+{id:"tecno",   n:"Tecnología",    g:"Compras",         k:"tecnologia tecnología computador notebook pc electronica gadget",
+ s:'<path d="M3.5 5h17v11h-17z"/><path d="M2 19.5h20"/><path d="M10 16v3.5M14 16v3.5"/>'},
+{id:"belleza", n:"Peluquería",    g:"Compras",         k:"peluqueria peluquería belleza corte pelo maquillaje uñas spa barberia",
+ s:'<circle cx="6" cy="17.8" r="2.7"/><circle cx="6" cy="6.2" r="2.7"/><path d="M8.3 7.7L20 18.2M8.3 16.3L20 5.8"/>'},
+{id:"mascota", n:"Mascotas",      g:"Compras",         k:"mascota perro gato veterinario pet comida animal",
+ s:'<path d="M12 13.8c2.6 0 4.7 1.9 4.7 4.2a2.6 2.6 0 01-3.4 2.5 5.2 5.2 0 00-2.6 0 2.6 2.6 0 01-3.4-2.5c0-2.3 2.1-4.2 4.7-4.2z"/><ellipse cx="6.4" cy="10.5" rx="1.9" ry="2.4"/><ellipse cx="17.6" cy="10.5" rx="1.9" ry="2.4"/><ellipse cx="10" cy="6.4" rx="1.8" ry="2.3"/><ellipse cx="14" cy="6.4" rx="1.8" ry="2.3"/>'},
+
+/* --- Salud y estudio --- */
+{id:"salud",   n:"Salud",         g:"Salud y estudio", k:"salud medico médico doctor consulta isapre clinica clínica",
+ s:'<path d="M9.2 3h5.6v6.2H21v5.6h-6.2V21H9.2v-6.2H3V9.2h6.2z"/>'},
+{id:"farmacia",n:"Farmacia",      g:"Salud y estudio", k:"farmacia remedio pastilla medicamento cruz verde salcobrand",
+ s:'<path d="M4.9 12.1l7.2-7.2a5.1 5.1 0 017.2 7.2l-7.2 7.2a5.1 5.1 0 01-7.2-7.2z"/><path d="M8.5 8.5l7 7"/>'},
+{id:"gym",     n:"Gimnasio",      g:"Salud y estudio", k:"gimnasio gym deporte pesas entrenamiento smart fit",
+ s:'<path d="M3 9.5v5M6.2 7v10M17.8 7v10M21 9.5v5"/><path d="M6.2 12h11.6"/>'},
+{id:"uni",     n:"Universidad",   g:"Salud y estudio", k:"universidad uc estudio arancel matricula matrícula colegio carrera",
+ s:'<path d="M2.5 9L12 5l9.5 4-9.5 4z"/><path d="M6.5 11.3v4.9c0 1.6 2.5 2.8 5.5 2.8s5.5-1.2 5.5-2.8v-4.9"/><path d="M21.5 9v5.5"/>'},
+{id:"libro",   n:"Libros",        g:"Salud y estudio", k:"libro apunte fotocopia lectura papeleria papelería cuaderno",
+ s:'<path d="M3.5 4.5h6a3 3 0 013 3v12.5a2.6 2.6 0 00-2.6-2.4H3.5z"/><path d="M20.5 4.5h-6a3 3 0 00-3 3v12.5a2.6 2.6 0 012.6-2.4h6.4z"/>'},
+
+/* --- Ocio --- */
+{id:"juegos",  n:"Juegos",        g:"Ocio",            k:"juego videojuego steam playstation consola gamer",
+ s:'<path d="M7.5 8.5h9a5 5 0 014.6 6.9l-.6 1.4a2.3 2.3 0 01-3.9.6L15 15H9l-1.6 2.4a2.3 2.3 0 01-3.9-.6l-.6-1.4A5 5 0 017.5 8.5z"/><path d="M6.8 12h2.4M8 10.8v2.4"/><circle cx="15.6" cy="11.4" r=".9"/><circle cx="17.6" cy="13.2" r=".9"/>'},
+{id:"cine",    n:"Cine",          g:"Ocio",            k:"cine pelicula película teatro entrada ticket evento",
+ s:'<path d="M3 6.5h18v11H3z"/><path d="M3 10.5h18"/><path d="M7 6.5l2 4M12 6.5l2 4M17 6.5l2 4"/>'},
+{id:"strea",   n:"Suscripciones", g:"Ocio",            k:"suscripcion suscripción netflix spotify streaming mensual plan",
+ s:'<path d="M3.5 4.5h17v12h-17z"/><path d="M9 20.5h6"/><path d="M12 16.5v4"/><path d="M10.2 8.2l4.3 2.3-4.3 2.3z"/>'},
+{id:"viaje",   n:"Viajes",        g:"Ocio",            k:"viaje maleta vacaciones hotel turismo panorama",
+ s:'<path d="M3.5 7.5h17V20h-17z"/><path d="M8.8 7.5V5a1.5 1.5 0 011.5-1.5h3.4A1.5 1.5 0 0115.2 5v2.5"/><path d="M3.5 12.5h17"/>'},
+{id:"deporte", n:"Deporte",       g:"Ocio",            k:"deporte futbol fútbol pelota cancha partido entrada",
+ s:'<circle cx="12" cy="12" r="9"/><path d="M12 6.8l4 2.9-1.5 4.7h-5L8 9.7z"/><path d="M12 3v3.8M19.5 9.5L16 9.7M17 19.5l-2.5-4.6M7 19.5l2.5-4.6M4.5 9.5L8 9.7"/>'},
+{id:"azar",    n:"Apuestas",      g:"Ocio",            k:"apuesta azar casino loteria lotería dado bingo",
+ s:'<path d="M4 6.5a2.5 2.5 0 012.5-2.5h11A2.5 2.5 0 0120 6.5v11a2.5 2.5 0 01-2.5 2.5h-11A2.5 2.5 0 014 17.5z"/><circle cx="8.6" cy="8.6" r="1.1"/><circle cx="15.4" cy="15.4" r="1.1"/><circle cx="12" cy="12" r="1.1"/>'},
+
+/* --- Dinero --- */
+{id:"deuda",   n:"Deudas",        g:"Dinero",          k:"deuda prestamo préstamo credito crédito cuota pago debo",
+ s:'<path d="M5 3.5h14v18l-3.5-2.2L12 21.5l-3.5-2.2L5 21.5z"/><path d="M8.5 8.5h7M8.5 12.5h7M8.5 16.5h4"/>'},
+{id:"tarjeta", n:"Tarjeta",       g:"Dinero",          k:"tarjeta credito crédito debito débito banco visa compra",
+ s:'<path d="M2.5 6h19v12h-19z"/><path d="M2.5 10h19"/><path d="M6 14.5h3.5"/>'},
+{id:"ahorro",  n:"Ahorro",        g:"Dinero",          k:"ahorro alcancia alcancía guardar meta inversion inversión",
+ s:'<ellipse cx="12" cy="6.3" rx="7" ry="2.8"/><path d="M5 6.3v11.4c0 1.5 3.1 2.8 7 2.8s7-1.3 7-2.8V6.3"/><path d="M5 12c0 1.5 3.1 2.8 7 2.8s7-1.3 7-2.8"/>'},
+{id:"banco",   n:"Banco",         g:"Dinero",          k:"banco cuenta transferencia comision comisión giro",
+ s:'<path d="M2.5 9.5L12 3.5l9.5 6"/><path d="M5 9.5v8.5M9.5 9.5v8.5M14.5 9.5v8.5M19 9.5v8.5"/><path d="M2.5 21.5h19M2.5 18h19"/>'},
+{id:"sueldo",  n:"Ingresos",      g:"Dinero",          k:"sueldo ingreso pago plata billete efectivo",
+ s:'<path d="M2.5 6.5h19v11h-19z"/><path d="M12 9v6"/><path d="M13.9 10.1c-.4-.5-1.1-.8-1.9-.8-1.1 0-1.9.5-1.9 1.4 0 1.8 3.8.9 3.8 2.7 0 .9-.8 1.4-1.9 1.4-.8 0-1.5-.3-1.9-.8"/><path d="M5.5 9.5h.01M18.5 14.5h.01"/>'},
+{id:"trabajo", n:"Trabajo",       g:"Dinero",          k:"trabajo pega oficina practica práctica negocio empresa",
+ s:'<path d="M3.5 7.5h17V20h-17z"/><path d="M9 7.5V5.5a1.5 1.5 0 011.5-1.5h3a1.5 1.5 0 011.5 1.5v2"/><path d="M3.5 12.5h17"/>'},
+
+/* --- Genéricos --- */
+{id:"persona", n:"Personas",      g:"Otros",           k:"persona gente familia amigos pareja hijo social",
+ s:'<circle cx="9" cy="7.8" r="3.6"/><path d="M2.5 20a6.5 6.5 0 0113 0"/><circle cx="17.5" cy="8.5" r="2.8"/><path d="M17 14a5 5 0 014.5 3.2"/>'},
+{id:"corazon", n:"Corazón",       g:"Otros",           k:"corazon corazón amor donacion donación pareja favorito",
+ s:'<path d="M12 20.5S3.5 15.4 3.5 9.8A4.3 4.3 0 0112 7.3a4.3 4.3 0 018.5 2.5c0 5.6-8.5 10.7-8.5 10.7z"/>'},
+{id:"estrella",n:"Estrella",      g:"Otros",           k:"estrella favorito importante extra especial",
+ s:'<path d="M12 3l2.8 5.7 6.2.9-4.5 4.4 1.1 6.2L12 17.2l-5.6 3 1.1-6.2L3 9.6l6.2-.9z"/>'},
+{id:"etiqueta",n:"Etiqueta",      g:"Otros",           k:"etiqueta varios otros general generico genérico",
+ s:'<path d="M3 12.8V4.5a1.5 1.5 0 011.5-1.5h8.3L21.5 11.7 12.7 20.5z"/><circle cx="7.5" cy="7.5" r="1.3"/>'},
+{id:"rayo",    n:"Rayo",          g:"Otros",           k:"rayo energia energía rapido rápido urgente impulso",
+ s:'<path d="M13.2 2.5L5 13.8h6.2L10.8 21.5 19 10.2h-6.2z"/>'},
+{id:"sol",     n:"Vacaciones",    g:"Otros",           k:"sol verano vacaciones playa descanso panorama",
+ s:'<circle cx="12" cy="12" r="4.2"/><path d="M12 2.5v2.6M12 18.9v2.6M21.5 12h-2.6M5.1 12H2.5M18.7 5.3l-1.8 1.8M7.1 16.9l-1.8 1.8M18.7 18.7l-1.8-1.8M7.1 7.1L5.3 5.3"/>'},
+{id:"reloj",   n:"Tiempo",        g:"Otros",           k:"reloj tiempo hora suscripcion mensual recurrente",
+ s:'<circle cx="12" cy="12" r="9"/><path d="M12 6.8V12l3.6 2.2"/>'},
+{id:"doc",     n:"Trámites",      g:"Otros",           k:"tramite trámite documento papel impuesto multa contrato",
+ s:'<path d="M6 2.5h7.5L19 8v13.5H6z"/><path d="M13.5 2.5V8H19"/><path d="M9 12.5h7M9 16.5h5"/>'}
+];
+
+var PALETA = ["#2F6FB5","#E0803C","#3AA06B","#8E5BB5","#D4B12E","#2AA0A8","#D05C7E","#6E8F2E","#B8573A","#4E5D94","#16203A","#7A7F94"];
+var ICO = {};
+ICONOS.forEach(function(i){ ICO[i.id] = i; });
+
+function sinTildes(t){
+  return String(t||"").toLowerCase()
+    .replace(/[\u00e1\u00e0\u00e4]/g,"a").replace(/[\u00e9\u00e8\u00eb]/g,"e").replace(/[\u00ed\u00ec\u00ef]/g,"i")
+    .replace(/[\u00f3\u00f2\u00f6]/g,"o").replace(/[\u00fa\u00f9\u00fc]/g,"u").replace(/\u00f1/g,"n");
+}
+/* busca un logo que calce con el nombre escrito; si no hay, queda la inicial */
+function sugerirIcono(nombre){
+  var n = sinTildes(nombre).replace(/[^a-z0-9 ]/g," ").trim();
+  if (!n) return "";
+  var palabras = n.split(/\s+/);
+  var mejor = "", puntaje = 0;
+  ICONOS.forEach(function(i){
+    var claves = sinTildes(i.k + " " + i.n).split(/\s+/), p = 0;
+    palabras.forEach(function(w){
+      if (w.length < 3) return;
+      claves.forEach(function(c){
+        if (c === w) p = Math.max(p, 3);
+        else if (c.length > 3 && (c.indexOf(w) === 0 || w.indexOf(c) === 0)) p = Math.max(p, 2);
+      });
+    });
+    if (p > puntaje){ puntaje = p; mejor = i.id; }
+  });
+  return mejor;
+}
+function iconoDe(cat){
+  var k = String(cat||"").toLowerCase();
+  return (estado.iconos && estado.iconos[k]) || "";
+}
+/* la insignia: logo sobre el color de la categoría, o su inicial si no tiene logo */
+function insignia(cat, clase){
+  var id = iconoDe(cat), col = colorDe(cat);
+  var dentro = (id && ICO[id]) ? '<svg viewBox="0 0 24 24">' + ICO[id].s + '</svg>'
+                               : '<b>' + esc(String(cat||"?").trim().charAt(0).toUpperCase()) + '</b>';
+  return '<span class="chip ' + (clase||"") + '" style="background:' + col + '">' + dentro + '</span>';
+}
 var MESES = ["enero","febrero","marzo","abril","mayo","junio","julio","agosto","septiembre","octubre","noviembre","diciembre"];
 var DIAS = ["dom","lun","mar","mié","jue","vie","sáb"];
 var UMBRAL = 5000;
@@ -836,7 +1060,7 @@ var lento = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
    Estado y persistencia
    ============================================================ */
 function estadoVacio(){
-  return { cats:[], meses:{}, colores:{}, presupuestos:{},
+  return { cats:[], meses:{}, colores:{}, iconos:{}, presupuestos:{},
            notif:false, resumen:false, horaResumen:"09:00",
            pendientes:[], ultimoResumen:"", ts:0 };
 }
@@ -906,11 +1130,14 @@ function colorLibre(){
 }
 function normColores(){
   if (!estado.colores || typeof estado.colores !== "object") estado.colores = {};
-  var primeraVez = Object.keys(estado.colores).length === 0;
+  if (!estado.iconos || typeof estado.iconos !== "object") estado.iconos = {};
+  var primeraVez = Object.keys(estado.colores).length === 0, cambio = false;
   estado.cats.forEach(function(c,i){
     var k = String(c).toLowerCase();
-    if (!estado.colores[k]) estado.colores[k] = primeraVez ? PALETA[i % PALETA.length] : colorLibre();
+    if (!estado.colores[k]){ estado.colores[k] = primeraVez ? PALETA[i % PALETA.length] : colorLibre(); cambio = true; }
+    if (estado.iconos[k] === undefined){ estado.iconos[k] = sugerirIcono(c); cambio = true; }  /* logo automático */
   });
+  return cambio;
 }
 function buscarCat(n){ return estado.cats.find(function(c){ return mismaCat(c,n); }); }
 /* las más usadas primero; empate, alfabético */
@@ -932,6 +1159,7 @@ function agregarCat(nombre){
   estado.cats = estado.cats.concat([nombre]);
   var k = nombre.toLowerCase();
   if (!estado.colores[k]) estado.colores[k] = colorLibre();
+  if (estado.iconos[k] === undefined) estado.iconos[k] = sugerirIcono(nombre);
   guardarCache();
 }
 function reetiquetar(viejo, nuevo){
@@ -945,6 +1173,7 @@ function unirCat(viejo, otra){
   var kv = viejo.toLowerCase();
   estado.cats = estado.cats.filter(function(c){ return !mismaCat(c,viejo); });
   delete estado.colores[kv];
+  delete estado.iconos[kv];
   delete estado.presupuestos[kv];
   reetiquetar(viejo, otra);
   if (mismaCat(catSel, viejo)) catSel = otra;
@@ -956,6 +1185,7 @@ function renombrarCat(viejo, nuevo){
   estado.cats = estado.cats.map(function(c){ return mismaCat(c,viejo) ? nuevo : c; });
   if (kv !== kn){
     estado.colores[kn] = estado.colores[kv]; delete estado.colores[kv];
+    estado.iconos[kn] = estado.iconos[kv]; delete estado.iconos[kv];
     if (estado.presupuestos[kv]){ estado.presupuestos[kn] = estado.presupuestos[kv]; delete estado.presupuestos[kv]; }
   }
   reetiquetar(viejo, nuevo);
@@ -1157,19 +1387,8 @@ function pintar(){
     : items.length + (items.length===1 ? " gasto · " : " gastos · ") + "<b>" + esc(grupos[0].cat) + "</b> lidera con "
       + Math.round(grupos[0].monto/total*100) + "%";
 
-  $("ribbonBox").innerHTML = !total ? '<div class="ribbon-empty"></div>'
-    : '<div class="ribbon">' + grupos.map(function(g){
-        return '<div style="width:'+(g.monto/total*100)+'%;background:'+colorDe(g.cat)+'" title="'+esc(g.cat)+'"></div>';
-      }).join("") + '</div>';
-
   $("rank").innerHTML = grupos.length
-    ? grupos.map(function(g){
-        var pct = total ? g.monto/total*100 : 0;
-        return '<li><div class="r1"><div class="nom"><i style="background:'+colorDe(g.cat)+'"></i><span>'
-          + esc(g.cat) + '</span></div><div class="val">' + plata(g.monto)
-          + '<span class="pct">' + Math.round(pct) + '%</span></div></div>'
-          + '<div class="track"><div style="width:'+pct+'%;background:'+colorDe(g.cat)+'"></div></div></li>';
-      }).join("")
+    ? grupos.map(function(g){ return filaRank(g, total); }).join("")
     : '<li class="vacio"><p>Nada todavía.</p></li>';
 
   /* movimientos agrupados por día */
@@ -1187,7 +1406,7 @@ function pintar(){
       }
       html += '<div class="mov">'
         + '<button class="mov-main" data-id="'+g.id+'">'
-        +   '<span class="dot" style="background:'+colorDe(g.cat)+'">' + esc(String(g.cat).charAt(0).toUpperCase()) + '</span>'
+        +   insignia(g.cat)
         +   '<span class="d"><b>' + esc(g.nota || g.cat) + '</b>'
         +     (g.nota ? '<small>' + esc(g.cat) + '</small>' : '') + '</span>'
         +   '<span class="m">' + plata(g.monto) + '</span>'
@@ -1202,6 +1421,15 @@ function pintar(){
   pintarAvisos();
   pintarCats();
   pintarHistorico();
+}
+
+/* el desglose va en un solo tono: el color vive en la insignia */
+function filaRank(g, total){
+  var pct = total ? g.monto/total*100 : 0;
+  return '<li><div class="r1"><div class="nom">' + insignia(g.cat, "sm") + '<span>' + esc(g.cat)
+    + '</span></div><div class="val">' + plata(g.monto)
+    + '<span class="pct">' + Math.round(pct) + '%</span></div></div>'
+    + '<div class="track"><div style="width:'+pct+'%;background:var(--ink)"></div></div></li>';
 }
 
 function pintarAvisos(){
@@ -1267,13 +1495,7 @@ function pintarHistorico(){
   lista.forEach(function(k){ todos = todos.concat(estado.meses[k]); });
   var grupos = porCategoria(todos);
   $("rankHist").innerHTML = grupos.length
-    ? grupos.map(function(g){
-        var pct = gran ? g.monto/gran*100 : 0;
-        return '<li><div class="r1"><div class="nom"><i style="background:'+colorDe(g.cat)+'"></i><span>'
-          + esc(g.cat) + '</span></div><div class="val">' + plata(g.monto)
-          + '<span class="pct">' + Math.round(pct) + '%</span></div></div>'
-          + '<div class="track"><div style="width:'+pct+'%;background:'+colorDe(g.cat)+'"></div></div></li>';
-      }).join("")
+    ? grupos.map(function(g){ return filaRank(g, gran); }).join("")
     : '<li class="vacio"><p>Nada todavía.</p></li>';
 }
 
@@ -1282,7 +1504,7 @@ function pintarHistorico(){
    ============================================================ */
 function pintarCatVal(){
   $("catVal").innerHTML = catSel
-    ? '<i style="background:'+colorDe(catSel)+'"></i><span>'+esc(catSel)+'</span>'
+    ? insignia(catSel, "sm") + '<span>'+esc(catSel)+'</span>'
     : '<span class="ph">Elegir</span>';
 }
 function pintarCats(){
@@ -1294,25 +1516,13 @@ function pintarCats(){
   var cuentas = contarPorCat();
 
   var filas = fuente.map(function(c){
-    if (propias && catEditando === c){
-      var n = cuentas[c.toLowerCase()] || 0;
-      return '<li class="fila-edit">'
-        + '<input class="inp" id="catEditInp" type="text" autocomplete="off" value="'+esc(c)+'" aria-label="Nuevo nombre">'
-        + '<div class="edit-acc">'
-        +   '<button type="button" class="mini-btn ok" data-acc="renombrar">Guardar</button>'
-        +   '<button type="button" class="mini-btn" data-acc="cancelar">Cancelar</button>'
-        +   '<button type="button" class="mini-btn peligro der" data-acc="eliminar">Eliminar</button>'
-        + '</div></li>';
-    }
     var sel = catSel && mismaCat(catSel,c);
     var n2 = cuentas[c.toLowerCase()] || 0;
     return '<li role="option" aria-selected="'+(sel?"true":"false")+'">'
       + '<button type="button" class="opt" data-acc="elegir" data-cat="'+esc(c)+'">'
-      +   '<i style="background:'+colorDe(c)+'"></i><span class="nm">'+esc(c)+'</span>'
+      +   insignia(c, "sm") + '<span class="nm">'+esc(c)+'</span>'
       +   '<small>' + (propias && n2 ? n2 : "") + '</small>' + ICO_CHECK
-      + '</button>'
-      + (propias ? '<button type="button" class="icon-btn" data-acc="editar" data-cat="'+esc(c)+'" aria-label="Editar '+esc(c)+'">'+ICO_LAPIZ+'</button>' : '')
-      + '</li>';
+      + '</button></li>';
   }).join("");
 
   var pie = catCreando
@@ -1347,35 +1557,8 @@ $("catPanel").addEventListener("click", function(e){
     if (!$("monto").value) $("monto").focus();
     return;
   }
-  if (acc === "editar"){ catEditando = b.dataset.cat; catCreando = false; pintarCats(); return; }
   if (acc === "nueva"){ catCreando = true; catEditando = null; pintarCats(); return; }
   if (acc === "cancelar"){ catEditando = null; catCreando = false; pintarCats(); return; }
-  if (acc === "eliminar"){
-    var cE = catEditando, nE = contarPorCat()[cE.toLowerCase()] || 0;
-    confirmar({
-      titulo: "¿Eliminar la categoría?",
-      texto: '"' + cE + '" sale de la lista.' + (nE ? (nE===1 ? " Su gasto se mantiene con ese nombre."
-                                                              : " Sus " + nE + " gastos se mantienen con ese nombre.") : ""),
-      ok: "Eliminar", peligro: true
-    }).then(function(si){ if (si) eliminarCat(cE); });
-    return;
-  }
-  if (acc === "renombrar"){
-    var nuevo = $("catEditInp").value.trim(); if (!nuevo) return $("catEditInp").focus();
-    var viejo = catEditando;
-    if (nuevo === viejo){ catEditando = null; return pintarCats(); }
-    var otra = estado.cats.find(function(c){ return mismaCat(c,nuevo) && !mismaCat(c,viejo); });
-    if (otra){
-      confirmar({
-        titulo: "¿Unir las categorías?",
-        texto: 'Ya existe "' + otra + '". Los gastos de "' + viejo + '" pasarán a ella y "' + viejo + '" desaparecerá.',
-        ok: "Unir", peligro: true
-      }).then(function(si){ if (si){ unirCat(viejo, otra); catEditando = null; pintar(); } });
-      return;
-    }
-    renombrarCat(viejo, nuevo); catEditando = null; pintar();
-    return;
-  }
   if (acc === "agregar"){
     var nombre = $("catNuevaInp").value.trim(); if (!nombre) return $("catNuevaInp").focus();
     var ya = buscarCat(nombre);
@@ -1388,10 +1571,10 @@ $("catPanel").addEventListener("click", function(e){
   }
 });
 $("catPanel").addEventListener("keydown", function(e){
-  if (e.target.id !== "catEditInp" && e.target.id !== "catNuevaInp") return;
+  if (e.target.id !== "catNuevaInp") return;
   if (e.key === "Enter"){
     e.preventDefault();
-    var b = $("catPanel").querySelector(e.target.id==="catEditInp" ? '[data-acc="renombrar"]' : '[data-acc="agregar"]');
+    var b = $("catPanel").querySelector('[data-acc="agregar"]');
     if (b) b.click();
   } else if (e.key === "Escape"){
     e.stopPropagation(); catEditando = null; catCreando = false; pintarCats();
@@ -1608,31 +1791,167 @@ $("bars").addEventListener("click", function(e){
 /* ============================================================
    Ventana de presupuestos
    ============================================================ */
+var edCat = null;   /* categoría abierta en el editor de logo */
+
 function pintarPresu(){
+  $("catVista").hidden = false; $("catEditor").hidden = true; edCat = null;
+  if ($("catNuevaFila")){ $("catNuevaFila").hidden = true; $("catNueva").hidden = false; }
   $("presuLista").innerHTML = estado.cats.length
     ? catsOrdenadas().map(function(c){
         var p = presuDe(c);
-        return '<div class="fila"><i style="background:'+colorDe(c)+'"></i><span class="cn">'+esc(c)+'</span>'
-          + '<input class="inp presu-inp" type="text" inputmode="numeric" data-cat="'+esc(c)+'" '
-          + 'placeholder="Sin tope" value="' + (p ? nf.format(p) : "") + '" aria-label="Presupuesto de '+esc(c)+'"></div>';
+        return '<div class="fila" data-cat="'+esc(c)+'">'
+          + '<button type="button" class="chipbtn" data-acc="logo" aria-label="Cambiar logo de '+esc(c)+'">' + insignia(c) + '</button>'
+          + '<input class="nomb" type="text" value="'+esc(c)+'" data-acc="nombre" aria-label="Nombre de '+esc(c)+'">'
+          + '<input class="inp presu-inp" type="text" inputmode="numeric" '
+          +   'placeholder="Sin tope" value="' + (p ? nf.format(p) : "") + '" aria-label="Presupuesto de '+esc(c)+'">'
+          + '<button type="button" class="quitar" data-acc="quitar" aria-label="Eliminar '+esc(c)+'">'
+          +   '<svg viewBox="0 0 20 20"><path d="M4 6h12M8 6V4h4v2M7 6l.8 10h4.4L13 6"/></svg></button>'
+          + '</div>';
       }).join("")
     : '<div class="vacio"><p>Aún no tienes categorías.</p></div>';
 }
+
+/* ---- editor de logo y color ---- */
+function pintarEditor(filtro){
+  if (!edCat) return;
+  var actual = iconoDe(edCat), col = colorDe(edCat);
+  $("edChip").style.background = col;
+  $("edChip").innerHTML = (actual && ICO[actual])
+    ? '<svg viewBox="0 0 24 24">' + ICO[actual].s + '</svg>'
+    : '<b>' + esc(edCat.trim().charAt(0).toUpperCase()) + '</b>';
+  $("edNombre").textContent = edCat;
+
+  $("edColores").innerHTML = PALETA.map(function(h){
+    return '<button type="button" data-color="'+h+'" aria-pressed="'+(h.toLowerCase()===String(col).toLowerCase())+'" '
+      + 'style="background:'+h+'" aria-label="Color '+h+'"></button>';
+  }).join("");
+
+  var q = sinTildes(filtro || "");
+  var lista = ICONOS.filter(function(i){
+    return !q || sinTildes(i.n + " " + i.k).indexOf(q) !== -1;
+  });
+  var html = '<button type="button" class="rejilla-letra" data-icono="" aria-pressed="'+(!actual)+'">'
+    + '<span class="letra">' + esc(edCat.trim().charAt(0).toUpperCase()) + '</span><span>Inicial</span></button>';
+  var grupo = null;
+  lista.forEach(function(i){
+    html += '<button type="button" data-icono="'+i.id+'" aria-pressed="'+(actual===i.id)+'" title="'+esc(i.n)+'">'
+      + '<svg viewBox="0 0 24 24">'+i.s+'</svg><span>'+esc(i.n)+'</span></button>';
+  });
+  if (!lista.length && q) html += '<div style="grid-column:1/-1;color:var(--muted);font-size:13px;padding:10px 2px">'
+    + 'Sin resultados. Puedes dejar la inicial, que siempre funciona.</div>';
+  $("edRejilla").innerHTML = html;
+}
+function abrirEditor(cat){
+  edCat = cat;
+  $("catVista").hidden = true; $("catEditor").hidden = false;
+  $("edBuscar").value = "";
+  pintarEditor("");
+  $("winPresu").scrollTop = 0;
+}
+function cerrarEditor(){
+  edCat = null;
+  $("catEditor").hidden = true; $("catVista").hidden = false;
+  pintarPresu();
+  $("winPresu").scrollTop = 0;
+}
+$("edVolver").addEventListener("click", cerrarEditor);
+$("edListo").addEventListener("click", cerrarEditor);
+$("edBuscar").addEventListener("input", function(){ pintarEditor(this.value); });
+$("edColores").addEventListener("click", function(e){
+  var b = e.target.closest("[data-color]"); if (!b || !edCat) return;
+  estado.colores[edCat.toLowerCase()] = b.dataset.color;
+  guardarCache(); pintarEditor($("edBuscar").value); pintar();
+});
+$("edRejilla").addEventListener("click", function(e){
+  var b = e.target.closest("[data-icono]"); if (!b || !edCat) return;
+  estado.iconos[edCat.toLowerCase()] = b.dataset.icono;
+  guardarCache(); pintarEditor($("edBuscar").value); pintar();
+});
+
+/* ---- acciones de la lista ---- */
+$("presuLista").addEventListener("click", function(e){
+  var fila = e.target.closest(".fila"); if (!fila) return;
+  var cat = fila.dataset.cat;
+  var b = e.target.closest("[data-acc]"); if (!b) return;
+  if (b.dataset.acc === "logo"){ guardarPresupuestos(); abrirEditor(cat); return; }
+  if (b.dataset.acc === "quitar"){
+    var n = contarPorCat()[cat.toLowerCase()] || 0;
+    confirmar({
+      titulo: "¿Eliminar la categoría?",
+      texto: '"' + cat + '" sale de la lista.' + (n ? (n===1 ? " Su gasto se mantiene con ese nombre."
+                                                             : " Sus " + n + " gastos se mantienen con ese nombre.") : ""),
+      ok: "Eliminar", peligro: true
+    }).then(function(si){ if (si){ eliminarCat(cat); pintarPresu(); } });
+  }
+});
 $("presuLista").addEventListener("input", function(e){
   if (!e.target.classList.contains("presu-inp")) return;
   var d = soloDigitos(e.target.value);
   e.target.value = d ? nf.format(parseInt(d,10)) : "";
 });
-$("guardarPresu").addEventListener("click", function(){
+/* renombrar al salir del campo */
+$("presuLista").addEventListener("focusout", function(e){
+  if (e.target.dataset.acc !== "nombre") return;
+  var fila = e.target.closest(".fila"), viejo = fila.dataset.cat, nuevo = e.target.value.trim();
+  if (!nuevo || nuevo === viejo){ e.target.value = viejo; return; }
+  var otra = estado.cats.find(function(c){ return mismaCat(c,nuevo) && !mismaCat(c,viejo); });
+  if (otra){
+    e.target.value = viejo;
+    confirmar({
+      titulo: "¿Unir las categorías?",
+      texto: 'Ya existe "' + otra + '". Los gastos de "' + viejo + '" pasarán a ella y "' + viejo + '" desaparecerá.',
+      ok: "Unir", peligro: true
+    }).then(function(si){ if (si){ guardarPresupuestos(); unirCat(viejo, otra); pintar(); pintarPresu(); } });
+    return;
+  }
+  guardarPresupuestos();
+  renombrarCat(viejo, nuevo);
+  pintar(); pintarPresu();
+});
+
+$("catNueva").addEventListener("click", function(){
+  $("catNueva").hidden = true;
+  $("catNuevaFila").hidden = false;
+  $("catNuevaWin").value = "";
+  $("catNuevaWin").focus();
+});
+function cerrarNuevaCat(){
+  $("catNuevaFila").hidden = true;
+  $("catNueva").hidden = false;
+  $("catNuevaWin").value = "";
+}
+$("catNuevaNo").addEventListener("click", cerrarNuevaCat);
+$("catNuevaOk").addEventListener("click", function(){
+  var nombre = $("catNuevaWin").value.trim();
+  if (!nombre) return $("catNuevaWin").focus();
+  var ya = buscarCat(nombre);
+  if (ya){ avisar('"' + ya + '" ya existe'); cerrarNuevaCat(); return; }
+  guardarPresupuestos();
+  agregarCat(nombre);
+  cerrarNuevaCat();
+  pintar(); pintarPresu();
+  avisar('Creada "' + nombre + '". Toca su logo para cambiarlo.');
+});
+$("catNuevaWin").addEventListener("keydown", function(e){
+  if (e.key === "Enter"){ e.preventDefault(); $("catNuevaOk").click(); }
+  else if (e.key === "Escape"){ e.stopPropagation(); cerrarNuevaCat(); }
+});
+
+function guardarPresupuestos(){
   var nuevos = {};
-  Array.prototype.forEach.call($("presuLista").querySelectorAll(".presu-inp"), function(inp){
-    var v = parseInt(soloDigitos(inp.value) || "0", 10);
-    if (v > 0) nuevos[inp.dataset.cat.toLowerCase()] = v;
+  Array.prototype.forEach.call($("presuLista").querySelectorAll(".fila"), function(f){
+    var inp = f.querySelector(".presu-inp");
+    var v = parseInt(soloDigitos(inp ? inp.value : "") || "0", 10);
+    if (v > 0) nuevos[f.dataset.cat.toLowerCase()] = v;
   });
   estado.presupuestos = nuevos;
+  guardarCache();
+}
+$("guardarPresu").addEventListener("click", function(){
+  guardarPresupuestos();
   guardarCache(true);
   cerrarWins(); pintar();
-  avisar("Presupuestos actualizados");
+  avisar("Categorías actualizadas");
 });
 
 /* ============================================================
@@ -1688,7 +2007,7 @@ $("winCfg").addEventListener("click", function(e){
 function respaldoJSON(){
   return JSON.stringify({
     app:"money-control", version:2, fecha:new Date().toISOString(),
-    cats:estado.cats, colores:estado.colores, presupuestos:estado.presupuestos,
+    cats:estado.cats, colores:estado.colores, iconos:estado.iconos, presupuestos:estado.presupuestos,
     notif:estado.notif, resumen:estado.resumen, horaResumen:estado.horaResumen,
     meses:estado.meses
   }, null, 2);
@@ -1745,6 +2064,7 @@ function aplicarReemplazo(d){
   estado = {
     cats: Array.isArray(d.cats) ? d.cats : [], meses: d.meses,
     colores: (d.colores && typeof d.colores === "object") ? d.colores : {},
+    iconos: (d.iconos && typeof d.iconos === "object") ? d.iconos : {},
     presupuestos: (d.presupuestos && typeof d.presupuestos === "object") ? d.presupuestos : {},
     notif: !!d.notif, resumen: !!d.resumen, horaResumen: d.horaResumen || "09:00",
     pendientes: [], ultimoResumen: ""
@@ -1770,6 +2090,7 @@ $("impSumar").addEventListener("click", function(){
     if (!buscarCat(c)) estado.cats.push(c);
   });
   if (d.colores) Object.keys(d.colores).forEach(function(k){ if (!estado.colores[k]) estado.colores[k] = d.colores[k]; });
+  if (d.iconos) Object.keys(d.iconos).forEach(function(k){ if (estado.iconos[k] === undefined) estado.iconos[k] = d.iconos[k]; });
   if (d.presupuestos) Object.keys(d.presupuestos).forEach(function(k){ if (!estado.presupuestos[k]) estado.presupuestos[k] = d.presupuestos[k]; });
   normColores();
   guardarCache(true);
@@ -2089,16 +2410,17 @@ function iniciarCuenta(){
 function arrancarApp(){
   var cache = leerCache();
   estado = cache ? {
-    cats: cache.cats || [], meses: cache.meses || {}, colores: cache.colores || {},
+    cats: cache.cats || [], meses: cache.meses || {}, colores: cache.colores || {}, iconos: cache.iconos || {},
     presupuestos: cache.presupuestos || {}, notif: !!cache.notif,
     resumen: !!cache.resumen, horaResumen: cache.horaResumen || "09:00",
     pendientes: cache.pendientes || [], ultimoResumen: cache.ultimoResumen || "",
     ts: cache.ts || 0
   } : estadoVacio();
-  normColores();
+  var cambio = normColores();
   limpiarForm();
   pintar();
   latido();
+  if (cambio) guardarCache();
 }
 iniciarCuenta();
 })();
