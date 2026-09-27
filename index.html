@@ -447,6 +447,9 @@ textarea.inp{min-height:110px;resize:vertical;font-size:12.5px;font-family:ui-mo
 .acceso .save{margin-top:18px}
 .acceso .err{color:var(--danger);font-size:13px;min-height:1.2em;margin-top:10px;line-height:1.4}
 .acceso .alt{display:flex;justify-content:space-between;align-items:center;gap:10px;margin-top:14px;flex-wrap:wrap}
+.acceso .instalar-pie{text-align:center;margin-top:18px;padding-top:14px;border-top:1px solid var(--line-soft)}
+body.acceso-on .backdrop{z-index:95}
+body.acceso-on #winInstalar{z-index:100}
 .acceso .cargando{text-align:center;color:var(--muted);font-size:13.5px;padding:24px 0}
 .sync{display:inline-flex;align-items:center;gap:7px;font-size:12.5px;color:var(--muted)}
 .sync i{width:7px;height:7px;border-radius:99px;background:var(--faint);flex:none}
@@ -681,6 +684,7 @@ textarea.inp{min-height:110px;resize:vertical;font-size:12.5px;font-family:ui-mo
         <button class="linkbtn" id="accCambiar">Crear una cuenta</button>
         <button class="linkbtn" id="accLocal">Usar sin cuenta</button>
       </div>
+      <div class="instalar-pie"><button class="linkbtn" id="accInstalar" hidden>Instalar la app en este dispositivo</button></div>
     </div>
   </div>
 </div>
@@ -2108,14 +2112,18 @@ function yaInstalada(){
          (window.matchMedia && window.matchMedia("(display-mode: standalone)").matches);
 }
 window.addEventListener("beforeinstallprompt", function(e){
-  e.preventDefault(); promptInstalar = e; $("btnInstalar").hidden = false;
+  e.preventDefault(); promptInstalar = e;
+  if (!yaInstalada()){ $("btnInstalar").hidden = false; $("accInstalar").hidden = false; }
 });
 /* Safari y varios navegadores no avisan que se puede instalar: igual se ofrece, con instrucciones */
-if (!yaInstalada()) setTimeout(function(){ $("btnInstalar").hidden = false; }, 1500);
-$("btnInstalar").addEventListener("click", function(){
+if (!yaInstalada()) setTimeout(function(){
+  $("btnInstalar").hidden = false;
+  $("accInstalar").hidden = false;
+}, 1500);
+function accionInstalar(){
   if (promptInstalar){
     promptInstalar.prompt();
-    promptInstalar.userChoice.then(function(){ promptInstalar = null; $("btnInstalar").hidden = true; });
+    promptInstalar.userChoice.then(function(){ promptInstalar = null; ocultarInstalar(); });
     return;
   }
   var esIOS = /iphone|ipad|ipod/i.test(navigator.userAgent) ||
@@ -2125,9 +2133,12 @@ $("btnInstalar").addEventListener("click", function(){
   $("winInstalar").hidden = false;
   document.body.classList.add("win-abierta");
   requestAnimationFrame(function(){ $("winInstalar").classList.add("on"); });
-});
+}
+function ocultarInstalar(){ $("btnInstalar").hidden = true; $("accInstalar").hidden = true; }
+$("btnInstalar").addEventListener("click", accionInstalar);
+$("accInstalar").addEventListener("click", accionInstalar);
 $("cerrarInst").addEventListener("click", cerrarWins);
-window.addEventListener("appinstalled", function(){ promptInstalar = null; $("btnInstalar").hidden = true; });
+window.addEventListener("appinstalled", function(){ promptInstalar = null; ocultarInstalar(); });
 
 /* ============================================================
    Cambio de día y de mes con la app viva
@@ -2283,12 +2294,14 @@ function bajar(){
 var modoCrear = false;
 function verAcceso(cargando){
   $("acceso").hidden = false;
+  document.body.classList.add("acceso-on");
   $("accCargando").hidden = !cargando;
   $("accForm").hidden = !!cargando;
   document.body.style.overflow = "hidden";
 }
 function ocultarAcceso(){
   $("acceso").hidden = true;
+  document.body.classList.remove("acceso-on");
   document.body.style.overflow = "";
 }
 function pintarModo(){
