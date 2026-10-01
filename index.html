@@ -179,7 +179,29 @@ button{cursor:pointer}
 .card > h2{
   font-size:11.5px;font-weight:600;color:var(--faint);margin:0 0 14px;
   letter-spacing:.07em;text-transform:uppercase;
+  display:flex;align-items:center;justify-content:space-between;gap:10px;
 }
+/* filtros de movimientos */
+.movs-acc{display:flex;align-items:center;gap:2px;flex:none}
+.movs-acc .icon-btn{width:30px;height:30px}
+.movs-acc .icon-btn svg{transition:transform .2s}
+.movs-acc .icon-btn[aria-expanded="false"] svg{transform:rotate(-90deg)}
+.fmenu{border:1px solid var(--line);border-radius:var(--r-sm);overflow:hidden;margin-bottom:12px;background:var(--bg)}
+.fop{width:100%;display:flex;align-items:center;gap:10px;background:none;border:none;padding:11px 13px;font-size:14px;text-align:left;border-bottom:1px solid var(--line-soft)}
+.fop:last-child{border-bottom:none}
+.fop:hover{background:var(--card)}
+.fop .ch{margin-left:auto;color:var(--faint);font-size:15px}
+.fop small{color:var(--faint);font-size:12px;margin-left:auto}
+.fop .nm{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.fback{display:flex;align-items:center;gap:6px;padding:9px 13px;border-bottom:1px solid var(--line-soft);background:var(--card);font-size:12.5px;color:var(--muted);width:100%;border-left:none;border-right:none;border-top:none}
+.fback b{color:var(--ink);font-weight:600;text-transform:none;letter-spacing:0}
+.flista{max-height:260px;overflow-y:auto}
+.ffechas{padding:12px 13px;display:grid;gap:10px;background:var(--card)}
+.ffechas .par{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.fchip{display:inline-flex;align-items:center;gap:9px;background:var(--deep);color:var(--on-deep);border-radius:99px;padding:6px 7px 6px 13px;font-size:13px;margin-bottom:12px;max-width:100%}
+.fchip span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.fchip button{background:rgba(255,255,255,.16);border:none;color:var(--on-deep);width:21px;height:21px;border-radius:99px;font-size:13px;line-height:1;flex:none;display:grid;place-items:center}
+.fchip button:hover{background:rgba(255,255,255,.3)}
 .rank{list-style:none;margin:0;padding:0}
 .rank li{padding:10px 0;border-bottom:1px solid var(--line-soft)}
 .rank li:last-child{border-bottom:none;padding-bottom:0}
@@ -393,6 +415,54 @@ body.conf-abierta .backdrop{opacity:1;pointer-events:auto;z-index:75}
 .nueva-cat:hover{border-color:var(--faint)}
 .nueva-cat b{color:var(--faint);font-weight:400;font-size:18px;line-height:1}
 
+/* tutorial guiado */
+.tour{position:fixed;inset:0;z-index:200}
+.tour-hueco{
+  position:fixed;border-radius:14px;pointer-events:none;
+  box-shadow:0 0 0 9999px rgba(8,10,18,.78);
+  transition:left .28s cubic-bezier(.2,.8,.3,1),top .28s cubic-bezier(.2,.8,.3,1),width .28s,height .28s;
+}
+.tour-card{
+  position:fixed;width:min(340px,calc(100vw - 28px));background:var(--card);
+  border-radius:var(--r-lg);padding:20px 18px 16px;box-shadow:var(--sh-3);
+  transition:top .28s cubic-bezier(.2,.8,.3,1),left .28s cubic-bezier(.2,.8,.3,1);
+}
+.tour-card.centro{left:50%!important;top:50%!important;transform:translate(-50%,-50%);width:min(380px,calc(100vw - 28px));padding:26px 24px 20px}
+.tour-card h3{margin:0 0 8px;font-size:17px;font-weight:600;letter-spacing:-.01em}
+.tour-card .paso{font-size:11px;font-weight:600;color:var(--gold);letter-spacing:.09em;text-transform:uppercase;margin-bottom:7px}
+.tour-card p{margin:0 0 17px;font-size:13.5px;line-height:1.5;color:var(--muted)}
+.tour-card p b{color:var(--ink);font-weight:600}
+.tour-pie{display:flex;align-items:center;gap:9px}
+.tour-dots{display:flex;gap:5px;margin-right:auto}
+.tour-dots i{width:6px;height:6px;border-radius:99px;background:var(--line);transition:width .2s,background .2s}
+.tour-dots i.on{background:var(--ink);width:17px}
+.tour-pie .btn2{padding:9px 14px}
+.tour-pie .save{margin:0;width:auto;padding:10px 18px;border-radius:10px;font-size:14px}
+.tour-x{position:absolute;top:11px;right:11px;width:28px;height:28px;border-radius:9px;background:none;border:none;color:var(--faint);font-size:17px;line-height:1;display:grid;place-items:center}
+.tour-x:hover{color:var(--ink);background:var(--bg)}
+.tour-ilu{display:flex;gap:8px;margin:0 0 16px}
+.tour-ilu .chip{--s:40px}
+
+/* calendario */
+.cal-nav{display:flex;align-items:center;justify-content:center;gap:4px;margin:14px 0 12px}
+.cal-nav button{width:32px;height:32px;border-radius:99px;background:var(--bg);border:1px solid var(--line);color:var(--muted);display:grid;place-items:center;font-size:15px}
+.cal-nav button:hover{color:var(--ink);border-color:var(--faint)}
+.cal-nav .m{flex:1;text-align:center;font-size:14.5px;font-weight:500;text-transform:capitalize}
+.cal-sem{display:grid;grid-template-columns:repeat(7,1fr);gap:4px;margin-bottom:6px}
+.cal-sem span{text-align:center;font-size:10.5px;font-weight:600;color:var(--faint);letter-spacing:.04em;text-transform:uppercase}
+.cal-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:4px}
+.cal-grid .hueco{height:40px}
+.cal-d{height:40px;border-radius:11px;border:1px solid transparent;background:var(--bg);color:var(--ink);font-size:13.5px;display:grid;place-items:center}
+.cal-d:hover{border-color:var(--faint)}
+.cal-d.vacio{color:var(--faint);background:transparent}
+.cal-d.tiene{background:#2F5BB5;color:#fff;font-weight:600}
+.cal-d.hoy{box-shadow:inset 0 0 0 1.5px var(--ink)}
+.cal-d[aria-pressed="true"]{outline:2px solid var(--gold);outline-offset:1px}
+.cal-det{margin-top:16px;border-top:1px solid var(--line);padding-top:14px}
+.cal-det h4{margin:0 0 4px;font-size:14px;font-weight:600;text-transform:capitalize}
+.cal-det .tot{font-size:12.5px;color:var(--muted);margin-bottom:10px}
+.cal-vacio{color:var(--muted);font-size:13.5px;padding:6px 0}
+
 /* editor de logo */
 .ed-top{display:flex;align-items:center;gap:12px;margin-bottom:14px}
 .ed-volver{width:32px;height:32px;border-radius:10px;background:var(--bg);border:1px solid var(--line);color:var(--muted);display:grid;place-items:center;flex:none;font-size:17px}
@@ -580,6 +650,9 @@ body.acceso-on #winInstalar{z-index:100}
       <button class="ghost cats" id="btnPresu" aria-label="Categorías" title="Categorías">
         <svg viewBox="0 0 24 24"><path d="M3 12.3V4.6a1.6 1.6 0 011.6-1.6h7.7L21.4 12l-9.1 9.1z"/><circle cx="7.6" cy="7.6" r="1.5"/></svg>
       </button>
+      <button class="ghost" id="btnCal" aria-label="Calendario" title="Calendario">
+        <svg viewBox="0 0 24 24"><path d="M4 5.6h16v15H4z"/><path d="M4 10.2h16M8.6 3.2v4M15.4 3.2v4"/></svg>
+      </button>
       <button class="ghost" id="btnCfg" aria-label="Ajustes" title="Ajustes">
         <svg viewBox="0 0 24 24"><path d="M4 7h9M18 7h2M4 12h4M13 12h7M4 17h9M18 17h2"/><circle cx="15.5" cy="7" r="2.1"/><circle cx="10.5" cy="12" r="2.1"/><circle cx="15.5" cy="17" r="2.1"/></svg>
       </button>
@@ -643,7 +716,17 @@ body.acceso-on #winInstalar{z-index:100}
       </div>
 
       <div class="card">
-        <h2>Movimientos</h2>
+        <h2>
+          <span>Movimientos</span>
+          <span class="movs-acc">
+            <button class="linkbtn" id="movFiltrar">Filtrar</button>
+            <button class="icon-btn" id="movToggle" aria-expanded="true" aria-label="Ocultar movimientos">
+              <svg viewBox="0 0 20 20"><path d="M5 8l5 5 5-5"/></svg>
+            </button>
+          </span>
+        </h2>
+        <div id="movMenu" hidden></div>
+        <div id="movChip"></div>
         <div id="movs"></div>
       </div>
     </div>
@@ -744,6 +827,20 @@ body.acceso-on #winInstalar{z-index:100}
   </div>
 </div>
 
+<!-- Calendario -->
+<div class="win" id="winCal" hidden role="dialog" aria-label="Calendario">
+  <div class="win-top"><h2>Calendario</h2><button class="cerrar-x" id="cerrarCal" aria-label="Cerrar">×</button></div>
+  <p class="bajada">Los días en azul tienen gastos. Toca uno para ver qué anotaste.</p>
+  <div class="cal-nav">
+    <button id="calPrev" aria-label="Mes anterior">‹</button>
+    <div class="m" id="calMesLabel">—</div>
+    <button id="calNext" aria-label="Mes siguiente">›</button>
+  </div>
+  <div class="cal-sem"><span>L</span><span>M</span><span>M</span><span>J</span><span>V</span><span>S</span><span>D</span></div>
+  <div class="cal-grid" id="calGrid"></div>
+  <div id="calDet"></div>
+</div>
+
 <!-- Ajustes -->
 <div class="win" id="winCfg" hidden role="dialog" aria-label="Ajustes">
   <div class="win-top"><h2>Ajustes</h2><button class="cerrar-x" id="cerrarCfg" aria-label="Cerrar">×</button></div>
@@ -758,6 +855,13 @@ body.acceso-on #winInstalar{z-index:100}
       <span class="sync" id="syncEstado"><i></i>—</span>
       <button class="linkbtn" id="btnSync">Sincronizar ahora</button>
     </div>
+  </div>
+
+  <div class="sec" id="secHistorial">
+    <h3>Historial</h3>
+    <div class="nota" id="primerMesTxt" style="margin-top:0">—</div>
+    <label class="check" id="cfgPrimerFila"><input type="checkbox" id="cfgPrimerCompleto"><span id="cfgPrimerTxt">Registré ese primer mes completo</span></label>
+    <div class="nota">El promedio mensual del histórico solo cuenta meses enteros, así que deja fuera el mes en curso y el primero que registraste.</div>
   </div>
 
   <div class="sec" id="secNotif">
@@ -784,7 +888,7 @@ body.acceso-on #winInstalar{z-index:100}
         <button class="btn2" id="impCancelar">Cancelar</button>
       </div>
     </div>
-    <div class="nota" id="notaResp">Tus datos viven solo en este dispositivo. Descarga un respaldo de vez en cuando.</div>
+    <div class="nota" id="notaResp">El plan gratis de Supabase no guarda copias de seguridad, así que conviene bajar un respaldo cada tanto.</div>
   </div>
 
   <div class="sec">
@@ -822,6 +926,12 @@ body.acceso-on #winInstalar{z-index:100}
     </div>
   </div>
 
+  <div class="sec">
+    <h3>Tutorial</h3>
+    <div class="nota" style="margin-top:0">Un recorrido de dos minutos por las cuatro pantallas de la app.</div>
+    <div class="btnrow" style="margin-top:12px"><button class="btn2" id="btnTour">Ver el tutorial</button></div>
+  </div>
+
   <div class="pie"><span>Money Control</span><span id="pieDatos"></span></div>
 </div>
 
@@ -853,6 +963,14 @@ body.acceso-on #winInstalar{z-index:100}
   <div class="conf-acc">
     <button class="btn2" id="confNo">Cancelar</button>
     <button class="save" id="confSi">Confirmar</button>
+  </div>
+</div>
+
+<div class="tour" id="tour" hidden role="dialog" aria-label="Tutorial">
+  <div class="tour-hueco" id="tourHueco"></div>
+  <div class="tour-card" id="tourCard">
+    <button class="tour-x" id="tourX" aria-label="Salir del tutorial">×</button>
+    <div id="tourCuerpo"></div>
   </div>
 </div>
 
@@ -1053,6 +1171,16 @@ var ICONOS = [
  s:'<path d="M12 3.4a3 3 0 013 3v4.8a3 3 0 01-6 0V6.4a3 3 0 013-3z"/><path d="M6.6 11.2a5.4 5.4 0 0010.8 0"/><path d="M12 16.6v4M9 20.6h6"/>'},
 {id:"foto",    n:"Fotografía",     g:"Ocio",            k:"foto fotografia fotografía camara cámara revelado impresion",
  s:'<path d="M3.6 8.6h3.8l1.7-2.5h5.8l1.7 2.5h3.8v11.2H3.6z"/><circle cx="12" cy="14.1" r="3.6"/>'},
+{id:"vaper",   n:"Vaper",          g:"Carrete",         k:"vaper vape pod cigarro electronico electrónico nicotina esencia",
+ s:'<path d="M9.6 7.6h4.8v12.2a2.4 2.4 0 01-4.8 0z"/><path d="M10.9 4.3h2.2v3.3h-2.2z"/><path d="M9.6 11.4h4.8"/><circle cx="12" cy="14.6" r=".9"/><path d="M17.8 8.6c1.3-1 1.3-2.4 0-3.4s-1.3-2.4 0-3.4"/><path d="M21 8.2c1-.8 1-1.9 0-2.7"/>'},
+{id:"bebida",  n:"Bebidas",        g:"Comida y bebida", k:"bebida jugo refresco gaseosa limonada batido vaso schweppes",
+ s:'<path d="M6.6 8.6h10.8l-1.2 11.2a2 2 0 01-2 1.8H9.8a2 2 0 01-2-1.8z"/><path d="M6.6 8.6h10.8"/><path d="M13.6 8.6l2.9-5.6M16.5 3h2.6"/><path d="M8.4 12.6h7.2"/>'},
+{id:"mudanza", n:"Mudanza",        g:"Casa y cuentas",  k:"mudanza camion camión flete traslado carga transporte muebles",
+ s:'<path d="M2.6 6.6h11v10h-11z"/><path d="M13.6 9.6h4l3 3.4v3.6h-7z"/><circle cx="6.6" cy="18.6" r="2"/><circle cx="17.2" cy="18.6" r="2"/><path d="M2.6 16.6h2M8.6 16.6h6.6"/>'},
+{id:"teatro",  n:"Teatro",         g:"Ocio",            k:"teatro obra mascara máscara comedia cultura museo",
+ s:'<path d="M5 4.6h14v6.8a7 7 0 01-14 0z"/><circle cx="9.2" cy="9.4" r="1"/><circle cx="14.8" cy="9.4" r="1"/><path d="M9.4 13.4a3.6 3.6 0 005.2 0"/><path d="M12 18.4v3M8.5 21.4h7"/>'},
+{id:"cuota",   n:"Cuotas",         g:"Dinero",          k:"cuota cuotas mensualidad mensual pago automatico automático dividendo plazo",
+ s:'<path d="M4 5.6h16v15H4z"/><path d="M4 10.2h16M8.6 3.2v4M15.4 3.2v4"/><path d="M9 15.4l2.2 2.2 4-4"/>'},
 {id:"envio",   n:"Envíos",         g:"Compras",         k:"envio envío paquete correo encomienda despacho chilexpress starken",
  s:'<path d="M3.6 7.6L12 3.6l8.4 4v8.8L12 20.4l-8.4-4z"/><path d="M3.6 7.6L12 11.6l8.4-4M12 11.6v8.8"/>'}
 ];
@@ -1164,7 +1292,7 @@ var lento = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
    Estado y persistencia
    ============================================================ */
 function estadoVacio(){
-  return { cats:[], meses:{}, colores:{}, iconos:{}, presupuestos:{},
+  return { cats:[], meses:{}, colores:{}, iconos:{}, presupuestos:{}, primerMesCompleto:false, tutorial:false,
            notif:false, resumen:false, horaResumen:"09:00",
            pendientes:[], ultimoResumen:"", ts:0 };
 }
@@ -1172,6 +1300,8 @@ var estado = estadoVacio();
 var mesActual = claveMes(hoyISO());
 var catSel = "", catEditando = null, catCreando = false;
 var alertasAbierto = false, editandoId = null;
+var movFiltro = { tipo:"todos", cat:"", desde:"", hasta:"" };
+var movMenu = null, movOculto = false;
 
 var usuario = null;                       /* {id, nombre} cuando hay sesión */
 function claveLS(){ return usuario ? LS + ":" + usuario.id : LS; }
@@ -1192,6 +1322,17 @@ window.addEventListener("pagehide", function(){ if (guardarPend) escribir(); });
 function itemsDe(k){ return estado.meses[k] || []; }
 function totalDe(k){ return itemsDe(k).reduce(function(a,b){ return a+b.monto; },0); }
 function mesesConDatos(){ return Object.keys(estado.meses).filter(function(k){ return estado.meses[k].length; }).sort(); }
+function primerMes(){ var l = mesesConDatos(); return l.length ? l[0] : ""; }
+/* para el promedio solo valen los meses enteros: fuera el actual y, salvo que
+   el usuario diga lo contrario en Ajustes, también el primero que registró */
+function mesesCompletos(){
+  var lista = mesesConDatos(), hoyM = claveMes(hoyISO()), pm = primerMes();
+  return lista.filter(function(k){
+    if (k >= hoyM) return false;
+    if (k === pm && !estado.primerMesCompleto) return false;
+    return true;
+  });
+}
 function porCategoria(items){
   var m = {};
   items.forEach(function(g){ m[g.cat] = (m[g.cat]||0) + g.monto; });
@@ -1495,33 +1636,9 @@ function pintar(){
     ? grupos.map(function(g){ return filaRank(g, total); }).join("")
     : '<li class="vacio"><p>Nada todavía.</p></li>';
 
-  /* movimientos agrupados por día */
-  if (!items.length){
-    $("movs").innerHTML = '<div class="vacio"><p>Sin movimientos este mes.</p>'
-      + '<button class="cta" id="vacioNuevo">Anotar el primero</button></div>';
-    $("vacioNuevo").addEventListener("click", function(){ abrirHoja(); });
-  } else {
-    var html = "", dia = null;
-    items.forEach(function(g){
-      if (g.fecha !== dia){
-        dia = g.fecha;
-        var tot = items.filter(function(x){ return x.fecha === dia; }).reduce(function(a,b){ return a+b.monto; },0);
-        html += '<div class="dia"><span>' + fechaLarga(dia) + '</span><span>' + plata(tot) + '</span></div>';
-      }
-      html += '<div class="mov">'
-        + '<button class="mov-main" data-id="'+g.id+'">'
-        +   insignia(g.cat)
-        +   '<span class="d"><b>' + esc(g.nota || g.cat) + '</b>'
-        +     (g.nota ? '<small>' + esc(g.cat) + '</small>' : '') + '</span>'
-        +   '<span class="m">' + plata(g.monto) + '</span>'
-        + '</button>'
-        + '<button class="mov-del" data-del="'+g.id+'" aria-label="Eliminar gasto">'
-        +   '<svg viewBox="0 0 20 20"><path d="M4 6h12M8 6V4h4v2M7 6l.8 10h4.4L13 6"/></svg>'
-        + '</button></div>';
-    });
-    $("movs").innerHTML = html;
-  }
+  pintarMovs(items);
 
+  pintarMenu();
   pintarAvisos();
   pintarCats();
   pintarHistorico();
@@ -1535,6 +1652,141 @@ function filaRank(g, total){
     + '<span class="pct">' + Math.round(pct) + '%</span></div></div>'
     + '<div class="track"><div style="width:'+pct+'%;background:var(--ink)"></div></div></li>';
 }
+
+/* ---- movimientos: filtro, ocultar y lista ---- */
+function filtrados(items){
+  if (movFiltro.tipo === "cat" && movFiltro.cat)
+    return items.filter(function(g){ return mismaCat(g.cat, movFiltro.cat); });
+  if (movFiltro.tipo === "fechas" && movFiltro.desde && movFiltro.hasta)
+    return items.filter(function(g){ return g.fecha >= movFiltro.desde && g.fecha <= movFiltro.hasta; });
+  return items;
+}
+function diaCorto(iso){ return (+iso.slice(8,10)) + " " + mesCorto(iso); }
+function textoFiltro(){
+  if (movFiltro.tipo === "cat") return movFiltro.cat;
+  if (movFiltro.tipo === "fechas") return diaCorto(movFiltro.desde) + " – " + diaCorto(movFiltro.hasta);
+  return "";
+}
+
+function pintarMovs(items){
+  var ver = filtrados(items);
+
+  $("movChip").innerHTML = movFiltro.tipo === "todos" ? ""
+    : '<div class="fchip"><span>' + esc(textoFiltro()) + ' · ' + ver.length
+      + (ver.length===1 ? " gasto" : " gastos") + '</span>'
+      + '<button id="movChipX" aria-label="Quitar filtro">×</button></div>';
+  if ($("movChipX")) $("movChipX").addEventListener("click", function(){
+    movFiltro = { tipo:"todos", cat:"", desde:"", hasta:"" }; pintar();
+  });
+
+  $("movToggle").setAttribute("aria-expanded", movOculto ? "false" : "true");
+  $("movToggle").setAttribute("aria-label", movOculto ? "Mostrar movimientos" : "Ocultar movimientos");
+  $("movs").hidden = movOculto;
+  if (movOculto) return;
+
+  if (!ver.length){
+    $("movs").innerHTML = items.length
+      ? '<div class="vacio"><p>Ningún gasto calza con el filtro.</p></div>'
+      : '<div class="vacio"><p>Sin movimientos este mes.</p>'
+        + '<button class="cta" id="vacioNuevo">Anotar el primero</button></div>';
+    if ($("vacioNuevo")) $("vacioNuevo").addEventListener("click", function(){ abrirHoja(); });
+    return;
+  }
+
+  var html = "", dia = null;
+  ver.forEach(function(g){
+    if (g.fecha !== dia){
+      dia = g.fecha;
+      var tot = ver.filter(function(x){ return x.fecha === dia; }).reduce(function(a,b){ return a+b.monto; },0);
+      html += '<div class="dia"><span>' + fechaLarga(dia) + '</span><span>' + plata(tot) + '</span></div>';
+    }
+    html += '<div class="mov">'
+      + '<button class="mov-main" data-id="'+g.id+'">'
+      +   insignia(g.cat)
+      +   '<span class="d"><b>' + esc(g.nota || g.cat) + '</b>'
+      +     (g.nota ? '<small>' + esc(g.cat) + '</small>' : '') + '</span>'
+      +   '<span class="m">' + plata(g.monto) + '</span>'
+      + '</button>'
+      + '<button class="mov-del" data-del="'+g.id+'" aria-label="Eliminar gasto">'
+      +   '<svg viewBox="0 0 20 20"><path d="M4 6h12M8 6V4h4v2M7 6l.8 10h4.4L13 6"/></svg>'
+      + '</button></div>';
+  });
+  $("movs").innerHTML = html;
+}
+
+/* ---- menú de filtros ---- */
+function pintarMenu(){
+  var caja = $("movMenu");
+  if (!movMenu){ caja.hidden = true; caja.innerHTML = ""; return; }
+  caja.hidden = false;
+
+  if (movMenu === "raiz"){
+    caja.innerHTML = '<div class="fmenu">'
+      + '<button class="fop" data-f="todos">Todos' + (movFiltro.tipo==="todos" ? '<small>activo</small>' : '') + '</button>'
+      + '<button class="fop" data-f="cat">Por categoría<span class="ch">›</span></button>'
+      + '<button class="fop" data-f="fechas">Por fechas<span class="ch">›</span></button>'
+      + '</div>';
+    return;
+  }
+  if (movMenu === "cat"){
+    var items = itemsDe(mesActual);
+    var usadas = porCategoria(items);
+    caja.innerHTML = '<div class="fmenu">'
+      + '<button class="fback" data-f="atras">‹ <b>Por categoría</b></button>'
+      + '<div class="flista">' + (usadas.length
+          ? usadas.map(function(g){
+              var n = items.filter(function(x){ return mismaCat(x.cat, g.cat); }).length;
+              return '<button class="fop" data-cat="'+esc(g.cat)+'">' + insignia(g.cat,"sm")
+                + '<span class="nm">'+esc(g.cat)+'</span><small>'+n+'</small></button>';
+            }).join("")
+          : '<div class="vacio" style="padding:16px"><p>No hay gastos este mes.</p></div>')
+      + '</div></div>';
+    return;
+  }
+  var ult = calveUltimoDia();
+  caja.innerHTML = '<div class="fmenu">'
+    + '<button class="fback" data-f="atras">‹ <b>Por fechas</b></button>'
+    + '<div class="ffechas">'
+    +   '<div class="par">'
+    +     '<div><label for="fDesde">Desde</label><input class="inp" type="date" id="fDesde" min="'+mesActual+'-01" max="'+ult+'" value="'+(movFiltro.desde || mesActual+"-01")+'"></div>'
+    +     '<div><label for="fHasta">Hasta</label><input class="inp" type="date" id="fHasta" min="'+mesActual+'-01" max="'+ult+'" value="'+(movFiltro.hasta || ult)+'"></div>'
+    +   '</div>'
+    +   '<div class="btnrow"><button class="btn2" id="fAplicar" style="background:var(--deep);color:var(--on-deep);border-color:var(--deep)">Aplicar</button>'
+    +   '<button class="btn2" id="fQuitar">Quitar filtro</button></div>'
+    + '</div></div>';
+  $("fAplicar").addEventListener("click", function(){
+    var d = $("fDesde").value, h = $("fHasta").value;
+    if (!d || !h) return;
+    if (d > h){ var t = d; d = h; h = t; }
+    movFiltro = { tipo:"fechas", cat:"", desde:d, hasta:h };
+    movMenu = null; pintar();
+  });
+  $("fQuitar").addEventListener("click", function(){
+    movFiltro = { tipo:"todos", cat:"", desde:"", hasta:"" }; movMenu = null; pintar();
+  });
+}
+function calveUltimoDia(){ return mesActual + "-" + ("0"+diasDelMes(mesActual)).slice(-2); }
+
+$("movFiltrar").addEventListener("click", function(){
+  movMenu = movMenu ? null : "raiz";
+  pintarMenu();
+});
+$("movToggle").addEventListener("click", function(){
+  movOculto = !movOculto;
+  if (movOculto){ movMenu = null; pintarMenu(); }
+  pintar();
+});
+$("movMenu").addEventListener("click", function(e){
+  var b = e.target.closest("[data-f],[data-cat]"); if (!b) return;
+  if (b.dataset.cat){
+    movFiltro = { tipo:"cat", cat:b.dataset.cat, desde:"", hasta:"" };
+    movMenu = null; pintar(); return;
+  }
+  var f = b.dataset.f;
+  if (f === "atras"){ movMenu = "raiz"; pintarMenu(); return; }
+  if (f === "todos"){ movFiltro = { tipo:"todos", cat:"", desde:"", hasta:"" }; movMenu = null; pintar(); return; }
+  movMenu = f; pintarMenu();
+});
 
 function pintarAvisos(){
   var lista = alertasDe(mesActual);
@@ -1560,7 +1812,14 @@ function pintarHistorico(){
   var lista = mesesConDatos();
   var gran = lista.reduce(function(a,k){ return a+totalDe(k); },0);
   $("kTotal").textContent = plata(gran);
-  $("kProm").textContent = lista.length ? plata(gran/lista.length) : "$0";
+  var comp = mesesCompletos();
+  if (comp.length){
+    var sumaC = comp.reduce(function(a,k){ return a + totalDe(k); }, 0);
+    $("kProm").innerHTML = plata(sumaC/comp.length)
+      + ' <small>' + comp.length + (comp.length===1 ? " mes" : " meses") + '</small>';
+  } else {
+    $("kProm").innerHTML = '— <small>sin meses completos</small>';
+  }
   if (lista.length){
     var caro = lista.reduce(function(a,k){ return totalDe(k) > totalDe(a) ? k : a; }, lista[0]);
     $("kMax").innerHTML = esc(mesCorto(caro)) + ' <small>' + plata(totalDe(caro)) + '</small>';
@@ -1820,14 +2079,16 @@ $("cerrarHoja").addEventListener("click", cerrarHoja);
 
 function abrirWin(id){
   cerrarHoja();
-  if (id === "winPresu") pintarPresu(); else pintarCfg();
+  if (id === "winPresu") pintarPresu();
+  else if (id === "winCal"){ calMes = mesActual; calSel = null; pintarCal(); }
+  else pintarCfg();
   var w = $(id);
   w.hidden = false;
   document.body.classList.add("win-abierta");
   requestAnimationFrame(function(){ w.classList.add("on"); });
 }
 function cerrarWins(){
-  ["winPresu","winCfg","winInstalar"].forEach(function(id){
+  ["winPresu","winCfg","winInstalar","winCal"].forEach(function(id){
     var w = $(id);
     if (w.hidden) return;
     w.classList.remove("on");
@@ -1836,6 +2097,7 @@ function cerrarWins(){
   document.body.classList.remove("win-abierta");
 }
 $("btnPresu").addEventListener("click", function(){ abrirWin("winPresu"); });
+$("btnCal").addEventListener("click", function(){ abrirWin("winCal"); });
 $("btnCfg").addEventListener("click", function(){ abrirWin("winCfg"); });
 $("cerrarPresu").addEventListener("click", cerrarWins);
 $("cerrarCfg").addEventListener("click", cerrarWins);
@@ -1846,7 +2108,7 @@ $("backdrop").addEventListener("click", function(){
 document.addEventListener("keydown", function(e){
   if (e.key !== "Escape") return;
   if (confOk) cerrarConfirm(false);
-  else if (!$("winPresu").hidden || !$("winCfg").hidden || !$("winInstalar").hidden) cerrarWins();
+  else if (!$("winPresu").hidden || !$("winCfg").hidden || !$("winInstalar").hidden || !$("winCal").hidden) cerrarWins();
   else if (document.body.classList.contains("hoja-abierta")) cerrarHoja();
 });
 
@@ -1865,9 +2127,13 @@ function verTab(cual){
 ["tabHist","mTabHist"].forEach(function(id){
   $(id).addEventListener("click", function(){ verTab("hist"); pintarHistorico(); window.scrollTo({top:0, behavior: lento?"auto":"smooth"}); });
 });
-$("prev").addEventListener("click", function(){ mesActual = mesVecino(mesActual,-1); pintar(); });
-$("next").addEventListener("click", function(){ mesActual = mesVecino(mesActual, 1); pintar(); });
-$("btnHoy").addEventListener("click", function(){ mesActual = claveMes(hoyISO()); pintar(); });
+$("prev").addEventListener("click", function(){ mesActual = mesVecino(mesActual,-1); limpiarFiltro(); pintar(); });
+$("next").addEventListener("click", function(){ mesActual = mesVecino(mesActual, 1); limpiarFiltro(); pintar(); });
+function limpiarFiltro(){
+  if (movFiltro.tipo === "fechas"){ movFiltro = { tipo:"todos", cat:"", desde:"", hasta:"" }; }
+  movMenu = null;
+}
+$("btnHoy").addEventListener("click", function(){ mesActual = claveMes(hoyISO()); limpiarFiltro(); pintar(); });
 $("btnBorrarMes").addEventListener("click", function(){
   var k = mesActual, items = itemsDe(k);
   if (!items.length) return;
@@ -1888,7 +2154,7 @@ $("btnBorrarMes").addEventListener("click", function(){
 });
 $("bars").addEventListener("click", function(e){
   var c = e.target.closest(".bcol"); if (!c) return;
-  mesActual = c.dataset.mes; verTab("mes"); pintar();
+  mesActual = c.dataset.mes; verTab("mes"); limpiarFiltro(); pintar();
   window.scrollTo({top:0, behavior: lento?"auto":"smooth"});
 });
 
@@ -2073,6 +2339,164 @@ $("guardarPresu").addEventListener("click", function(){
 });
 
 /* ============================================================
+   Tutorial guiado
+   ------------------------------------------------------------
+   Se abre solo la primera vez de cada cuenta. Resalta el elemento
+   real de la pantalla con un recorte y una tarjeta al lado.
+   ============================================================ */
+var tourPaso = -1;
+
+function pasosTour(){
+  var m = esMovil();
+  return [
+    { centro:true, t:"Bienvenido a Money Control",
+      d:"Sirve para una sola cosa, pero bien: saber en qué se te va la plata. Anotas cada gasto en dos toques y la app arma el resto, el reparto del mes, los topes y el historial.<br><br>¿Te muestro cómo funciona? Son dos minutos." },
+    { sel:"#btnPresu", t:"Categorías",
+      d:"Acá vive todo lo de tus categorías: crearlas, elegirles un <b>logo</b> y un color, renombrarlas y ponerles un <b>tope mensual</b>.<br><br>Si pones tope, la app te avisa cuando te queden menos de $5.000 o cuando te pases." },
+    { sel:"#btnCal", t:"Calendario",
+      d:"Los días en que anotaste algo quedan marcados en azul. Tocas uno y ves exactamente qué gastaste ese día.<br><br>Útil para reconstruir un fin de semana que se te fue de las manos." },
+    { sel: m ? "#fab" : "#hoja", t:"Anotar un gasto",
+      d:(m ? "El botón <b>+</b> abre el formulario." : "Este es el formulario.")
+        + " Escribes el monto, eliges la categoría, y si quieres un detalle y la fecha.<br><br>Después, tocando un gasto de la lista lo puedes editar o eliminar. Siempre aparece <b>Deshacer</b> por si te equivocas." },
+    { sel: m ? "#mTabMes" : "#tabMes", t:"Este mes",
+      d:"El total arriba, cuánto subiste o bajaste respecto al mes pasado, el reparto por categoría y la lista de movimientos.<br><br>Esa lista se puede <b>ocultar</b> y <b>filtrar</b> por categoría o por rango de fechas." },
+    { sel: m ? "#mTabHist" : "#tabHist", t:"Histórico",
+      d:"Tu acumulado, el promedio de los meses completos y el mes más caro. Las barras son los últimos meses: tocas una y saltas a ese mes.<br><br>Abajo, en qué se te ha ido la plata desde que empezaste." },
+    { centro:true, t:"Eso es todo",
+      d:"Empieza creando una categoría y anotando tu primer gasto.<br><br>Si quieres volver a ver esto, está al final de <b>Ajustes</b>." }
+  ];
+}
+
+function iniciarTour(){
+  cerrarWins(); cerrarHoja(); cerrarTooltipCal();
+  verTab("mes");
+  tourPaso = 0;
+  $("tour").hidden = false;
+  pintarTour();
+}
+function cerrarTooltipCal(){}
+function cerrarTour(){
+  $("tour").hidden = true;
+  tourPaso = -1;
+  if (!estado.tutorial){ estado.tutorial = true; guardarCache(true); }
+}
+function pintarTour(){
+  var pasos = pasosTour(), p = pasos[tourPaso];
+  if (!p) return cerrarTour();
+  var ultimo = tourPaso === pasos.length-1, primero = tourPaso === 0;
+
+  var pie;
+  if (primero) pie = '<button class="btn2" data-t="no">Ahora no</button><button class="save" data-t="sig">Empezar</button>';
+  else if (ultimo) pie = '<button class="save" data-t="fin">Entendido</button>';
+  else pie = '<button class="btn2" data-t="atras">Atrás</button><button class="save" data-t="sig">Siguiente</button>';
+
+  var dots = pasos.map(function(_,i){ return '<i class="' + (i===tourPaso ? "on" : "") + '"></i>'; }).join("");
+
+  $("tourCuerpo").innerHTML =
+    (primero || ultimo ? "" : '<div class="paso">Paso ' + tourPaso + ' de ' + (pasos.length-2) + '</div>')
+    + '<h3>' + esc(p.t) + '</h3><p>' + p.d + '</p>'
+    + '<div class="tour-pie"><div class="tour-dots">' + dots + '</div>' + pie + '</div>';
+
+  ubicarTour(p);
+}
+function ubicarTour(p){
+  var hueco = $("tourHueco"), card = $("tourCard");
+  var el = p.sel ? document.querySelector(p.sel) : null;
+  if (p.centro || !el || !el.offsetWidth){
+    hueco.style.display = "none";
+    card.classList.add("centro");
+    return;
+  }
+  if (p.sel === "#hoja") el.scrollIntoView({block:"center", behavior:"auto"});
+  var r = el.getBoundingClientRect(), pad = 8;
+  hueco.style.display = "block";
+  hueco.style.left = (r.left-pad)+"px"; hueco.style.top = (r.top-pad)+"px";
+  hueco.style.width = (r.width+pad*2)+"px"; hueco.style.height = (r.height+pad*2)+"px";
+  hueco.style.borderRadius = (Math.min(r.width,r.height) > 60 ? 16 : 99) + "px";
+
+  card.classList.remove("centro");
+  var ch = card.offsetHeight, cw = card.offsetWidth;
+  var vw = window.innerWidth, vh = window.innerHeight;
+  var top = r.bottom + 14;
+  if (top + ch > vh - 12) top = r.top - ch - 14;
+  if (top < 12) top = Math.max(12, (vh - ch)/2);
+  var left = r.left + r.width/2 - cw/2;
+  left = Math.max(12, Math.min(left, vw - cw - 12));
+  card.style.top = top + "px"; card.style.left = left + "px";
+}
+$("tourCuerpo").addEventListener("click", function(e){
+  var b = e.target.closest("[data-t]"); if (!b) return;
+  var a = b.dataset.t;
+  if (a === "no" || a === "fin") return cerrarTour();
+  if (a === "atras"){ tourPaso--; pintarTour(); return; }
+  tourPaso++; pintarTour();
+});
+$("tourX").addEventListener("click", cerrarTour);
+document.addEventListener("keydown", function(e){
+  if (tourPaso < 0) return;
+  if (e.key === "Escape") cerrarTour();
+  else if (e.key === "ArrowRight" || e.key === "Enter"){ tourPaso++; pintarTour(); }
+  else if (e.key === "ArrowLeft" && tourPaso > 0){ tourPaso--; pintarTour(); }
+});
+window.addEventListener("resize", function(){
+  if (tourPaso >= 0){ var p = pasosTour()[tourPaso]; if (p) ubicarTour(p); }
+});
+$("btnTour").addEventListener("click", iniciarTour);
+
+/* ============================================================
+   Calendario
+   ============================================================ */
+var calMes = null, calSel = null;
+
+function diasDelMes(k){ return new Date(+k.slice(0,4), +k.slice(5,7), 0).getDate(); }
+function primerDiaSemana(k){            /* 0 = lunes */
+  var d = new Date(+k.slice(0,4), +k.slice(5,7)-1, 1).getDay();
+  return (d + 6) % 7;
+}
+function gastosDelDia(iso){
+  return itemsDe(claveMes(iso)).filter(function(g){ return g.fecha === iso; })
+    .sort(function(a,b){ return b.monto - a.monto; });
+}
+function pintarCal(){
+  $("calMesLabel").textContent = nombreMes(calMes);
+  var n = diasDelMes(calMes), off = primerDiaSemana(calMes), hoy = hoyISO();
+  var html = "";
+  for (var i=0;i<off;i++) html += '<div class="hueco"></div>';
+  for (var d=1; d<=n; d++){
+    var iso = calMes + "-" + ("0"+d).slice(-2);
+    var g = gastosDelDia(iso);
+    var tot = g.reduce(function(a,b){ return a+b.monto; }, 0);
+    html += '<button class="cal-d' + (g.length ? " tiene" : " vacio") + (iso===hoy ? " hoy" : "")
+      + '" data-dia="' + iso + '" aria-pressed="' + (calSel===iso) + '"'
+      + (g.length ? ' title="' + plata(tot) + '"' : '') + '>' + d + '</button>';
+  }
+  $("calGrid").innerHTML = html;
+
+  if (!calSel){ $("calDet").innerHTML = ""; return; }
+  var items = gastosDelDia(calSel);
+  var total = items.reduce(function(a,b){ return a+b.monto; }, 0);
+  $("calDet").innerHTML = '<div class="cal-det"><h4>' + fechaLarga(calSel) + '</h4>'
+    + '<div class="tot">' + (items.length ? items.length + (items.length===1?" gasto · ":" gastos · ") + plata(total) : "") + '</div>'
+    + (items.length
+        ? items.map(function(g){
+            return '<div class="mov"><span class="mov-main">' + insignia(g.cat)
+              + '<span class="d"><b>' + esc(g.nota || g.cat) + '</b>'
+              + (g.nota ? '<small>' + esc(g.cat) + '</small>' : '')
+              + '</span><span class="m">' + plata(g.monto) + '</span></span></div>';
+          }).join("")
+        : '<div class="cal-vacio">Sin gastos este día.</div>')
+    + '</div>';
+}
+$("calGrid").addEventListener("click", function(e){
+  var b = e.target.closest("[data-dia]"); if (!b) return;
+  calSel = (calSel === b.dataset.dia) ? null : b.dataset.dia;
+  pintarCal();
+});
+$("calPrev").addEventListener("click", function(){ calMes = mesVecino(calMes,-1); calSel = null; pintarCal(); });
+$("calNext").addEventListener("click", function(){ calMes = mesVecino(calMes, 1); calSel = null; pintarCal(); });
+$("cerrarCal").addEventListener("click", cerrarWins);
+
+/* ============================================================
    Ventana de ajustes
    ============================================================ */
 function notaNotif(){
@@ -2084,6 +2508,16 @@ function notaNotif(){
 }
 function pintarCfg(){
   $("secCuenta").hidden = !usuario;
+  var pm = primerMes();
+  if (pm){
+    $("primerMesTxt").textContent = "Empezaste a registrar en " + nombreMes(pm) + ".";
+    $("cfgPrimerFila").hidden = false;
+    $("cfgPrimerTxt").textContent = "Registré " + nombreMes(pm).split(" ")[0] + " completo";
+    $("cfgPrimerCompleto").checked = !!estado.primerMesCompleto;
+  } else {
+    $("primerMesTxt").textContent = "Todavía no has registrado gastos.";
+    $("cfgPrimerFila").hidden = true;
+  }
   if (usuario){ $("cuentaQuien").textContent = usuario.nombre; estadoSync(); }
   $("cfgNotif").checked = !!estado.notif;
   $("cfgResumen").checked = !!estado.resumen;
@@ -2093,6 +2527,10 @@ function pintarCfg(){
   $("pieDatos").textContent = nG + (nG===1?" gasto":" gastos") + " · " + estado.cats.length + " categorías";
   notaNotif();
 }
+$("cfgPrimerCompleto").addEventListener("change", function(){
+  estado.primerMesCompleto = this.checked;
+  guardarCache(true); pintarHistorico();
+});
 $("cfgNotif").addEventListener("change", function(){
   var self = this;
   if (!self.checked){ estado.notif = false; notaNotif(); return; }
@@ -2126,6 +2564,7 @@ function respaldoJSON(){
   return JSON.stringify({
     app:"money-control", version:2, fecha:new Date().toISOString(),
     cats:estado.cats, colores:estado.colores, iconos:estado.iconos, presupuestos:estado.presupuestos,
+    primerMesCompleto:estado.primerMesCompleto, tutorial:estado.tutorial,
     notif:estado.notif, resumen:estado.resumen, horaResumen:estado.horaResumen,
     meses:estado.meses
   }, null, 2);
@@ -2184,6 +2623,7 @@ function aplicarReemplazo(d){
     colores: (d.colores && typeof d.colores === "object") ? d.colores : {},
     iconos: (d.iconos && typeof d.iconos === "object") ? d.iconos : {},
     presupuestos: (d.presupuestos && typeof d.presupuestos === "object") ? d.presupuestos : {},
+    primerMesCompleto: !!d.primerMesCompleto, tutorial: !!d.tutorial,
     notif: !!d.notif, resumen: !!d.resumen, horaResumen: d.horaResumen || "09:00",
     pendientes: [], ultimoResumen: ""
   };
@@ -2538,7 +2978,8 @@ function arrancarApp(){
   var cache = leerCache();
   estado = cache ? {
     cats: cache.cats || [], meses: cache.meses || {}, colores: cache.colores || {}, iconos: cache.iconos || {},
-    presupuestos: cache.presupuestos || {}, notif: !!cache.notif,
+    presupuestos: cache.presupuestos || {}, primerMesCompleto: !!cache.primerMesCompleto,
+    tutorial: !!cache.tutorial, notif: !!cache.notif,
     resumen: !!cache.resumen, horaResumen: cache.horaResumen || "09:00",
     pendientes: cache.pendientes || [], ultimoResumen: cache.ultimoResumen || "",
     ts: cache.ts || 0
@@ -2548,6 +2989,8 @@ function arrancarApp(){
   pintar();
   latido();
   if (cambio) guardarCache();
+  /* la primera vez de cada cuenta, el tour se ofrece solo */
+  setTimeout(function(){ if (!estado.tutorial && tourPaso < 0) iniciarTour(); }, 1400);
 }
 iniciarCuenta();
 })();
