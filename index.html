@@ -35,6 +35,8 @@
   --on-deep-mute:#9EA9C4;
   --gold:#D3A84C;
   --gold-soft:#F6EDD8;
+  --azul:#2F5BB5;
+  --azul-soft:#E7EEFA;
   --danger:#B23A52;
   --danger-soft:#FBEDEF;
   --ok:#3D8A62;
@@ -50,6 +52,7 @@
     --bg:#0C0E15;--card:#161923;--ink:#E9EAF2;--muted:#8B90A6;--faint:#6A6F85;
     --line:#242835;--line-soft:#1C202B;--deep:#1A2440;--deep-2:#2A3A63;
     --gold:#D9B45B;--gold-soft:#2A2519;--danger:#DE8497;--danger-soft:#2B1B20;--ok:#5FB68C;
+    --azul:#89AEEC;--azul-soft:#1B2540;
     --sh-1:0 1px 2px rgba(0,0,0,.35);
     --sh-2:0 1px 2px rgba(0,0,0,.35), 0 12px 28px -20px rgba(0,0,0,.9);
     --sh-3:0 24px 60px -22px rgba(0,0,0,.85);
@@ -59,6 +62,7 @@
   --bg:#0C0E15;--card:#161923;--ink:#E9EAF2;--muted:#8B90A6;--faint:#6A6F85;
   --line:#242835;--line-soft:#1C202B;--deep:#1A2440;--deep-2:#2A3A63;
   --gold:#D9B45B;--gold-soft:#2A2519;--danger:#DE8497;--danger-soft:#2B1B20;--ok:#5FB68C;
+  --azul:#89AEEC;--azul-soft:#1B2540;
 }
 *{box-sizing:inherit}
 html{scroll-padding-top:calc(64px + env(safe-area-inset-top, 0px))}
@@ -182,10 +186,18 @@ button{cursor:pointer}
   display:flex;align-items:center;justify-content:space-between;gap:10px;
 }
 /* filtros de movimientos */
-.movs-acc{display:flex;align-items:center;gap:2px;flex:none}
-.movs-acc .icon-btn{width:30px;height:30px}
-.movs-acc .icon-btn svg{transition:transform .2s}
-.movs-acc .icon-btn[aria-expanded="false"] svg{transform:rotate(-90deg)}
+.card > h2{flex-wrap:wrap}
+.movs-acc{display:flex;align-items:center;gap:8px;flex:none}
+.hbtn{
+  display:inline-flex;align-items:center;gap:7px;
+  background:var(--azul-soft);border:1px solid transparent;color:var(--azul);
+  border-radius:99px;padding:8px 14px;font-size:13px;font-weight:600;
+  letter-spacing:0;text-transform:none;transition:background .15s,color .15s;
+}
+.hbtn:hover{border-color:var(--azul)}
+.hbtn svg{width:16px;height:16px;flex:none;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+.hbtn.activo{background:var(--azul);color:#fff}
+@media (max-width:360px){ .hbtn{padding:7px 11px;font-size:12.5px;gap:5px} }
 .fmenu{border:1px solid var(--line);border-radius:var(--r-sm);overflow:hidden;margin-bottom:12px;background:var(--bg)}
 .fop{width:100%;display:flex;align-items:center;gap:10px;background:none;border:none;padding:11px 13px;font-size:14px;text-align:left;border-bottom:1px solid var(--line-soft)}
 .fop:last-child{border-bottom:none}
@@ -719,9 +731,12 @@ body.acceso-on #winInstalar{z-index:100}
         <h2>
           <span>Movimientos</span>
           <span class="movs-acc">
-            <button class="linkbtn" id="movFiltrar">Filtrar</button>
-            <button class="icon-btn" id="movToggle" aria-expanded="true" aria-label="Ocultar movimientos">
-              <svg viewBox="0 0 20 20"><path d="M5 8l5 5 5-5"/></svg>
+            <button class="hbtn" id="movFiltrar">
+              <svg viewBox="0 0 24 24"><path d="M3 5.5h18l-7 8v5.5l-4-2.2v-3.3z"/></svg>
+              <span id="movFiltrarTxt">Filtrar</span>
+            </button>
+            <button class="hbtn" id="movToggle" aria-expanded="true">
+              <span id="movToggleIco"></span><span id="movToggleTxt">Ocultar</span>
             </button>
           </span>
         </h2>
@@ -1679,8 +1694,15 @@ function pintarMovs(items){
     movFiltro = { tipo:"todos", cat:"", desde:"", hasta:"" }; pintar();
   });
 
+  var OJO = '<svg viewBox="0 0 24 24"><path d="M2.5 12S6 5.8 12 5.8 21.5 12 21.5 12 18 18.2 12 18.2 2.5 12 2.5 12z"/><circle cx="12" cy="12" r="2.9"/></svg>';
+  var OJO_NO = '<svg viewBox="0 0 24 24"><path d="M9.6 6.1A8.6 8.6 0 0112 5.8c6 0 9.5 6.2 9.5 6.2a16 16 0 01-3.3 3.9M6.1 7.9A16 16 0 002.5 12s3.5 6.2 9.5 6.2c1 0 1.9-.2 2.7-.5"/><path d="M3.5 3.5l17 17"/></svg>';
   $("movToggle").setAttribute("aria-expanded", movOculto ? "false" : "true");
   $("movToggle").setAttribute("aria-label", movOculto ? "Mostrar movimientos" : "Ocultar movimientos");
+  $("movToggleIco").innerHTML = movOculto ? OJO_NO : OJO;
+  $("movToggleTxt").textContent = movOculto ? "Mostrar" : "Ocultar";
+  $("movToggle").classList.toggle("activo", movOculto);
+  $("movFiltrar").classList.toggle("activo", movFiltro.tipo !== "todos");
+  $("movFiltrarTxt").textContent = movFiltro.tipo === "todos" ? "Filtrar" : "Filtro";
   $("movs").hidden = movOculto;
   if (movOculto) return;
 
@@ -1822,7 +1844,9 @@ function pintarHistorico(){
   }
   if (lista.length){
     var caro = lista.reduce(function(a,k){ return totalDe(k) > totalDe(a) ? k : a; }, lista[0]);
-    $("kMax").innerHTML = esc(mesCorto(caro)) + ' <small>' + plata(totalDe(caro)) + '</small>';
+    var nm = nombreMes(caro).split(" ")[0];
+    $("kMax").innerHTML = esc(nm.charAt(0).toUpperCase() + nm.slice(1))
+      + ' <small>' + plata(totalDe(caro)) + '</small>';
   } else $("kMax").textContent = "—";
 
   var fin = (lista.length && lista[lista.length-1] > mesActual) ? lista[lista.length-1] : mesActual;
