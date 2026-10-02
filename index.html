@@ -196,8 +196,11 @@ button{cursor:pointer}
 /* ---------- insignias de categoría ---------- */
 .chip{--s:40px;width:var(--s);height:var(--s);display:grid;place-items:center;flex:none}
 .chip svg{width:100%;height:100%}
-.chip.letra{border-radius:calc(var(--s)/3);box-shadow:0 4px 12px -6px rgba(0,0,0,.9)}
-.chip b{color:#fff;font-weight:700;font-size:calc(var(--s)*.42);line-height:1}
+.chip.letra{
+  border-radius:calc(var(--s)/3.4);background:var(--card-2)!important;
+  border:1px solid var(--line);box-shadow:none;
+}
+.chip b{color:var(--gold);font-family:"Fraunces",Georgia,serif;font-weight:400;font-size:calc(var(--s)*.46);line-height:1}
 .chip.sm{--s:32px}
 .chip.lg{--s:62px}
 .rejilla svg{width:30px;height:30px}
@@ -666,7 +669,7 @@ body.acceso-on #winInstalar{z-index:100}
     top:calc(env(safe-area-inset-top, 0px) + 76px);
     max-height:none;transform:translateY(100%);
     border-radius:26px 26px 0 0;border-bottom:none;
-    padding:16px 18px calc(24px + env(safe-area-inset-bottom, 0px));
+    padding:16px 18px calc(48px + env(safe-area-inset-bottom, 0px));
   }
   .win.on{transform:translateY(0)}
   .win-top{top:-16px}
@@ -833,7 +836,7 @@ body.acceso-on #winInstalar{z-index:100}
   </section>
 
   <section id="vistaHist" hidden>
-    <div class="kpis">
+    <div class="kpis" id="kpis">
       <div class="kpi"><div class="k">Acumulado</div><div class="v num" id="kTotal">$0</div></div>
       <div class="kpi"><div class="k">Promedio mensual</div><div class="v num" id="kProm">$0</div></div>
       <div class="kpi"><div class="k">Mes más caro</div><div class="v num" id="kMax">—</div></div>
@@ -892,7 +895,7 @@ body.acceso-on #winInstalar{z-index:100}
 <div class="win" id="winPresu" hidden role="dialog" aria-label="Categorías">
   <div id="catVista">
     <div class="win-top"><h2><button class="volver" id="cerrarPresu" aria-label="Volver">‹</button>Categorías</h2></div>
-    <p class="bajada">Toca una categoría para cambiarle el nombre, el logo, el color o su tope mensual.</p>
+    <p class="bajada">Toca una categoría para cambiarle el nombre, el logo o su tope mensual.</p>
     <div id="presuLista"></div>
     <button class="nueva-cat" id="catNueva"><b>+</b>Nueva categoría</button>
     <div id="catNuevaFila" hidden style="margin-top:14px">
@@ -902,7 +905,6 @@ body.acceso-on #winInstalar{z-index:100}
         <button class="btn2" id="catNuevaNo">Cancelar</button>
       </div>
     </div>
-    <button class="save" id="guardarPresu">Guardar</button>
   </div>
 
   <div id="catEditor" hidden>
@@ -916,16 +918,11 @@ body.acceso-on #winInstalar{z-index:100}
     </div>
     <label for="edPresu">Tope mensual</label>
     <input class="inp" id="edPresu" type="text" inputmode="numeric" placeholder="Sin tope" style="margin-bottom:20px">
-    <div class="sw-bloque">
-      <div class="sw-tit">Color</div>
-      <div class="sw" id="edFamilias"></div>
+    <button class="btn2" id="edCambiarLogo" style="width:100%;margin-bottom:16px">Cambiar logo</button>
+    <div id="edLogos" hidden>
+      <input class="inp" id="edBuscar" type="text" placeholder="Buscar logo" aria-label="Buscar logo" style="margin-bottom:12px">
+      <div class="rejilla" id="edRejilla"></div>
     </div>
-    <div class="sw-bloque">
-      <div class="sw-tit">Tono</div>
-      <div class="sw tonos" id="edTonos"></div>
-    </div>
-    <input class="inp" id="edBuscar" type="text" placeholder="Buscar logo" aria-label="Buscar logo" style="margin:16px 0 12px">
-    <div class="rejilla" id="edRejilla"></div>
     <button class="save" id="edListo">Guardar</button>
     <div class="form-acc"><button class="linkbtn peligro" id="edBorrar">Eliminar categoría</button></div>
   </div>
@@ -1017,7 +1014,7 @@ body.acceso-on #winInstalar{z-index:100}
       <button class="acc-h" data-acc="a2" aria-expanded="false">Categorías<svg class="chev" viewBox="0 0 20 20"><path d="M5 8l5 5 5-5"/></svg></button>
       <div class="acc-b" data-cuerpo="a2" hidden>
         <p>Se eligen de la lista desplegable del formulario, y ahí mismo puedes crear una nueva.</p>
-        <p>Todo lo demás vive en el botón de la <b>etiqueta dorada</b>: cambiar el logo y su color, renombrar, poner el tope mensual y eliminar.</p>
+        <p>Todo lo demás vive en el botón de la <b>etiqueta dorada</b>: cambiar el logo, renombrar, poner el tope mensual y eliminar.</p>
         <p>Al renombrar, el cambio se aplica a todos los gastos anteriores; si usas el nombre de otra existente, te ofrece unirlas. Al eliminar, los gastos ya anotados conservan el nombre.</p>
       </div>
     </div>
@@ -1116,7 +1113,7 @@ var ICONOS = [
 {id:"kiosco", n:"Kiosco", g:"Comida y bebida", k:"kiosco quiosco chicle chicles dulce dulces caramelo golosina",
  s:'<circle cx="16" cy="16" r="5.6" fill="#E8503A"/><path d="M11 13.4L4.6 9.4v13.2L11 18.6z" fill="#F2C94C"/><path d="M21 13.4l6.4-4v13.2L21 18.6z" fill="#F2C94C"/>'},
 {id:"snack", n:"Snacks", g:"Comida y bebida", k:"snack snacks papas fritas ramitas galletas picoteo bolsita",
- s:'<path d="M7 9.5h18l-1.6 16.4a2.2 2.2 0 01-2.2 2H10.8a2.2 2.2 0 01-2.2-2z" fill="#E8503A"/><path d="M7 9.5l2.6-4.4 2.6 2.4 2.6-2.4L17.4 7.5 20 5.1l2.6 2.4L25 9.5z" fill="#C0392B"/><rect x="11.4" y="14" width="9.2" height="7" rx="1.4" fill="#F5EFE4"/>'},
+ s:'<path d="M11.4 12.6l1.6-6.4 2.6.8-1.2 5.6z" fill="#F2C94C"/><path d="M15 12.6l.6-7.6 2.8.2-.4 7.4z" fill="#F0B050"/><path d="M18.4 12.8l2.4-6.2 2.4 1.2-2.2 5.2z" fill="#F2C94C"/><path d="M8.6 12h14.8l-1.8 14.4a2.6 2.6 0 01-2.6 2.2h-6a2.6 2.6 0 01-2.6-2.2z" fill="#E8503A"/><path d="M9.6 19.4h12.8" fill="none" stroke="#F5EFE4" stroke-width="2.6"/>'},
 {id:"pan", n:"Panadería", g:"Comida y bebida", k:"pan panaderia panadería marraqueta hallulla amasado",
  s:'<ellipse cx="16" cy="17" rx="11.6" ry="7.4" fill="#E0A45C"/><path d="M10 13.6l-1.6 6.6M16 12.8l-1.6 7.8M22 13.6l-1.6 6.6" fill="none" stroke="#A9733A" stroke-width="2.2" stroke-linecap="round"/>'},
 {id:"asado", n:"Asado", g:"Comida y bebida", k:"asado parrilla carne churrasco barbacoa quincho",
@@ -1366,8 +1363,8 @@ function insignia(cat, clase){
   var id = iconoDe(cat);
   if (id && ICO[id])
     return '<span class="chip ' + (clase||"") + '"><svg viewBox="0 0 32 32">' + ICO[id].s + '</svg></span>';
-  /* sin logo elegido queda la inicial, y ahí sí se usa el color de la categoría */
-  return '<span class="chip letra ' + (clase||"") + '" style="background:' + colorDe(cat) + '">'
+  /* sin logo elegido queda solo la inicial */
+  return '<span class="chip letra ' + (clase||"") + '">'
     + '<b>' + esc(String(cat||"?").trim().charAt(0).toUpperCase()) + '</b></span>';
 }
 var MESES = ["enero","febrero","marzo","abril","mayo","junio","julio","agosto","septiembre","octubre","noviembre","diciembre"];
@@ -1411,6 +1408,7 @@ var mesActual = claveMes(hoyISO());
 var catSel = "", catEditando = null, catCreando = false;
 var alertasAbierto = false, editandoId = null;
 var movFiltro = { tipo:"todos", cat:"", desde:"", hasta:"" };
+var formOrig = null;   /* cómo estaba el formulario al abrirlo */
 var movMenu = null, movOculto = false;
 
 var usuario = null;                       /* {id, nombre} cuando hay sesión */
@@ -2129,6 +2127,7 @@ function limpiarForm(){
   $("hojaTitulo").textContent = "Anotar un gasto";
   $("guardar").textContent = "Guardar gasto";
   $("borrarGasto").hidden = true;
+  formOrig = { m:"", nota:"", fecha:$("fecha").value, cat:"" };
 }
 function cargarForm(id){
   var r = buscarGasto(id); if (!r) return;
@@ -2142,6 +2141,7 @@ function cargarForm(id){
   $("guardar").textContent = "Guardar cambios";
   $("borrarGasto").hidden = false;
   pintarCatVal();
+  formOrig = { m:String(r.g.monto), nota:r.g.nota || "", fecha:r.g.fecha, cat:r.g.cat };
 }
 function textoGasto(g){ return (g.nota ? g.nota + " · " : "") + g.cat + " · " + plata(g.monto) + " · " + fechaLarga(g.fecha); }
 
@@ -2231,11 +2231,11 @@ function cerrarHoja(){
   limpiarForm();
   if (document.activeElement && document.activeElement.blur) document.activeElement.blur();
 }
-$("fab").addEventListener("click", function(){ limpiarForm(); abrirHoja(); });
+$("fab").addEventListener("click", function(){ salirDe(function(){ cerrarWins(true); limpiarForm(); abrirHoja(); }); });
 $("cerrarHoja").addEventListener("click", cerrarHoja);
 
-function abrirWin(id){
-  cerrarHoja(); cerrarWins();
+function abrirWinReal(id){
+  cerrarWins(true);
   if (id === "winPresu") pintarPresu();
   else if (id === "winCal"){ calMes = mesActual; calSel = null; pintarCal(); }
   else pintarCfg();
@@ -2244,15 +2244,48 @@ function abrirWin(id){
   document.body.classList.add("win-abierta");
   requestAnimationFrame(function(){ w.classList.add("on"); });
 }
-function cerrarWins(){
+function cerrarWins(ya){
   ["winPresu","winCfg","winInstalar","winCal"].forEach(function(id){
     var w = $(id);
     if (w.hidden) return;
     w.classList.remove("on");
-    setTimeout(function(){ w.hidden = true; }, lento ? 0 : 180);
+    if (ya) w.hidden = true;
+    else setTimeout(function(){ if (!w.classList.contains("on")) w.hidden = true; }, lento ? 0 : 180);
   });
   document.body.classList.remove("win-abierta");
 }
+/* ¿hay algo a medio editar que se perdería al cambiar de pantalla? */
+function hayCambios(){
+  if (tourPaso >= 0) return "";
+  if (!$("catEditor").hidden && edCat && edOrig){
+    var pAhora = parseInt(soloDigitos($("edPresu").value) || "0", 10);
+    if ($("edNombre").value.trim() !== edOrig.n || pAhora !== edOrig.p)
+      return "la categoría que estás editando";
+  }
+  if (document.body.classList.contains("hoja-abierta") && formOrig){
+    if (soloDigitos($("monto").value) !== formOrig.m
+        || $("nota").value.trim() !== formOrig.nota
+        || $("fecha").value !== formOrig.fecha
+        || catSel !== formOrig.cat)
+      return "el gasto que estás anotando";
+  }
+  return "";
+}
+function salirDe(hacer){
+  var q = hayCambios();
+  if (!q) return hacer();
+  confirmar({
+    titulo: "¿Salir sin guardar?",
+    texto: "Los cambios en " + q + " no se guardarán.",
+    ok: "Salir", peligro: true
+  }).then(function(si){
+    if (!si) return;
+    edCat = null; $("catEditor").hidden = true; $("catVista").hidden = false;
+    cerrarHoja();
+    hacer();
+  });
+}
+function abrirWin(id){ salirDe(function(){ cerrarHoja(); abrirWinReal(id); }); }
 $("btnPresu").addEventListener("click", function(){ abrirWin("winPresu"); });
 $("btnCal").addEventListener("click", function(){ abrirWin("winCal"); });
 $("btnCfg").addEventListener("click", function(){ abrirWin("winCfg"); });
@@ -2279,10 +2312,14 @@ function verTab(cual){
   $("mTabHist").setAttribute("aria-selected", !esMes);
 }
 ["tabMes","mTabMes"].forEach(function(id){
-  $(id).addEventListener("click", function(){ verTab("mes"); window.scrollTo({top:0, behavior: lento?"auto":"smooth"}); });
+  $(id).addEventListener("click", function(){
+    salirDe(function(){ cerrarWins(true); cerrarHoja(); verTab("mes"); window.scrollTo({top:0, behavior: lento?"auto":"smooth"}); });
+  });
 });
 ["tabHist","mTabHist"].forEach(function(id){
-  $(id).addEventListener("click", function(){ verTab("hist"); pintarHistorico(); window.scrollTo({top:0, behavior: lento?"auto":"smooth"}); });
+  $(id).addEventListener("click", function(){
+    salirDe(function(){ cerrarWins(true); cerrarHoja(); verTab("hist"); pintarHistorico(); window.scrollTo({top:0, behavior: lento?"auto":"smooth"}); });
+  });
 });
 $("prev").addEventListener("click", function(){ mesActual = mesVecino(mesActual,-1); limpiarFiltro(); pintar(); });
 $("next").addEventListener("click", function(){ mesActual = mesVecino(mesActual, 1); limpiarFiltro(); pintar(); });
@@ -2318,7 +2355,7 @@ $("bars").addEventListener("click", function(e){
 /* ============================================================
    Ventana de presupuestos
    ============================================================ */
-var edCat = null;   /* categoría abierta en el editor de logo */
+var edCat = null, edOrig = null;   /* categoría abierta en el editor y su estado inicial */
 
 function pintarPresu(){
   $("catVista").hidden = false; $("catEditor").hidden = true; edCat = null;
@@ -2337,27 +2374,15 @@ function pintarPresu(){
 /* ---- editor de logo y color ---- */
 function pintarEditor(filtro){
   if (!edCat) return;
-  var actual = iconoDe(edCat), col = colorDe(edCat);
+  var actual = iconoDe(edCat);
   if (actual && ICO[actual]){
     $("edChip").className = "chip lg";
-    $("edChip").style.background = "none";
     $("edChip").innerHTML = '<svg viewBox="0 0 32 32">' + ICO[actual].s + '</svg>';
   } else {
     $("edChip").className = "chip lg letra";
-    $("edChip").style.background = col;
     $("edChip").innerHTML = '<b>' + esc(edCat.trim().charAt(0).toUpperCase()) + '</b>';
   }
   if (document.activeElement !== $("edNombre")) $("edNombre").value = edCat;
-
-  var fam = familiaDe(col);
-  $("edFamilias").innerHTML = COLORES.map(function(f, i){
-    return '<button type="button" data-fam="'+i+'" aria-pressed="'+(i===fam)+'" '
-      + 'style="background:'+f.t[1]+'" title="'+esc(f.n)+'" aria-label="'+esc(f.n)+'"></button>';
-  }).join("");
-  $("edTonos").innerHTML = COLORES[fam].t.map(function(h){
-    return '<button type="button" data-color="'+h+'" aria-pressed="'+(h.toLowerCase()===String(col).toLowerCase())+'" '
-      + 'style="background:'+h+'" aria-label="Tono '+h+'"></button>';
-  }).join("");
 
   var q = sinTildes(filtro || "");
   var lista = ICONOS.filter(function(i){
@@ -2378,8 +2403,11 @@ function abrirEditor(cat){
   edCat = cat;
   $("catVista").hidden = true; $("catEditor").hidden = false;
   $("edBuscar").value = "";
+  $("edLogos").hidden = true;
+  $("edCambiarLogo").textContent = "Cambiar logo";
   var p = presuDe(cat);
   $("edPresu").value = p ? nf.format(p) : "";
+  edOrig = { n: cat, p: p };
   pintarEditor("");
   $("winPresu").scrollTop = 0;
 }
@@ -2405,7 +2433,7 @@ function guardarEditor(){
   return true;
 }
 function cerrarEditor(){
-  edCat = null;
+  edCat = null; edOrig = null;
   $("catEditor").hidden = true; $("catVista").hidden = false;
   pintarPresu();
   $("winPresu").scrollTop = 0;
@@ -2425,19 +2453,11 @@ $("edBorrar").addEventListener("click", function(){
     .then(function(si){ if (si){ edCat = null; eliminarCat(c); cerrarEditor(); } });
 });
 $("edBuscar").addEventListener("input", function(){ pintarEditor(this.value); });
-$("edFamilias").addEventListener("click", function(e){
-  var b = e.target.closest("[data-fam]"); if (!b || !edCat) return;
-  var f = COLORES[+b.dataset.fam];
-  /* al cambiar de familia se conserva la posición del tono */
-  var actual = String(colorDe(edCat)).toLowerCase();
-  var i = COLORES[familiaDe(actual)].t.map(function(h){ return h.toLowerCase(); }).indexOf(actual);
-  estado.colores[edCat.toLowerCase()] = f.t[i >= 0 ? i : 1];
-  guardarCache(); pintarEditor($("edBuscar").value); pintar();
-});
-$("edTonos").addEventListener("click", function(e){
-  var b = e.target.closest("[data-color]"); if (!b || !edCat) return;
-  estado.colores[edCat.toLowerCase()] = b.dataset.color;
-  guardarCache(); pintarEditor($("edBuscar").value); pintar();
+$("edCambiarLogo").addEventListener("click", function(){
+  var abierto = !$("edLogos").hidden;
+  $("edLogos").hidden = abierto;
+  this.textContent = abierto ? "Cambiar logo" : "Cerrar logos";
+  if (!abierto){ $("edBuscar").value = ""; pintarEditor(""); }
 });
 $("edRejilla").addEventListener("click", function(e){
   var b = e.target.closest("[data-icono]"); if (!b || !edCat) return;
@@ -2478,11 +2498,7 @@ $("catNuevaWin").addEventListener("keydown", function(e){
 });
 
 
-$("guardarPresu").addEventListener("click", function(){
-  guardarCache(true);
-  cerrarWins(); pintar();
-  avisar("Categorías actualizadas");
-});
+
 
 /* ============================================================
    Tutorial guiado
@@ -2500,52 +2516,57 @@ function pasosTour(){
     }).join("") + '</div>';
   };
   return [
-    { centro:true, t:"Money Control",
-      d: ilu(["comida","auto","casa","fiesta"]) + "Anota lo que gastas. La app ordena, compara y avisa." },
+    { centro:true, abre:"mes", t:"Money Control",
+      d: ilu(["comida","auto","casa","fiesta"]) + "Anotas lo que gastas y la app ordena, compara y avisa.<br><br>Te muestro las tres pantallas por dentro." },
 
-    { sel:"#btnPresu", t:"1 · Tus categorías",
-      d:"Parte por acá. El botón dorado." },
-    { sel:"#btnPresu", t:"Crear una",
-      d:'<b>+ Nueva categoría</b> abajo de la lista. Escribe el nombre y listo.' },
-    { sel:"#btnPresu", t:"Logo y color",
-      d: ilu(["puchos","trago","bus","gym"]) + "Toca la categoría para cambiarle el logo, el color o el nombre." },
-    { sel:"#btnPresu", t:"Tope mensual",
-      d:"En la misma pantalla. Si lo pones, te avisa a los <b>$5.000</b> de llegar y cuando te pasas." },
+    { abre:"presu", sel:"#presuLista", t:"1 · Categorías",
+      d:"Esta es la lista. Cada una con su logo y su tope." },
+    { abre:"presu", sel:"#catNueva", t:"Crear una",
+      d:'Acá abajo. Escribes <b>Comida</b> y la app le pone sola el logo del plato.' },
+    { abre:"presu", sel:"#presuLista", t:"Editarla",
+      d:"Tocas la categoría y cambias nombre, logo y tope en una sola pantalla." },
+    { abre:"presu", sel:"#presuLista", t:"El tope",
+      d:'Si a <b>Carrete</b> le pones <b>$30.000</b>, te avisa al llegar a $25.000 y otra vez si te pasas.' },
 
-    { sel: m ? "#fab" : "#hoja", t:"2 · Anotar un gasto",
-      d:(m ? "El botón <b>+</b>." : "Este formulario.") + " Monto y categoría. Nada más es obligatorio." },
-    { sel: m ? "#fab" : "#hoja", t:"Detalle y fecha",
-      d:"Opcionales. La fecha viene en hoy; cámbiala si anotas algo de ayer." },
-    { sel:"#movs", t:"Corregir",
-      d:"Toca un gasto para <b>editarlo</b>. El tarro lo <b>elimina</b>. Siempre queda <b>Deshacer</b>." },
+    { abre:"hoja", sel:"#monto", t:"2 · Anotar un gasto",
+      d:'Escribes <b>8900</b> y se formatea solo: <b>$8.900</b>.' },
+    { abre:"hoja", sel:"#catBtn", t:"La categoría",
+      d:"Obligatoria. Se elige de la lista, o creas una nueva ahí mismo." },
+    { abre:"hoja", sel:"#nota", t:"Detalle y fecha",
+      d:'Opcionales. Por ejemplo <b>Almuerzo campus</b>. La fecha viene en hoy.' },
+    { abre:"hoja", sel:"#guardar", t:"Guardar",
+      d:"Listo. Se suma al mes y aparece en los movimientos." },
 
-    { sel:"#btnCal", t:"3 · Calendario",
-      d:"Días en azul = días con gastos. Toca uno y ves qué fue." },
+    { abre:"mes", sel:"#movs", t:"Corregir",
+      d:"Toca un gasto para editarlo. El tarro lo elimina. Siempre queda <b>Deshacer</b>." },
 
-    { sel:"#total", t:"4 · Este mes",
-      d:"El total, y si subiste o bajaste contra el <b>mismo día</b> del mes pasado." },
-    { sel:"#minis", t:"Ritmo y proyección",
-      d:"Cuánto gastas por día y en cuánto vas a terminar el mes." },
-    { sel:"#rank", t:"Desglose",
-      d:"En qué se fue, de mayor a menor." },
-    { sel:"#movFiltrar", t:"Filtrar y ocultar",
-      d:"Por categoría o por fechas. Y la lista se esconde si estorba." },
+    { abre:"cal", sel:"#calGrid", t:"3 · Calendario",
+      d:"Los días en azul tienen gastos. Toca uno y ves qué fue ese día." },
 
-    { sel: m ? "#mTabHist" : "#tabHist", t:"5 · Histórico",
+    { abre:"mes", sel:"#total", t:"4 · Este mes",
+      d:'El total, y si subiste o bajaste contra el <b>mismo día</b> del mes pasado.' },
+    { abre:"mes", sel:"#minis", t:"Ritmo y proyección",
+      d:'Si llevas <b>$180.000</b> en 2 días, acá ves en cuánto terminarías el mes.' },
+    { abre:"mes", sel:"#rank", t:"Desglose",
+      d:"En qué se fue, de mayor a menor, con su porcentaje." },
+    { abre:"mes", sel:"#movFiltrar", t:"Filtrar y ocultar",
+      d:"Por categoría o por rango de fechas. Y la lista se esconde si estorba." },
+
+    { abre:"hist", sel:"#kpis", t:"5 · Histórico",
       d:"Acumulado, promedio de meses completos y mes más caro." },
-    { sel: m ? "#mTabHist" : "#tabHist", t:"Las barras",
-      d:"Tus últimos meses. Toca una y saltas a ese mes." },
+    { abre:"hist", sel:"#bars", t:"Tus meses",
+      d:"Cada barra es un mes. Toca una y saltas a ese mes." },
 
-    { sel:"#btnCfg", t:"6 · Ajustes",
-      d:"Notificaciones, respaldo y tu cuenta. Todo se sincroniza entre tus dispositivos." },
+    { abre:"cfg", centro:true, t:"6 · Ajustes",
+      d:"Notificaciones, respaldo, tu cuenta y este tutorial." },
 
-    { centro:true, t:"Listo",
-      d: ilu(["estrella"]) + "Anota en el momento, no al final del día. Ahí está la diferencia.<br><br>Puedes repetir esto desde Ajustes." }
+    { centro:true, abre:"mes", t:"Listo",
+      d: ilu(["estrella"]) + "Anota en el momento, no al final del día.<br><br>Empieza creando tus categorías." }
   ];
 }
 
 function iniciarTour(){
-  cerrarWins(); cerrarHoja(); cerrarTooltipCal();
+  cerrarWins(true); cerrarHoja(); cerrarTooltipCal();
   verTab("mes");
   tourPaso = 0;
   $("tour").hidden = false;
@@ -2554,12 +2575,25 @@ function iniciarTour(){
 function cerrarTooltipCal(){}
 function cerrarTour(){
   $("tour").hidden = true;
+  cerrarWins(true); cerrarHoja();
   tourPaso = -1;
   if (!estado.tutorial){ estado.tutorial = true; guardarCache(true); }
+}
+function prepararPaso(p){
+  var acc = {
+    presu: function(){ abrirWinReal("winPresu"); },
+    cal:   function(){ abrirWinReal("winCal"); },
+    cfg:   function(){ abrirWinReal("winCfg"); },
+    hoja:  function(){ cerrarWins(true); if (!document.body.classList.contains("hoja-abierta")){ limpiarForm(); abrirHoja(); } },
+    hist:  function(){ cerrarWins(true); cerrarHoja(); verTab("hist"); },
+    mes:   function(){ cerrarWins(true); cerrarHoja(); verTab("mes"); }
+  };
+  if (p.abre && acc[p.abre]) acc[p.abre]();
 }
 function pintarTour(){
   var pasos = pasosTour(), p = pasos[tourPaso];
   if (!p) return cerrarTour();
+  prepararPaso(p);
   var ultimo = tourPaso === pasos.length-1, primero = tourPaso === 0;
 
   var pie;
@@ -2575,6 +2609,7 @@ function pintarTour(){
     + '<div class="tour-pie"><div class="tour-dots">' + dots + '</div>' + pie + '</div>';
 
   ubicarTour(p);
+  if (p.abre) setTimeout(function(){ if (tourPaso >= 0) ubicarTour(p); }, 330);
 }
 function ubicarTour(p){
   var hueco = $("tourHueco"), card = $("tourCard");
