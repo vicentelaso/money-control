@@ -496,7 +496,7 @@ body.conf-abierta .backdrop{opacity:1;pointer-events:auto;z-index:80}
   transition:left .3s cubic-bezier(.2,.8,.3,1),top .3s cubic-bezier(.2,.8,.3,1),width .3s,height .3s;
 }
 .tour-card{
-  position:fixed;width:min(370px,calc(100vw - 28px));
+  position:fixed;width:min(370px,calc(100vw - 28px));max-height:74vh;overflow-y:auto;
   background:linear-gradient(180deg,var(--card-2),var(--card));
   border:1px solid rgba(227,187,102,.28);
   border-radius:var(--r-lg);padding:24px 22px 20px;box-shadow:var(--sh-3);
@@ -1422,6 +1422,7 @@ function guardarCache(ya){
   guardarPend = setTimeout(function(){ guardarPend = null; escribir(); }, 120);
 }
 function escribir(){
+  if (demo) return;                 /* el tutorial no toca tus datos ni la nube */
   try{ localStorage.setItem(claveLS(), JSON.stringify(estado)); }catch(e){}
   programarSubida();
 }
@@ -2507,6 +2508,58 @@ $("catNuevaWin").addEventListener("keydown", function(e){
    real de la pantalla con un recorte y una tarjeta al lado.
    ============================================================ */
 var tourPaso = -1;
+var demo = false, estadoReal = null;
+
+/* datos inventados para el recorrido */
+function datosDemo(){
+  var hoy = hoyISO(), d = +hoy.slice(8,10), m = claveMes(hoy);
+  var pv = mesVecino(m,-1), pv2 = mesVecino(m,-2);
+  function dd(mes, n){ return mes + "-" + ("0" + Math.max(1, Math.min(31, n))).slice(-2); }
+  function hoyMenos(n){ return dd(m, Math.max(1, d - n)); }
+  var meses = {};
+  meses[m] = [
+    {id:"d1", monto:320000, cat:"Arriendo",     nota:"Depto",           fecha:dd(m,1)},
+    {id:"d2", monto:42300,  cat:"Supermercado", nota:"Jumbo quincena",  fecha:hoyMenos(5)},
+    {id:"d3", monto:28000,  cat:"Carrete",      nota:"Previa del finde",fecha:hoyMenos(3)},
+    {id:"d4", monto:4500,   cat:"Uber",         nota:"Al centro",       fecha:hoyMenos(2)},
+    {id:"d5", monto:8900,   cat:"Comida",       nota:"Almuerzo campus", fecha:hoyMenos(1)},
+    {id:"d6", monto:6200,   cat:"Comida",       nota:"Café",            fecha:dd(m,d)}
+  ];
+  meses[pv] = [
+    {id:"e1", monto:320000, cat:"Arriendo",     nota:"", fecha:dd(pv,1)},
+    {id:"e2", monto:76400,  cat:"Comida",       nota:"", fecha:dd(pv,12)},
+    {id:"e3", monto:54000,  cat:"Carrete",      nota:"", fecha:dd(pv,20)},
+    {id:"e4", monto:88000,  cat:"Supermercado", nota:"", fecha:dd(pv,24)}
+  ];
+  meses[pv2] = [
+    {id:"f1", monto:300000, cat:"Arriendo", nota:"", fecha:dd(pv2,1)},
+    {id:"f2", monto:69000,  cat:"Comida",   nota:"", fecha:dd(pv2,9)},
+    {id:"f3", monto:23000,  cat:"Uber",     nota:"", fecha:dd(pv2,18)}
+  ];
+  return {
+    cats:["Arriendo","Comida","Supermercado","Uber","Carrete"],
+    colores:{}, iconos:{arriendo:"casa", comida:"comida", supermercado:"super", uber:"auto", carrete:"fiesta"},
+    presupuestos:{carrete:30000, comida:80000},
+    notif:false, resumen:false, horaResumen:"09:00", pendientes:[], ultimoResumen:"",
+    primerMesCompleto:false, tutorial:true, ts:0, meses:meses
+  };
+}
+function entrarDemo(){
+  if (demo) return;
+  estadoReal = estado; demo = true;
+  estado = datosDemo();
+  mesActual = claveMes(hoyISO());
+  movOculto = false; movMenu = null;
+  movFiltro = { tipo:"todos", cat:"", desde:"", hasta:"" };
+  catSel = ""; editandoId = null; alertasAbierto = true;
+  limpiarForm(); pintar();
+}
+function salirDemo(){
+  if (!demo) return;
+  estado = estadoReal; estadoReal = null; demo = false;
+  catSel = ""; editandoId = null; edCat = null; alertasAbierto = false;
+  limpiarForm(); pintar();
+}
 
 function pasosTour(){
   var m = esMovil();
@@ -2516,57 +2569,69 @@ function pasosTour(){
     }).join("") + '</div>';
   };
   return [
-    { centro:true, abre:"mes", t:"Money Control",
-      d: ilu(["comida","auto","casa","fiesta"]) + "Anotas lo que gastas y la app ordena, compara y avisa.<br><br>Te muestro las tres pantallas por dentro." },
+    { centro:true, abre:"mes", t:"Vamos a recorrerla",
+      d: ilu(["comida","casa","fiesta","auto"]) +
+         "Llené la app con <b>gastos de ejemplo</b> para mostrarte cómo funciona.<br><br>"
+       + "Nada de esto se guarda: al terminar vuelven tus datos de verdad." },
 
-    { abre:"presu", sel:"#presuLista", t:"1 · Categorías",
-      d:"Esta es la lista. Cada una con su logo y su tope." },
+    { abre:"mes", sel:"#btnPresu", t:"Toca acá",
+      d:"El botón dorado abre tus <b>categorías</b>. Empecemos por ahí." },
+    { abre:"presu", sel:"#presuLista", t:"Tus categorías",
+      d:"Estas son las de ejemplo: Arriendo, Comida, Supermercado, Uber y Carrete.<br><br>Cada una con su logo y su tope." },
     { abre:"presu", sel:"#catNueva", t:"Crear una",
-      d:'Acá abajo. Escribes <b>Comida</b> y la app le pone sola el logo del plato.' },
-    { abre:"presu", sel:"#presuLista", t:"Editarla",
-      d:"Tocas la categoría y cambias nombre, logo y tope en una sola pantalla." },
-    { abre:"presu", sel:"#presuLista", t:"El tope",
-      d:'Si a <b>Carrete</b> le pones <b>$30.000</b>, te avisa al llegar a $25.000 y otra vez si te pasas.' },
+      d:'Acá creas una nueva. Si escribes <b>Bencina</b>, la app le pone sola el logo del surtidor.' },
+    { abre:"presu", sel:'[data-cat="Carrete"]', t:"Toca para editar",
+      d:"Tocando una categoría entras a editarla. Vamos a abrir <b>Carrete</b>." },
+    { editar:"Carrete", sel:"#edNombre", t:"El nombre",
+      d:"Acá lo cambias. Si lo renombras, se actualizan todos los gastos anteriores." },
+    { editar:"Carrete", sel:"#edPresu", t:"El tope mensual",
+      d:'Carrete tiene <b>$30.000</b>. Al llegar a $25.000 te avisa, y otra vez si te pasas.' },
+    { editar:"Carrete", sel:"#edCambiarLogo", t:"El logo",
+      d:"Acá eliges entre 87 logos, con buscador. O dejas la inicial." },
 
-    { abre:"hoja", sel:"#monto", t:"2 · Anotar un gasto",
-      d:'Escribes <b>8900</b> y se formatea solo: <b>$8.900</b>.' },
-    { abre:"hoja", sel:"#catBtn", t:"La categoría",
-      d:"Obligatoria. Se elige de la lista, o creas una nueva ahí mismo." },
-    { abre:"hoja", sel:"#nota", t:"Detalle y fecha",
-      d:'Opcionales. Por ejemplo <b>Almuerzo campus</b>. La fecha viene en hoy.' },
-    { abre:"hoja", sel:"#guardar", t:"Guardar",
-      d:"Listo. Se suma al mes y aparece en los movimientos." },
+    { abre:"mes", sel: m ? "#fab" : "#hoja", t:"Anotar un gasto",
+      d:(m ? "El <b>+</b> abre el formulario." : "Acá está el formulario.") },
+    { abre:"hoja", form:{monto:"8900"}, sel:"#monto", t:"El monto",
+      d:'Escribes <b>8900</b> y queda <b>$8.900</b>. Se formatea solo.' },
+    { abre:"hoja", form:{monto:"8900", cat:"Comida"}, sel:"#catBtn", t:"La categoría",
+      d:"Obligatoria. Se elige de la lista o creas una nueva ahí mismo." },
+    { abre:"hoja", form:{monto:"8900", cat:"Comida", nota:"Almuerzo campus"}, sel:"#nota", t:"Detalle y fecha",
+      d:'Opcionales. <b>Almuerzo campus</b>, por ejemplo. La fecha viene en hoy.' },
+    { abre:"hoja", form:{monto:"8900", cat:"Comida", nota:"Almuerzo campus"}, sel:"#guardar", t:"Guardar",
+      d:"Y listo. Se suma al mes y aparece en los movimientos." },
 
-    { abre:"mes", sel:"#movs", t:"Corregir",
-      d:"Toca un gasto para editarlo. El tarro lo elimina. Siempre queda <b>Deshacer</b>." },
-
-    { abre:"cal", sel:"#calGrid", t:"3 · Calendario",
-      d:"Los días en azul tienen gastos. Toca uno y ves qué fue ese día." },
-
-    { abre:"mes", sel:"#total", t:"4 · Este mes",
-      d:'El total, y si subiste o bajaste contra el <b>mismo día</b> del mes pasado.' },
-    { abre:"mes", sel:"#minis", t:"Ritmo y proyección",
-      d:'Si llevas <b>$180.000</b> en 2 días, acá ves en cuánto terminarías el mes.' },
-    { abre:"mes", sel:"#rank", t:"Desglose",
-      d:"En qué se fue, de mayor a menor, con su porcentaje." },
+    { abre:"mes", sel:"#movs", t:"Los movimientos",
+      d:"Agrupados por día. <b>Toca uno</b> para editarlo; el tarro lo elimina.<br><br>Siempre aparece <b>Deshacer</b>." },
     { abre:"mes", sel:"#movFiltrar", t:"Filtrar y ocultar",
       d:"Por categoría o por rango de fechas. Y la lista se esconde si estorba." },
+    { abre:"mes", sel:"#total", t:"El total del mes",
+      d:'Abajo dice cuánto subiste o bajaste contra el <b>mismo día</b> del mes pasado, no contra su total.' },
+    { abre:"mes", sel:"#minis", t:"Ritmo y proyección",
+      d:"Cuánto llevas por día y en cuánto terminarías el mes a ese paso." },
+    { abre:"mes", sel:"#rank", t:"El desglose",
+      d:"En qué se fue, de mayor a menor, con su porcentaje." },
+    { abre:"mes", sel:"#avisos", t:"Las alertas",
+      d:'Carrete va en $28.000 de $30.000, así que aparece la alerta amarilla.' },
 
-    { abre:"hist", sel:"#kpis", t:"5 · Histórico",
-      d:"Acumulado, promedio de meses completos y mes más caro." },
+    { abre:"cal", sel:"#calGrid", t:"El calendario",
+      d:"Los días en azul tienen gastos. <b>Toca uno</b> y ves qué compraste ese día." },
+
+    { abre:"hist", sel:"#kpis", t:"El histórico",
+      d:"Tu acumulado, el promedio de los meses completos y el mes más caro." },
     { abre:"hist", sel:"#bars", t:"Tus meses",
-      d:"Cada barra es un mes. Toca una y saltas a ese mes." },
+      d:"Cada barra es un mes, con tu promedio punteado. Toca una y saltas a ese mes." },
 
-    { abre:"cfg", centro:true, t:"6 · Ajustes",
-      d:"Notificaciones, respaldo, tu cuenta y este tutorial." },
+    { abre:"cfg", centro:true, t:"Ajustes",
+      d:"Notificaciones, respaldo, tu cuenta y este tutorial para repetirlo." },
 
-    { centro:true, abre:"mes", t:"Listo",
-      d: ilu(["estrella"]) + "Anota en el momento, no al final del día.<br><br>Empieza creando tus categorías." }
+    { centro:true, abre:"mes", t:"Eso es todo",
+      d: ilu(["estrella"]) + "Vuelven tus datos reales.<br><br>Empieza creando tus categorías y anotando lo de hoy." }
   ];
 }
 
 function iniciarTour(){
   cerrarWins(true); cerrarHoja(); cerrarTooltipCal();
+  entrarDemo();
   verTab("mes");
   tourPaso = 0;
   $("tour").hidden = false;
@@ -2576,10 +2641,25 @@ function cerrarTooltipCal(){}
 function cerrarTour(){
   $("tour").hidden = true;
   cerrarWins(true); cerrarHoja();
+  edCat = null; $("catEditor").hidden = true; $("catVista").hidden = false;
+  salirDemo();
   tourPaso = -1;
   if (!estado.tutorial){ estado.tutorial = true; guardarCache(true); }
 }
 function prepararPaso(p){
+  if (p.editar){
+    abrirWinReal("winPresu");
+    if (edCat !== p.editar) abrirEditor(p.editar);
+    return;
+  }
+  if (p.form){
+    cerrarWins(true);
+    if (!document.body.classList.contains("hoja-abierta")) { limpiarForm(); abrirHoja(); }
+    $("monto").value = p.form.monto ? nf.format(+p.form.monto) : "";
+    $("nota").value = p.form.nota || "";
+    if (p.form.cat){ catSel = p.form.cat; pintarCatVal(); }
+    return;
+  }
   var acc = {
     presu: function(){ abrirWinReal("winPresu"); },
     cal:   function(){ abrirWinReal("winCal"); },
@@ -2609,7 +2689,7 @@ function pintarTour(){
     + '<div class="tour-pie"><div class="tour-dots">' + dots + '</div>' + pie + '</div>';
 
   ubicarTour(p);
-  if (p.abre) setTimeout(function(){ if (tourPaso >= 0) ubicarTour(p); }, 330);
+  setTimeout(function(){ if (tourPaso >= 0) ubicarTour(p); }, p.abre || p.editar || p.form ? 330 : 60);
 }
 function ubicarTour(p){
   var hueco = $("tourHueco"), card = $("tourCard");
@@ -2619,8 +2699,7 @@ function ubicarTour(p){
     card.classList.add("centro");
     return;
   }
-  if (["#hoja","#movs","#rank","#movFiltrar","#total","#minis"].indexOf(p.sel) >= 0)
-    el.scrollIntoView({block:"center", behavior:"auto"});
+  el.scrollIntoView({block:"center", behavior:"auto"});   /* el objetivo siempre a la vista */
   var r = el.getBoundingClientRect(), pad = 8;
   hueco.style.display = "block";
   hueco.style.left = (r.left-pad)+"px"; hueco.style.top = (r.top-pad)+"px";
@@ -2632,7 +2711,7 @@ function ubicarTour(p){
   var vw = window.innerWidth, vh = window.innerHeight;
   var top = r.bottom + 14;
   if (top + ch > vh - 12) top = r.top - ch - 14;
-  if (top < 12) top = Math.max(12, (vh - ch)/2);
+  top = Math.max(12, Math.min(top, vh - ch - 12));   /* la tarjeta nunca se sale */
   var left = r.left + r.width/2 - cw/2;
   left = Math.max(12, Math.min(left, vw - cw - 12));
   card.style.top = top + "px"; card.style.left = left + "px";
