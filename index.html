@@ -519,18 +519,43 @@ body.conf-abierta .backdrop{opacity:1;pointer-events:auto;z-index:80}
 .tour-ilu .chip{--s:46px}
 
 /* presupuesto del mes */
-.pm-fila{display:flex;align-items:flex-end;gap:18px;flex-wrap:wrap}
-.pm-num .k{font-size:12.5px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--faint);margin-bottom:6px}
-.pm-num .v{font-family:"Fraunces",Georgia,serif;font-size:30px;letter-spacing:-.02em;color:var(--ink)}
-.pm-num.chico .v{font-size:19px;color:var(--muted)}
-.pm-num.rojo .v{color:var(--danger)}
-.pm-barra{height:12px;border-radius:99px;background:var(--line-soft);overflow:hidden;margin:18px 0 10px;position:relative}
-.pm-barra div{height:100%;border-radius:99px;transition:width .45s cubic-bezier(.2,.8,.3,1)}
-.pm-barra .marca{position:absolute;top:-3px;bottom:-3px;width:2px;background:var(--faint);border-radius:2px;transition:none}
-.pm-sub{font-size:14.5px;color:var(--muted);line-height:1.5}
-.pm-sub b{color:var(--ink);font-weight:600}
-.pm-ok b{color:var(--ok)}
-.pm-mal b{color:var(--danger)}
+.pm-cab{display:flex;align-items:flex-start;justify-content:space-between;gap:16px}
+.pm-k{font-size:12.5px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--faint);margin-bottom:7px}
+.pm-grande{font-family:"Fraunces",Georgia,serif;font-size:clamp(32px,9vw,42px);line-height:1;letter-spacing:-.025em;color:var(--ink)}
+.pm-cab.rojo .pm-grande{color:var(--danger)}
+.pm-tope{text-align:right;flex:none}
+.pm-tope .v{font-family:"Fraunces",Georgia,serif;font-size:20px;color:var(--muted);letter-spacing:-.01em}
+.pm-tope .linkbtn{padding:2px 0;font-size:13px;color:var(--gold)}
+.pm-barra{height:14px;border-radius:99px;background:var(--line-soft);overflow:hidden;margin:20px 0 6px}
+.pm-barra div{height:100%;border-radius:99px;transition:width .45s cubic-bezier(.2,.8,.3,1),background .3s}
+.pm-pct{display:flex;justify-content:space-between;font-size:12.5px;color:var(--faint);font-weight:600;margin-bottom:18px}
+.pm-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.pm-caja{background:var(--bg-2);border:1px solid var(--line);border-radius:14px;padding:14px 15px}
+.pm-caja .k{font-size:11.5px;font-weight:700;letter-spacing:.07em;text-transform:uppercase;color:var(--faint);margin-bottom:6px}
+.pm-caja .v{font-family:"Fraunces",Georgia,serif;font-size:21px;letter-spacing:-.01em;color:var(--ink)}
+.pm-caja .v small{display:block;font-family:"Inter Tight",sans-serif;font-size:12px;color:var(--muted);margin-top:5px;letter-spacing:0}
+.pm-caja.ok{border-color:rgba(95,199,154,.4)}
+.pm-caja.ok .v{color:var(--ok)}
+.pm-caja.mal{border-color:rgba(240,121,143,.4)}
+.pm-caja.mal .v{color:var(--danger)}
+.pm-aviso{display:flex;align-items:flex-start;gap:12px;margin-top:14px;padding:14px 16px;border-radius:var(--r-md);
+  border:1px solid rgba(240,121,143,.38);background:linear-gradient(180deg,var(--danger-soft),transparent);font-size:14.5px;line-height:1.5}
+.pm-aviso svg{width:19px;height:19px;flex:none;margin-top:1px;fill:none;stroke:var(--danger);stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+.pm-aviso b{color:var(--danger);font-weight:700}
+.pm-edit{display:grid;gap:10px;margin-top:16px}
+.pm-vacio{font-size:14.5px;color:var(--muted);line-height:1.55}
+
+/* meses dentro del presupuesto */
+.cum-top{display:flex;align-items:baseline;gap:14px;flex-wrap:wrap;margin-bottom:16px}
+.cum-pct{font-family:"Fraunces",Georgia,serif;font-size:44px;line-height:1;letter-spacing:-.03em;color:var(--ok)}
+.cum-pct.bajo{color:var(--danger)}
+.cum-de{font-size:14.5px;color:var(--muted)}
+.cum-meses{display:flex;gap:8px;flex-wrap:wrap}
+.cum-mes{display:flex;flex-direction:column;align-items:center;gap:6px;min-width:46px}
+.cum-mes .p{width:100%;height:7px;border-radius:99px;background:var(--ok)}
+.cum-mes.mal .p{background:var(--danger)}
+.cum-mes.sin .p{background:var(--line)}
+.cum-mes span{font-size:11.5px;color:var(--faint);font-weight:600;text-transform:capitalize}
 
 /* presupuesto mensual en Categorías */
 .presu-mes{background:var(--bg-2);border:1px solid var(--line);border-radius:var(--r-md);padding:16px 18px;margin-bottom:20px}
@@ -844,14 +869,16 @@ body.acceso-on #winInstalar{z-index:100}
           <ul class="rank" id="rank"></ul>
         </div>
 
-        <div class="card" id="cardPresu" hidden>
+        <div class="card" id="cardPresu">
           <h2>Presupuesto del mes</h2>
-          <div class="pm-fila">
-            <div class="pm-num" id="pmQueda"><div class="k">Te queda</div><div class="v">$0</div></div>
-            <div class="pm-num chico"><div class="k">De</div><div class="v" id="pmTope">$0</div></div>
+          <div id="pmCuerpo"></div>
+          <div class="pm-edit" id="pmEdit" hidden>
+            <input class="inp" id="pmTopeInp" type="text" inputmode="numeric" placeholder="Sin tope" aria-label="Tope de este mes">
+            <div class="btnrow">
+              <button class="btn2" id="pmGuardar" style="background:linear-gradient(150deg,var(--gold),var(--gold-2));color:#191203;border-color:transparent">Guardar</button>
+              <button class="btn2" id="pmCancelar">Cancelar</button>
+            </div>
           </div>
-          <div class="pm-barra"><div id="pmBarra" style="width:0%"></div><div class="marca" id="pmMarca" hidden></div></div>
-          <div class="pm-sub" id="pmSub"></div>
         </div>
       </div>
 
@@ -887,6 +914,12 @@ body.acceso-on #winInstalar{z-index:100}
       <h2 id="tituloBarras">Últimos 12 meses</h2>
       <div class="bars" id="bars"></div>
     </div>
+    <div class="card" id="cardCumple" style="margin-top:16px" hidden>
+      <h2>Meses dentro del presupuesto</h2>
+      <div class="cum-top"><span class="cum-pct" id="cumPct">—</span><span class="cum-de" id="cumDe"></span></div>
+      <div class="cum-meses" id="cumMeses"></div>
+    </div>
+
     <div class="card" style="margin-top:16px">
       <h2>Acumulado por categoría</h2>
       <ul class="rank" id="rankHist"></ul>
@@ -1607,7 +1640,7 @@ var lento = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
    Estado y persistencia
    ============================================================ */
 function estadoVacio(){
-  return { cats:[], meses:{}, colores:{}, iconos:{}, presupuestos:{}, presupuestoMes:0,
+  return { cats:[], meses:{}, colores:{}, iconos:{}, presupuestos:{}, presupuestoMes:0, topes:{},
            recurrentes:[], recOmitidos:[], avisoMes:{}, primerMesCompleto:false, tutorial:false,
            notif:false, resumen:false, horaResumen:"09:00",
            pendientes:[], ultimoResumen:"", ts:0 };
@@ -2026,54 +2059,113 @@ function sorpresas(cat, mes, alerta){
   }
 }
 
+/* El tope vive por mes: el actual sigue al de Categorías y los pasados quedan
+   congelados con el que tenían, aunque después cambies el global. */
+function topeDe(mes){
+  if (estado.topes && estado.topes[mes] !== undefined) return +estado.topes[mes] || 0;
+  return mes >= claveMes(hoyISO()) ? (+estado.presupuestoMes || 0) : 0;
+}
+function congelarTopes(){
+  if (demo) return;
+  estado.topes = estado.topes || {};
+  var hoyM = claveMes(hoyISO()), cambio = false;
+  mesesConDatos().forEach(function(m){
+    if (m < hoyM && estado.topes[m] === undefined){
+      estado.topes[m] = +estado.presupuestoMes || 0; cambio = true;
+    }
+  });
+  if (cambio) guardarCache();
+}
+
 /* cuánto queda del tope del mes y en qué terminarías al ritmo actual */
 function pintarPresuMes(total, enCurso, diaHoy){
-  var tope = +estado.presupuestoMes || 0;
-  if (!tope){ $("cardPresu").hidden = true; return; }
+  var tope = topeDe(mesActual);
+  var pasado = mesActual < claveMes(hoyISO());
   $("cardPresu").hidden = false;
+  $("pmEdit").hidden = true;
+
+  if (!tope){
+    $("pmCuerpo").innerHTML = '<div class="pm-vacio">Este mes no tiene tope.'
+      + (pasado ? " Puedes ponerle uno para contarlo en tus estadísticas."
+                : " Se pone en <b>Categorías</b>, con el botón dorado de arriba.") + '</div>'
+      + (pasado ? '<div class="btnrow" style="margin-top:14px"><button class="btn2" id="pmPoner">Poner un tope a '
+          + esc(nombreMes(mesActual).split(" ")[0]) + '</button></div>' : "");
+    if ($("pmPoner")) $("pmPoner").addEventListener("click", abrirEdicionTope);
+    return;
+  }
 
   var queda = tope - total, usado = total / tope * 100;
-  $("pmQueda").className = "pm-num" + (queda < 0 ? " rojo" : "");
-  $("pmQueda").querySelector(".k").textContent = queda < 0 ? "Te pasaste por" : "Te queda";
-  $("pmQueda").querySelector(".v").textContent = plata(Math.abs(queda));
-  $("pmTope").textContent = plata(tope);
-  $("pmBarra").style.width = Math.min(usado, 100) + "%";
-  $("pmBarra").style.background = queda < 0 ? "var(--danger)"
-    : (usado >= 80 ? "linear-gradient(90deg,#C39540,#F0A93C)" : "var(--barra)");
+  var color = usado >= 100 ? "var(--danger)"
+            : usado >= 75  ? "linear-gradient(90deg,#C9475F,#F0798F)"
+                           : "var(--barra)";
+  var html =
+      '<div class="pm-cab' + (queda < 0 ? " rojo" : "") + '">'
+    +   '<div><div class="pm-k">' + (queda < 0 ? "Te pasaste por" : "Te queda") + '</div>'
+    +     '<div class="pm-grande">' + plata(Math.abs(queda)) + '</div></div>'
+    +   '<div class="pm-tope"><div class="pm-k">Tope</div><div class="v">' + plata(tope) + '</div>'
+    +     (pasado ? '<button class="linkbtn" id="pmEditar">Cambiar</button>' : "") + '</div>'
+    + '</div>'
+    + '<div class="pm-barra"><div style="width:' + Math.min(usado,100) + '%;background:' + color + '"></div></div>'
+    + '<div class="pm-pct"><span>' + plata(total) + ' gastados</span><span>' + Math.round(usado) + '%</span></div>';
 
-  var dias = diasDelMes(mesActual);
-  var sub = "Llevas <b>" + plata(total) + "</b> gastados, el " + Math.round(usado) + "% del tope.";
+  var dias = diasDelMes(mesActual), faltan = Math.max(0, dias - diaHoy);
+  var pr = enCurso ? proyeccionMes(total, diaHoy) : null;
 
-  if (enCurso && diaHoy){
-    /* la marca gris muestra dónde deberías ir hoy para llegar justo a fin de mes */
-    var ideal = diaHoy / dias * 100;
-    $("pmMarca").hidden = false;
-    $("pmMarca").style.left = "calc(" + Math.min(ideal, 100) + "% - 1px)";
-    var pr = proyeccionMes(total, diaHoy);
-    var faltan = dias - diaHoy;
-    sub = "Quedan <b>" + faltan + (faltan === 1 ? " día</b> del mes. " : " días</b> del mes. ");
-    if (queda > 0 && faltan > 0)
-      sub += "Puedes gastar <b>" + plata(queda / faltan) + " por día</b> sin pasarte.";
-    else if (queda > 0) sub += "Vas a terminar dentro del tope.";
-    else sub += "Ya estás por sobre el tope.";
-    if (pr){
-      var dif = pr.valor - tope;
-      sub += '<br><span class="' + (dif > 0 ? "pm-mal" : "pm-ok") + '">A este paso terminarías en <b>'
-        + plata(pr.valor) + "</b>, " + (dif > 0 ? "<b>" + plata(dif) + "</b> sobre el tope"
-                                               : "<b>" + plata(-dif) + "</b> bajo el tope") + ".</span>";
-    }
+  html += '<div class="pm-grid">';
+  if (enCurso && queda > 0 && faltan > 0){
+    html += '<div class="pm-caja"><div class="k">Puedes gastar</div><div class="v">' + plata(queda/faltan)
+         +  ' <small>por día, quedan ' + faltan + (faltan===1?" día":" días") + '</small></div></div>';
+  } else if (enCurso){
+    html += '<div class="pm-caja mal"><div class="k">Disponible</div><div class="v">$0'
+         +  ' <small>' + (faltan ? "quedan " + faltan + (faltan===1?" día":" días") : "último día") + '</small></div></div>';
   } else {
-    $("pmMarca").hidden = true;
-    if (queda >= 0) sub += ' <span class="pm-ok"><b>Cerraste dentro del tope.</b></span>';
-    else sub += ' <span class="pm-mal"><b>Cerraste sobre el tope.</b></span>';
+    html += '<div class="pm-caja ' + (queda >= 0 ? "ok" : "mal") + '"><div class="k">Cierre del mes</div><div class="v">'
+         +  (queda >= 0 ? "Dentro" : "Excedido") + ' <small>' + plata(total) + ' de ' + plata(tope) + '</small></div></div>';
   }
-  $("pmSub").innerHTML = sub;
+  if (pr){
+    var dif = pr.valor - tope;
+    html += '<div class="pm-caja ' + (dif > 0 ? "mal" : "ok") + '"><div class="k">Terminarías en</div><div class="v">'
+         +  plata(pr.valor) + ' <small>' + (dif > 0 ? plata(dif) + " sobre el tope" : plata(-dif) + " bajo el tope")
+         +  '</small></div></div>';
+  } else {
+    html += '<div class="pm-caja"><div class="k">Gastado</div><div class="v">' + plata(total)
+         +  ' <small>' + Math.round(usado) + '% del tope</small></div></div>';
+  }
+  html += '</div>';
+
+  if (queda < 0){
+    html += '<div class="pm-aviso"><svg viewBox="0 0 24 24"><path d="M12 8.5v5M12 17h.01M10.3 3.9L2.6 17.2A2 2 0 004.3 20h15.4a2 2 0 001.7-2.8L13.7 3.9a2 2 0 00-3.4 0z"/></svg>'
+         +  '<div>Te pasaste del presupuesto por <b>' + plata(-queda) + '</b>.'
+         +  (enCurso && faltan ? " Y todavía quedan " + faltan + (faltan===1?" día":" días") + " de mes." : "") + '</div></div>';
+  }
+  $("pmCuerpo").innerHTML = html;
+  if ($("pmEditar")) $("pmEditar").addEventListener("click", abrirEdicionTope);
 }
+
+function abrirEdicionTope(){
+  var t = topeDe(mesActual);
+  $("pmTopeInp").value = t ? nf.format(t) : "";
+  $("pmEdit").hidden = false;
+  $("pmTopeInp").focus();
+}
+$("pmTopeInp").addEventListener("input", function(){
+  var d = soloDigitos(this.value); this.value = d ? nf.format(parseInt(d,10)) : "";
+});
+$("pmCancelar").addEventListener("click", function(){ $("pmEdit").hidden = true; });
+$("pmGuardar").addEventListener("click", function(){
+  estado.topes = estado.topes || {};
+  var v = parseInt(soloDigitos($("pmTopeInp").value) || "0", 10);
+  estado.topes[mesActual] = v;
+  guardarCache(true);
+  $("pmEdit").hidden = true;
+  pintar();
+  avisar("Tope de " + nombreMes(mesActual).split(" ")[0] + " actualizado");
+});
 
 /* aviso al cruzar el 80% del tope del mes */
 function avisarTopeMes(mes){
   if (demo || !estado.notif) return;
-  var tope = +estado.presupuestoMes || 0; if (!tope) return;
+  var tope = topeDe(mes); if (!tope) return;
   estado.avisoMes = estado.avisoMes || {};
   var t = totalDe(mes);
   if (t >= tope * 0.8 && !estado.avisoMes[mes]){
@@ -2083,6 +2175,23 @@ function avisarTopeMes(mes){
       : "Vas en el " + Math.round(t/tope*100) + "% de tu presupuesto del mes: " + plata(t) + " de " + plata(tope),
       "topemes");
   }
+}
+
+/* qué porcentaje de los meses completos cerró dentro de su tope */
+function pintarCumplimiento(){
+  var meses = mesesCompletos().filter(function(m){ return topeDe(m) > 0; });
+  if (!meses.length){ $("cardCumple").hidden = true; return; }
+  $("cardCumple").hidden = false;
+  var ok = meses.filter(function(m){ return totalDe(m) <= topeDe(m); });
+  var pct = Math.round(ok.length / meses.length * 100);
+  $("cumPct").textContent = pct + "%";
+  $("cumPct").className = "cum-pct" + (pct < 50 ? " bajo" : "");
+  $("cumDe").textContent = ok.length + " de " + meses.length + (meses.length===1 ? " mes completo" : " meses completos");
+  $("cumMeses").innerHTML = meses.slice(-12).map(function(m){
+    var dentro = totalDe(m) <= topeDe(m);
+    return '<div class="cum-mes' + (dentro ? "" : " mal") + '" title="' + nombreMes(m) + ": " + plata(totalDe(m))
+      + " de " + plata(topeDe(m)) + '"><span class="p"></span><span>' + mesCorto(m) + '</span></div>';
+  }).join("");
 }
 
 /* ---- pagos recurrentes ---- */
@@ -2317,6 +2426,8 @@ function pintarHistorico(){
       cont.appendChild(linea);
     }
   }
+
+  pintarCumplimiento();
 
   var todos = [];
   lista.forEach(function(k){ todos = todos.concat(estado.meses[k]); });
@@ -2946,15 +3057,16 @@ function datosDemo(){
   ];
   var recId = "demo1";
   meses[m] = meses[m].map(function(g){ return g.id === "d1" ? Object.assign({}, g, {id:"rec_"+recId+"_"+m, rec:recId}) : g; });
+  var topes = {}; topes[pv] = 500000; topes[pv2] = 420000;
   return {
-    presupuestoMes: 520000,
+    presupuestoMes: 520000, topes: topes,
     recurrentes: [{id:recId, cat:"Arriendo", monto:320000, dia:1, nota:"Depto"}],
     recOmitidos: [], avisoMes: {},
     cats:["Arriendo","Comida","Supermercado","Uber","Carrete"],
     colores:{}, iconos:{arriendo:"casa", comida:"comida", supermercado:"super", uber:"auto", carrete:"fiesta"},
     presupuestos:{carrete:30000, comida:80000},
     notif:false, resumen:false, horaResumen:"09:00", pendientes:[], ultimoResumen:"",
-    primerMesCompleto:false, tutorial:true, ts:0, meses:meses
+    primerMesCompleto:true, tutorial:true, ts:0, meses:meses
   };
 }
 function entrarDemo(){
@@ -3004,7 +3116,7 @@ function pasosTour(){
     { editar:"Carrete", sel:"#edRecurrentes", t:"Pagos recurrentes",
       d:'Lo que pagas todos los meses se anota solo. El arriendo del ejemplo entra cada día 1 sin que hagas nada.<br><br>Desde acá los creas, editas o eliminas.' },
     { editar:"Carrete", sel:"#edCambiarLogo", t:"El logo",
-      d:"Acá eliges entre 87 logos, con buscador. O dejas la inicial." },
+      d:"Acá eliges entre <b>144 logos</b>. El buscador entiende por tema: escribe <b>carrete</b> y salen todos los relacionados.<br><br>O dejas la inicial." },
 
     { abre:"mes", sel: m ? "#fab" : "#hoja", t:"Anotar un gasto",
       d:(m ? "El <b>+</b> abre el formulario." : "Acá está el formulario.") },
@@ -3028,7 +3140,7 @@ function pasosTour(){
     { abre:"mes", sel:"#rank", t:"El desglose",
       d:"En qué se fue, de mayor a menor, con su porcentaje." },
     { abre:"mes", sel:"#cardPresu", t:"Tu presupuesto",
-      d:"Cuánto te queda del tope, cuánto puedes gastar por día sin pasarte, y en cuánto terminarías al ritmo que llevas.<br><br>La marca gris de la barra es dónde deberías ir hoy." },
+      d:"Cuánto te queda del tope, cuánto puedes gastar por día sin pasarte y en cuánto terminarías al ritmo que llevas.<br><br>La barra se pone roja al pasar el <b>75%</b>." },
     { abre:"mes", sel:"#avisos", t:"Las alertas",
       d:'Carrete va en $28.000 de $30.000, así que aparece la alerta amarilla.' },
 
@@ -3039,6 +3151,8 @@ function pasosTour(){
       d:"Tu acumulado, el promedio de los meses completos y el mes más caro." },
     { abre:"hist", sel:"#bars", t:"Tus meses",
       d:"Cada barra es un mes, con tu promedio punteado. Toca una y saltas a ese mes." },
+    { abre:"hist", sel:"#cardCumple", t:"Meses cumplidos",
+      d:"Cuántos meses cerraste dentro de tu tope. Cada mes se compara contra <b>el tope que tenía</b>, no contra el de hoy.<br><br>Las barritas verdes son los que cumpliste." },
 
     { abre:"cfg", centro:true, t:"Ajustes",
       d:"Notificaciones, respaldo, tu cuenta y este tutorial para repetirlo." },
@@ -3279,7 +3393,7 @@ function respaldoJSON(){
     app:"money-control", version:2, fecha:new Date().toISOString(),
     cats:estado.cats, colores:estado.colores, iconos:estado.iconos, presupuestos:estado.presupuestos,
     primerMesCompleto:estado.primerMesCompleto, tutorial:estado.tutorial,
-    presupuestoMes:estado.presupuestoMes, recurrentes:estado.recurrentes, recOmitidos:estado.recOmitidos,
+    presupuestoMes:estado.presupuestoMes, topes:estado.topes, recurrentes:estado.recurrentes, recOmitidos:estado.recOmitidos,
     notif:estado.notif, resumen:estado.resumen, horaResumen:estado.horaResumen,
     meses:estado.meses
   }, null, 2);
@@ -3339,7 +3453,7 @@ function aplicarReemplazo(d){
     iconos: (d.iconos && typeof d.iconos === "object") ? d.iconos : {},
     presupuestos: (d.presupuestos && typeof d.presupuestos === "object") ? d.presupuestos : {},
     primerMesCompleto: !!d.primerMesCompleto, tutorial: !!d.tutorial,
-    presupuestoMes: +d.presupuestoMes || 0,
+    presupuestoMes: +d.presupuestoMes || 0, topes: (d.topes && typeof d.topes === "object") ? d.topes : {},
     recurrentes: Array.isArray(d.recurrentes) ? d.recurrentes : [],
     recOmitidos: Array.isArray(d.recOmitidos) ? d.recOmitidos : [], avisoMes: {},
     notif: !!d.notif, resumen: !!d.resumen, horaResumen: d.horaResumen || "09:00",
@@ -3419,7 +3533,7 @@ function ponerseAlDia(){
   diaDeHoy = hoy;
   if (!document.body.classList.contains("hoja-abierta") && !editandoId) $("fecha").value = hoy;
   var m = claveMes(hoy);
-  if (m !== mesDeHoy){ mesDeHoy = m; mesActual = m; pintar(); }
+  if (m !== mesDeHoy){ mesDeHoy = m; mesActual = m; congelarTopes(); pintar(); }
 }
 function latido(){
   ponerseAlDia(); revisarPendientes(); revisarResumen();
@@ -3695,7 +3809,7 @@ function arrancarApp(){
   estado = cache ? {
     cats: cache.cats || [], meses: cache.meses || {}, colores: cache.colores || {}, iconos: cache.iconos || {},
     presupuestos: cache.presupuestos || {}, primerMesCompleto: !!cache.primerMesCompleto,
-    presupuestoMes: +cache.presupuestoMes || 0,
+    presupuestoMes: +cache.presupuestoMes || 0, topes: cache.topes || {},
     recurrentes: cache.recurrentes || [], recOmitidos: cache.recOmitidos || [], avisoMes: cache.avisoMes || {},
     tutorial: !!cache.tutorial, notif: !!cache.notif,
     resumen: !!cache.resumen, horaResumen: cache.horaResumen || "09:00",
@@ -3703,6 +3817,7 @@ function arrancarApp(){
     ts: cache.ts || 0
   } : estadoVacio();
   var cambio = normColores();
+  congelarTopes();
   generarRecurrentes();
   limpiarForm();
   pintar();
