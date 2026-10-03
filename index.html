@@ -2019,7 +2019,7 @@ function proyeccionMes(total, diaHoy){
   var prevTot = totalDe(prev), prevHasta = hastaDia(prev, diaHoy);
   if (prevHasta > 0 && prevTot >= prevHasta)
     return { valor: total * (prevTot / prevHasta), base: "según tu " + mesCorto(prev) };
-  if (diaHoy >= 5) return { valor: total / diaHoy * dias, base: "a este ritmo" };
+  if (diaHoy >= 3) return { valor: total / diaHoy * dias, base: "a este ritmo" };
   return null;
 }
 
@@ -2112,24 +2112,29 @@ function pintarPresuMes(total, enCurso, diaHoy){
   var pr = enCurso ? proyeccionMes(total, diaHoy) : null;
 
   html += '<div class="pm-grid">';
-  if (enCurso && queda > 0 && faltan > 0){
-    html += '<div class="pm-caja"><div class="k">Puedes gastar</div><div class="v">' + plata(queda/faltan)
-         +  ' <small>por día, quedan ' + faltan + (faltan===1?" día":" días") + '</small></div></div>';
-  } else if (enCurso){
-    html += '<div class="pm-caja mal"><div class="k">Disponible</div><div class="v">$0'
-         +  ' <small>' + (faltan ? "quedan " + faltan + (faltan===1?" día":" días") : "último día") + '</small></div></div>';
+  if (enCurso){
+    var ritmo = diaHoy ? total / diaHoy : 0;
+    var permitido = (queda > 0 && faltan > 0) ? queda / faltan : 0;
+    html += '<div class="pm-caja"><div class="k">Puedes gastar</div><div class="v">'
+         +  (permitido ? plata(permitido) : "$0")
+         +  ' <small>' + (faltan ? "por día, quedan " + faltan + (faltan===1?" día":" días")
+                                 : "último día del mes") + '</small></div></div>';
+    html += '<div class="pm-caja ' + (permitido && ritmo > permitido ? "mal" : (permitido ? "ok" : "mal")) + '">'
+         +  '<div class="k">Vas gastando</div><div class="v">' + plata(ritmo)
+         +  ' <small>por día, en ' + diaHoy + (diaHoy===1?" día":" días") + '</small></div></div>';
+    if (pr){
+      var dif = pr.valor - tope;
+      html += '<div class="pm-caja ' + (dif > 0 ? "mal" : "ok") + '" style="grid-column:1 / -1">'
+           +  '<div class="k">Terminarías el mes en</div><div class="v">' + plata(pr.valor)
+           +  ' <small>' + (dif > 0 ? plata(dif) + " sobre el tope" : plata(-dif) + " bajo el tope")
+           +  " · " + pr.base + '</small></div></div>';
+    }
   } else {
-    html += '<div class="pm-caja ' + (queda >= 0 ? "ok" : "mal") + '"><div class="k">Cierre del mes</div><div class="v">'
+    var dias2 = diasDelMes(mesActual);
+    html += '<div class="pm-caja"><div class="k">Ritmo del mes</div><div class="v">' + plata(total/dias2)
+         +  ' <small>por día</small></div></div>';
+    html += '<div class="pm-caja ' + (queda >= 0 ? "ok" : "mal") + '"><div class="k">Cierre</div><div class="v">'
          +  (queda >= 0 ? "Dentro" : "Excedido") + ' <small>' + plata(total) + ' de ' + plata(tope) + '</small></div></div>';
-  }
-  if (pr){
-    var dif = pr.valor - tope;
-    html += '<div class="pm-caja ' + (dif > 0 ? "mal" : "ok") + '"><div class="k">Terminarías en</div><div class="v">'
-         +  plata(pr.valor) + ' <small>' + (dif > 0 ? plata(dif) + " sobre el tope" : plata(-dif) + " bajo el tope")
-         +  '</small></div></div>';
-  } else {
-    html += '<div class="pm-caja"><div class="k">Gastado</div><div class="v">' + plata(total)
-         +  ' <small>' + Math.round(usado) + '% del tope</small></div></div>';
   }
   html += '</div>';
 
@@ -3140,7 +3145,7 @@ function pasosTour(){
     { abre:"mes", sel:"#rank", t:"El desglose",
       d:"En qué se fue, de mayor a menor, con su porcentaje." },
     { abre:"mes", sel:"#cardPresu", t:"Tu presupuesto",
-      d:"Cuánto te queda del tope, cuánto puedes gastar por día sin pasarte y en cuánto terminarías al ritmo que llevas.<br><br>La barra se pone roja al pasar el <b>75%</b>." },
+      d:"Tres números: lo que <b>puedes</b> gastar por día sin pasarte, lo que <b>vas</b> gastando por día de verdad, y en cuánto <b>terminarías</b> el mes a ese ritmo.<br><br>La barra se pone roja al pasar el <b>75%</b>." },
     { abre:"mes", sel:"#avisos", t:"Las alertas",
       d:'Carrete va en $28.000 de $30.000, así que aparece la alerta amarilla.' },
 
