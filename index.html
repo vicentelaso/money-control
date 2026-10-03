@@ -1205,7 +1205,7 @@ var ICONOS = [
  s:'<rect x="3.6" y="5" width="24.8" height="16.4" rx="2.4" fill="#4A5468"/><rect x="6" y="7.4" width="20" height="11.6" rx="1.2" fill="#BFD9F2"/><path d="M2 23.4h28l-1.6 3.2H3.6z" fill="#8C97AD"/>'},
 {id:"belleza", n:"Peluquería", g:"Compras", k:"peluqueria peluquería corte pelo barberia barberia tinte",
  s:'<circle cx="8" cy="24" r="4" fill="none" stroke="#E9A7C2" stroke-width="2.6"/><circle cx="8" cy="8" r="4" fill="none" stroke="#E9A7C2" stroke-width="2.6"/><path d="M11 10.6L27 24M11 21.4L27 8" fill="none" stroke="#8C97AD" stroke-width="2.6" stroke-linecap="round"/>'},
-{id:"mascota", n:"Mascotas", g:"Compras", k:"mascota perro gato veterinario pet animal comida alimento arena",
+{id:"mascota", n:"Mascotas", g:"Compras", k:"mascota perro gato veterinario pet animal alimento arena croquetas",
  s:'<path d="M16 17.4c3.6 0 6.4 2.6 6.4 5.8 0 2.4-2 4.2-4.6 3.4a7 7 0 00-3.6 0c-2.6.8-4.6-1-4.6-3.4 0-3.2 2.8-5.8 6.4-5.8z" fill="#C96F3C"/><ellipse cx="7.6" cy="13.4" rx="2.8" ry="3.6" fill="#C96F3C"/><ellipse cx="24.4" cy="13.4" rx="2.8" ry="3.6" fill="#C96F3C"/><ellipse cx="12.6" cy="7.6" rx="2.6" ry="3.4" fill="#C96F3C"/><ellipse cx="19.4" cy="7.6" rx="2.6" ry="3.4" fill="#C96F3C"/>'},
 {id:"compras", n:"Compras", g:"Compras", k:"compras mall tienda retail bolsa shopping falabella paris ripley",
  s:'<path d="M6 10h20l-1.6 17.4a2.2 2.2 0 01-2.2 2H9.8a2.2 2.2 0 01-2.2-2z" fill="#E9A7C2"/><path d="M11.4 10V7a4.6 4.6 0 019.2 0v3" fill="none" stroke="#C96A92" stroke-width="2.6" stroke-linecap="round"/>'},
@@ -1419,6 +1419,45 @@ function sinTildes(t){
     .replace(/[\u00e1\u00e0\u00e4]/g,"a").replace(/[\u00e9\u00e8\u00eb]/g,"e").replace(/[\u00ed\u00ec\u00ef]/g,"i")
     .replace(/[\u00f3\u00f2\u00f6]/g,"o").replace(/[\u00fa\u00f9\u00fc]/g,"u").replace(/\u00f1/g,"n");
 }
+var TEMAS = [
+  {k:"comida comer comidas almuerzo almuerzos cena cenas once food restaurante restorán alimentacion alimento picar", ids:"comida rapida hamburguesa pizza sushi completo empanada asado pan postre helado torta fruta pescado lacteos super delivery snack dulces kiosco mentas cafe infusion bebida"},
+  {k:"bebida bebidas tomar beber alcohol copete tragos", ids:"bebida copete trago cerveza vino energ cafe infusion fiesta disco"},
+  {k:"carrete carretes fiesta fiestas noche salir previa juntas juntarse", ids:"fiesta trago copete cerveza vino disco musica concierto puchos vaper marihuana azar teatro cine billar sexo adultos putas"},
+  {k:"transporte transportes movilizacion locomocion movilidad traslado moverse", ids:"auto bus tren bici moto taxi avion bencina peaje parking multa mudanza crucero lavadoauto skate"},
+  {k:"casa hogar servicios basicos vivienda domicilio arriendo depto", ids:"casa edificio luz agua gas wifi celular herram ferreteria lavan limpieza planta regadera lampara electro muebles rodillo mudanza"},
+  {k:"compras comprar tienda retail mall shopping", ids:"compras ropa zapatos regalo tecno audifonos cargador parlante joyas perfume unas belleza muebles electro juguetes flores envio super"},
+  {k:"salud medico medicina bienestar doctor cuerpo", ids:"salud farmacia dentista optica terapia suplementos gym yoga spa veterinario"},
+  {k:"estudio estudios educacion aprender academico", ids:"uni libro impres mochila arte terapia"},
+  {k:"ocio entretencion diversion hobby hobbies panorama panoramas", ids:"cine teatro concierto juegos strea musica disco viaje aloja camping playa pesca deporte basquet tenis skate billar parque azar arte foto crucero"},
+  {k:"dinero plata finanzas pagos bancos ahorrar", ids:"deuda tarjeta ahorro banco sueldo trabajo seguro cuota cripto inversion propina legal doc caridad"},
+  {k:"deporte deportes ejercicio fitness entrenar entrenamiento actividad fisica", ids:"deporte basquet tenis skate gym yoga bici camping pesca playa"},
+  {k:"tecnologia tecno electronica aparatos gadgets", ids:"tecno celular audifonos cargador parlante electro juegos strea wifi foto"},
+  {k:"belleza cuidado personal estetica apariencia arreglarse", ids:"belleza unas perfume higiene spa ropa zapatos joyas tatuaje"},
+  {k:"mascota mascotas animales", ids:"mascota veterinario"},
+  {k:"viaje viajes vacaciones turismo salir ciudad", ids:"viaje avion aloja crucero playa camping parque sol foto"},
+  {k:"trabajo pega laboral oficina negocio", ids:"trabajo sueldo legal doc impres mochila tecno"},
+  {k:"familia hijos niños ninos guagua gente personas amigos", ids:"nino juguetes persona corazon mochila parque torta regalo"},
+  {k:"musica audio sonido", ids:"musica disco concierto parlante audifonos strea"},
+  {k:"vicio vicios", ids:"puchos vaper marihuana copete trago cerveza azar adultos sexo putas"},
+  {k:"regalo regalos celebracion celebraciones cumpleaños aniversario", ids:"regalo flores joyas torta corazon perfume juguetes caridad dulces"}
+];
+
+var TEMA_PAL = {};
+TEMAS.forEach(function(t){
+  var lista = t.ids.split(" ");
+  sinTildes(t.k).split(" ").forEach(function(w){ if (w) TEMA_PAL[w] = lista; });
+});
+/* ¿esta palabra nombra un mundo entero? devuelve los logos de ese mundo */
+function idsDelTema(w){
+  if (TEMA_PAL[w]) return TEMA_PAL[w];
+  var claves = Object.keys(TEMA_PAL);
+  for (var j=0;j<claves.length;j++){
+    var c = claves[j];
+    if (w.length > 3 && (c.indexOf(w) === 0 || w.indexOf(c) === 0)) return TEMA_PAL[c];
+  }
+  return null;
+}
+
 /* puntaje de un logo frente a un texto: palabra exacta vale más que prefijo,
    y la primera palabra clave de cada logo pesa más que las demás */
 function puntajeIcono(texto, i){
@@ -1430,6 +1469,9 @@ function puntajeIcono(texto, i){
   palabras.forEach(function(w){
     if (w.length < 3) return;
     var mejor = 0;
+    /* si la palabra nombra un tema, todos los logos de ese tema suman */
+    var tema = idsDelTema(w);
+    if (tema && tema.indexOf(i.id) >= 0) mejor = 4.5;
     claves.forEach(function(c, idx){
       var bono = idx === 0 ? 1.5 : (idx < 3 ? 0.5 : 0);
       if (c === w) mejor = Math.max(mejor, 10 + bono);
