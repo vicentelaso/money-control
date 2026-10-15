@@ -570,7 +570,11 @@ body.conf-abierta .backdrop{opacity:1;pointer-events:auto;z-index:80}
 .pm-aviso svg{width:19px;height:19px;flex:none;margin-top:1px;fill:none;stroke:var(--danger);stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
 .pm-aviso b{color:var(--danger);font-weight:700}
 .pm-edit{display:grid;gap:10px;margin-top:16px}
-.pm-vacio{font-size:14.5px;color:var(--muted);line-height:1.55}
+.pm-sintope{display:inline-block;font-size:11.5px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;
+  color:var(--faint);border:1px dashed var(--line);border-radius:99px;padding:6px 12px}
+.pm-tope .linkbtn{display:block;margin-top:8px;padding:2px 0}
+.pm-sep{height:1px;background:var(--line);margin:22px 0 18px}
+.pm-vacio{font-size:14.5px;color:var(--muted);line-height:1.55;margin-top:16px}
 
 /* meses dentro del presupuesto */
 .cum-top{display:flex;align-items:baseline;gap:14px;flex-wrap:wrap;margin-bottom:16px}
@@ -894,11 +898,6 @@ body.acceso-on #winInstalar{z-index:100}
           <div class="form-acc"><button class="linkbtn peligro" id="borrarGasto" hidden>Eliminar este gasto</button></div>
         </div>
 
-        <div class="card">
-          <h2>Desglose del mes</h2>
-          <ul class="rank" id="rank"></ul>
-        </div>
-
         <div class="card" id="cardPresu">
           <h2>Presupuesto del mes</h2>
           <div id="pmCuerpo"></div>
@@ -910,6 +909,12 @@ body.acceso-on #winInstalar{z-index:100}
             </div>
           </div>
         </div>
+
+        <div class="card">
+          <h2>Desglose del mes</h2>
+          <ul class="rank" id="rank"></ul>
+        </div>
+
       </div>
 
       <div class="card">
@@ -927,6 +932,7 @@ body.acceso-on #winInstalar{z-index:100}
         </h2>
         <div id="movMenu" hidden></div>
         <div id="movChip"></div>
+        <div id="movAviso"></div>
         <div id="movs"></div>
       </div>
     </div>
@@ -1132,7 +1138,7 @@ body.acceso-on #winInstalar{z-index:100}
 
   <div class="sec" id="secNotif">
     <h3>Notificaciones</h3>
-    <label class="check"><input type="checkbox" id="cfgNotif"><span>Avisarme del presupuesto 5 minutos después de anotar un gasto</span></label>
+    <label class="check"><input type="checkbox" id="cfgNotif"><span>Avisarme del presupuesto al anotar un gasto</span></label>
     <label class="check"><input type="checkbox" id="cfgResumen"><span>Resumen diario del mes</span></label>
     <div class="hora"><label for="cfgHora" style="margin:0">Hora</label><input class="inp" type="time" id="cfgHora" value="09:00"></div>
     <div class="nota" id="cfgNota"></div>
@@ -1659,7 +1665,6 @@ function insignia(cat, clase){
 var MESES = ["enero","febrero","marzo","abril","mayo","junio","julio","agosto","septiembre","octubre","noviembre","diciembre"];
 var DIAS = ["dom","lun","mar","mié","jue","vie","sáb"];
 var UMBRAL = 5000;
-var ESPERA_AVISO = 5*60*1000;
 var LS = "gastos-v1";
 
 var $ = function(id){ return document.getElementById(id); };
@@ -2024,8 +2029,7 @@ function notificar(cuerpo, etiqueta){
 }
 function programarAviso(cuerpo){
   if (!estado.notif || !cuerpo) return;
-  estado.pendientes = (estado.pendientes||[]).concat([{cuando: Date.now()+ESPERA_AVISO, cuerpo:cuerpo}]);
-  guardarCache();
+  notificar(cuerpo);            /* sin espera: apenas se anota el gasto */
 }
 function revisarPendientes(){
   var lista = estado.pendientes || []; if (!lista.length) return;
@@ -2169,8 +2173,9 @@ function pintar(){
     : items.length + (items.length===1 ? " gasto · " : " gastos · ") + "<b>" + esc(grupos[0].cat) + "</b> lidera con "
       + Math.round(grupos[0].monto/total*100) + "%";
 
+  var alertasMes = mapaAlertas(mesActual);
   $("rank").innerHTML = grupos.length
-    ? grupos.map(function(g){ return filaRank(g, total); }).join("")
+    ? grupos.map(function(g){ return filaRank(g, total, alertasMes); }).join("")
     : '<li class="vacio"><p>Nada todavía.</p></li>';
 
   pintarMovs(items);
@@ -2182,14 +2187,18 @@ function pintar(){
 }
 
 /* el desglose va en un solo tono: el color vive en la insignia */
-function filaRank(g, total){
+function filaRank(g, total, alertas){
   var pct = total ? g.monto/total*100 : 0;
+  var al = alertas ? alertas[g.cat.toLowerCase()] : null;
+  var color = al === "pasado" ? "var(--danger)"
+            : al === "cerca"  ? "linear-gradient(90deg,#C9475F,#F0798F)"
+                              : "var(--barra)";
   return '<li><button type="button" class="rk" data-rcat="' + esc(g.cat) + '">'
     + '<div class="r1"><div class="nom">' + insignia(g.cat, "sm")
     +   '<span>' + esc(g.cat) + '</span></div><span class="ch">\u203A</span></div>'
     + '<div class="r2"><span class="val">' + plata(g.monto) + '</span>'
     +   '<span class="pct">' + Math.round(pct) + '%</span></div>'
-    + '<div class="track"><div style="width:'+pct+'%;background:var(--barra)"></div></div></button></li>';
+    + '<div class="track"><div style="width:'+pct+'%;background:'+color+'"></div></div></button></li>';
 }
 
 /* suma de un mes hasta cierto día, para comparar peras con peras */
@@ -2262,11 +2271,12 @@ function pintarPresuMes(total, enCurso, diaHoy){
         '<div class="pm-cab">'
       +   '<div><div class="pm-k">Gastado este mes</div>'
       +     '<div class="pm-grande">' + plata(total) + '</div></div>'
-      +   '<div class="pm-tope"><div class="pm-k">Tope</div><div class="v">Sin tope</div>'
+      +   '<div class="pm-tope"><span class="pm-sintope">Sin tope</span>'
       +     (pasado ? '<button class="linkbtn" id="pmEditar">Poner uno</button>' : "") + '</div>'
       + '</div>'
+      + '<div class="pm-sep"></div>'
       + cajasRitmo(total, enCurso, diaHoy, null)
-      + '<div class="pm-vacio" style="margin-top:14px">'
+      + '<div class="pm-vacio">'
       +   (pasado ? "Ponle un tope a este mes y entrará en tus estadísticas."
                   : "Ponle un tope en <b>Categorías</b> y acá verás cuánto te queda.") + '</div>';
     if ($("pmEditar")) $("pmEditar").addEventListener("click", abrirEdicionTope);
@@ -2498,6 +2508,14 @@ function pintarMovs(items){
 
   var OJO = '<svg viewBox="0 0 24 24"><path d="M2.5 12S6 5.8 12 5.8 21.5 12 21.5 12 18 18.2 12 18.2 2.5 12 2.5 12z"/><circle cx="12" cy="12" r="2.9"/></svg>';
   var OJO_NO = '<svg viewBox="0 0 24 24"><path d="M9.6 6.1A8.6 8.6 0 0112 5.8c6 0 9.5 6.2 9.5 6.2a16 16 0 01-3.3 3.9M6.1 7.9A16 16 0 002.5 12s3.5 6.2 9.5 6.2c1 0 1.9-.2 2.7-.5"/><path d="M3.5 3.5l17 17"/></svg>';
+  /* la alerta de la categoría filtrada, para no tener que subir a buscarla */
+  var avi = "";
+  if (movFiltro.tipo === "cat"){
+    var ale = alertasDe(mesActual).filter(function(x){ return mismaCat(x.cat, movFiltro.cat); })[0];
+    if (ale) avi = '<div style="margin-bottom:14px">' + bloqueAlerta(ale) + '</div>';
+  }
+  $("movAviso").innerHTML = avi;
+
   $("movToggle").setAttribute("aria-expanded", movOculto ? "false" : "true");
   $("movToggle").setAttribute("aria-label", movOculto ? "Mostrar movimientos" : "Ocultar movimientos");
   $("movToggleIco").innerHTML = movOculto ? OJO_NO : OJO;
@@ -2612,19 +2630,27 @@ $("movMenu").addEventListener("click", function(e){
   movMenu = f; pintarMenu();
 });
 
+/* el mismo recuadro de alerta sirve en el bloque de arriba y bajo los movimientos */
+function bloqueAlerta(a){
+  var cerca = a.tipo === "cerca";
+  return '<div class="av ' + (cerca ? "cerca" : "pasado") + '">' + ICO_ALERTA + '<div>'
+    + (cerca ? 'Te quedan <b>' + plata(a.e.resta) + '</b> en <b>' + esc(a.cat) + '</b>'
+             : 'Te pasaste <b>' + plata(-a.e.resta) + '</b> en <b>' + esc(a.cat) + '</b>')
+    + ': ' + plata(a.e.gastado) + ' de ' + plata(a.e.presu) + '.</div></div>';
+}
+/* categoría en minúscula -> tipo de alerta, para teñir su barra */
+function mapaAlertas(mes){
+  var m = {};
+  alertasDe(mes).forEach(function(a){ m[a.cat.toLowerCase()] = a.tipo; });
+  return m;
+}
 function pintarAvisos(){
   var lista = alertasDe(mesActual);
   if (!lista.length){ $("avisos").innerHTML = ""; return; }
   var puntos = lista.map(function(a){
     return '<i style="background:' + (a.tipo==="cerca" ? "var(--gold)" : "var(--danger)") + '"></i>';
   }).join("");
-  var detalle = lista.map(function(a){
-    var cerca = a.tipo === "cerca";
-    return '<div class="av ' + (cerca ? "cerca" : "pasado") + '">' + ICO_ALERTA + '<div>'
-      + (cerca ? 'Te quedan <b>' + plata(a.e.resta) + '</b> en <b>' + esc(a.cat) + '</b>'
-               : 'Te pasaste <b>' + plata(-a.e.resta) + '</b> en <b>' + esc(a.cat) + '</b>')
-      + ': ' + plata(a.e.gastado) + ' de ' + plata(a.e.presu) + '.</div></div>';
-  }).join("");
+  var detalle = lista.map(bloqueAlerta).join("");
   $("avisos").innerHTML =
     '<button class="alertas-btn" id="alertasBtn" aria-expanded="' + (alertasAbierto?"true":"false") + '">'
     + '<span class="puntos">' + puntos + '</span>Alertas (' + lista.length + ')' + ICO_CHEV + '</button>'
@@ -3533,10 +3559,10 @@ function pasosTour(){
       d:"Por categoría o por rango de fechas. Y la lista se esconde si estorba." },
     { abre:"mes", sel:"#total", t:"El total del mes",
       d:'Abajo dice si vas por sobre o bajo <b>tu promedio</b> de meses completos. Con el mes en curso compara a la misma altura del mes, no contra meses enteros.' },
-    { abre:"mes", sel:"#rank", t:"El desglose",
-      d:"En qué se fue, de mayor a menor, con su porcentaje." },
     { abre:"mes", sel:"#cardPresu", t:"Tu presupuesto",
       d:"Tres números: lo que <b>puedes</b> gastar por día sin pasarte, lo que <b>vas</b> gastando por día de verdad, y en cuánto <b>terminarías</b> el mes a ese ritmo.<br><br>La barra se pone roja al pasar el <b>75%</b>." },
+    { abre:"mes", sel:"#rank", t:"El desglose",
+      d:"En qué se fue, de mayor a menor, con su porcentaje." },
     { abre:"mes", sel:"#avisos", t:"Las alertas",
       d:'Carrete va en $28.000 de $30.000, así que aparece la alerta amarilla.' },
 
