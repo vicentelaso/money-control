@@ -370,6 +370,15 @@ sup{font-family:"Inter Tight",system-ui,sans-serif;font-size:.54em;font-weight:6
    ============================================================ */
 .monto-row{display:flex;align-items:center;gap:12px;border-bottom:2px solid var(--line);padding-bottom:8px;margin-bottom:22px}
 .monto-row .sig{font-family:"Fraunces",serif;font-size:32px;color:var(--gold)}
+.monbtn{background:none;border:none;padding:0;display:inline-flex;align-items:baseline;gap:4px;flex:none}
+.monbtn .cod{font-family:"Inter Tight",system-ui,sans-serif;font-size:11.5px;font-weight:700;letter-spacing:.06em;color:var(--muted)}
+.monbtn:not(.solo):hover .cod{color:var(--ink)}
+.mon-ops{display:flex;flex-wrap:wrap;gap:8px;margin:-8px 0 18px}
+.mon-ops button{background:var(--bg-2);border:1px solid var(--line);color:var(--muted);border-radius:99px;padding:9px 14px;font-size:13.5px;font-weight:600}
+.mon-ops button[aria-pressed="true"]{background:linear-gradient(150deg,var(--gold),var(--gold-2));border-color:transparent;color:#191203}
+.mon-eq{font-size:14.5px;color:var(--muted);margin:-8px 0 16px;line-height:1.5}
+.mon-eq b{color:var(--ink);font-weight:600}
+.mon-eq small{display:block;color:var(--faint);font-size:12.5px;margin-top:3px}
 #monto{flex:1;min-width:0;background:none;border:none;padding:2px 0;font-family:"Fraunces",Georgia,serif;font-size:38px;letter-spacing:-.02em;color:var(--ink)}
 #monto:focus{outline:none}
 #monto::placeholder{color:var(--faint);opacity:.4}
@@ -856,9 +865,11 @@ body.acceso-on #winInstalar{z-index:100}
         <div class="card" id="hoja" role="dialog" aria-label="Anotar un gasto">
           <h2><span id="hojaTitulo">Anotar un gasto</span><button class="cerrar-hoja" id="cerrarHoja" aria-label="Cerrar">×</button></h2>
           <div class="monto-row">
-            <span class="sig">$</span>
+            <button type="button" class="sig monbtn solo" id="monBtn" aria-expanded="false" aria-label="Cambiar moneda">$</button>
             <input id="monto" type="text" inputmode="numeric" autocomplete="off" placeholder="0" aria-label="Monto">
           </div>
+          <div class="mon-ops" id="monOps" hidden></div>
+          <div class="mon-eq" id="monEq" hidden></div>
           <label for="catBtn">Categoría</label>
           <div id="picker">
             <button type="button" class="picker-btn" id="catBtn" aria-haspopup="listbox" aria-expanded="false">
@@ -918,7 +929,7 @@ body.acceso-on #winInstalar{z-index:100}
 
   <section id="vistaHist" hidden>
     <div class="kpis" id="kpis">
-      <div class="kpi"><div class="k">Acumulado</div><div class="v num" id="kTotal">$0</div></div>
+      <div class="kpi"><div class="k">Acumulado</div><div class="v num" id="kTotal">$0</div><div class="nota" style="margin-top:4px">últimos 12 meses</div></div>
       <div class="kpi"><div class="k">Promedio mensual</div><div class="v num" id="kProm">$0</div></div>
       <div class="kpi"><div class="k">Mes más caro</div><div class="v num" id="kMax">—</div></div>
     </div>
@@ -1095,6 +1106,14 @@ body.acceso-on #winInstalar{z-index:100}
       <span class="sync" id="syncEstado"><i></i>—</span>
       <button class="linkbtn" id="btnSync">Sincronizar ahora</button>
     </div>
+  </div>
+
+  <div class="sec" id="secMonedas">
+    <h3>Monedas</h3>
+    <div class="nota" style="margin-top:0">Los gastos siempre se guardan en pesos. Elige cuáles quieres poder usar al anotar.</div>
+    <div id="monLista" style="margin-top:10px"></div>
+    <div class="nota" id="monEstado">—</div>
+    <div class="btnrow" style="margin-top:12px"><button class="btn2" id="monActualizar">Actualizar valores</button></div>
   </div>
 
   <div class="sec" id="secHistorial">
@@ -1655,6 +1674,109 @@ function plata(n){
 /* la misma cifra sin etiquetas, para títulos y atributos */
 function plataTxt(n){ return plata(n).replace("<sup>", "^").replace("</sup>", ""); }
 var MAX_DIG = 10;
+
+/* ============================================================
+   Monedas
+   Todo se guarda convertido a pesos, así que los gastos de antes
+   siguen intactos. El gasto recuerda en qué moneda se anotó.
+   ============================================================ */
+var MONEDAS = {
+  CLP: { n:"Peso chileno",      s:"$",   dec:0 },
+  USD: { n:"Dólar",             s:"US$", dec:2 },
+  EUR: { n:"Euro",              s:"€",   dec:2 },
+  BRL: { n:"Real brasileño",    s:"R$",  dec:2 },
+  UF:  { n:"UF",                s:"UF",  dec:2 },
+  ARS: { n:"Peso argentino",    s:"AR$", dec:0 }
+};
+var ORDEN_MON = ["CLP","USD","EUR","BRL","UF","ARS"];
+function monedasActivas(){
+  var l = (estado.monedas || ["CLP"]).filter(function(c){ return MONEDAS[c]; });
+  if (l.indexOf("CLP") < 0) l = ["CLP"].concat(l);
+  return ORDEN_MON.filter(function(c){ return l.indexOf(c) >= 0; });
+}
+/* el valor de un peso: cuántos pesos vale una unidad de esa moneda */
+function tasaDe(cod, fecha){
+  if (!cod || cod === "CLP") return 1;
+  var T = estado.tasas || {};
+  if (T[fecha] && T[fecha][cod]) return T[fecha][cod];
+  var dias = Object.keys(T).sort();
+  for (var i = dias.length - 1; i >= 0; i--) if (T[dias[i]][cod]) return T[dias[i]][cod];
+  return 0;
+}
+function fechaTasa(){
+  var dias = Object.keys(estado.tasas || {}).sort();
+  return dias.length ? dias[dias.length - 1] : "";
+}
+/* bajo el detalle: la categoría y, si vino en otra moneda, el monto original */
+function subMov(g, conFecha){
+  var p = [];
+  if (conFecha) p.push(fechaLarga(g.fecha));
+  else if (g.nota) p.push(esc(g.cat));
+  if (g.mon && MONEDAS[g.mon]) p.push(montoMoneda(g.orig, g.mon));
+  return p.length ? '<small>' + p.join(" \u00B7 ") + '</small>' : "";
+}
+function montoMoneda(v, cod){
+  var m = MONEDAS[cod] || MONEDAS.CLP;
+  if (m.dec === 0) return m.s + nf.format(Math.round(v));
+  return m.s + (Math.round(v * 100) / 100).toFixed(2);
+}
+/* el peso argentino vale menos de un peso chileno: redondeado se vería "$1" */
+function textoTasa(cod, t){
+  if (t >= 1) return "1 " + cod + " = " + plata(t);
+  return "1.000 " + cod + " = " + plata(t * 1000);
+}
+function fetchJSON(url, ms){
+  return new Promise(function(ok, mal){
+    var t = setTimeout(function(){ mal(new Error("timeout")); }, ms || 8000);
+    fetch(url, { cache:"no-store" })
+      .then(function(r){ return r.ok ? r.json() : Promise.reject(new Error(r.status)); })
+      .then(function(j){ clearTimeout(t); ok(j); }, function(e){ clearTimeout(t); mal(e); });
+  });
+}
+function fechaCL(iso){ var p = String(iso).split("-"); return p[2] + "-" + p[1] + "-" + p[0]; }
+function podarTasas(){
+  var dias = Object.keys(estado.tasas || {}).sort();
+  while (dias.length > 90) delete estado.tasas[dias.shift()];
+}
+/* UF, dólar y euro salen de mindicador.cl; real y peso argentino, del cruce con el dólar */
+function cargarTasas(fecha){
+  fecha = fecha || hoyISO();
+  estado.tasas = estado.tasas || {};
+  if (estado.tasas[fecha] && estado.tasas[fecha].USD) return Promise.resolve(estado.tasas[fecha]);
+  var esHoy = fecha === hoyISO();
+  var urlM = esHoy ? "https://mindicador.cl/api" : "https://mindicador.cl/api/" + fechaCL(fecha);
+  return fetchJSON(urlM)
+    .catch(function(){ return esHoy ? null : fetchJSON("https://mindicador.cl/api").catch(function(){ return null; }); })
+    .then(function(m){
+      var t = {};
+      if (m && m.uf && m.uf.valor) t.UF = m.uf.valor;
+      if (m && m.dolar && m.dolar.valor) t.USD = m.dolar.valor;
+      if (m && m.euro && m.euro.valor) t.EUR = m.euro.valor;
+      return fetchJSON("https://open.er-api.com/v6/latest/USD").then(function(f){
+        var r = f && f.rates;
+        if (r){
+          if (!t.USD && r.CLP) t.USD = r.CLP;
+          var usd = t.USD;
+          if (usd){
+            if (!t.EUR && r.EUR) t.EUR = usd / r.EUR;
+            if (r.BRL) t.BRL = usd / r.BRL;
+            if (r.ARS) t.ARS = usd / r.ARS;
+          }
+        }
+        return t;
+      }, function(){ return t; });
+    })
+    .then(function(t){
+      if (!t || !Object.keys(t).length) return null;
+      /* lo que falte se completa con lo último que tengamos guardado */
+      ORDEN_MON.forEach(function(c){ if (c !== "CLP" && !t[c]){ var v = tasaDe(c, fecha); if (v) t[c] = v; } });
+      estado.tasas[fecha] = t;
+      podarTasas();
+      guardarCache();
+      return t;
+    })
+    .catch(function(){ return null; });
+}
 function limitarDigitos(s){ return soloDigitos(s).slice(0, MAX_DIG); }
 function esc(t){ var d=document.createElement("div"); d.textContent = t==null?"":t; return d.innerHTML; }
 function soloDigitos(s){ return String(s||"").replace(/[^\d]/g,""); }
@@ -1680,6 +1802,7 @@ var lento = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
    ============================================================ */
 function estadoVacio(){
   return { cats:[], meses:{}, colores:{}, iconos:{}, presupuestos:{}, presupuestoMes:0, topes:{},
+           monedas:["CLP"], tasas:{},
            recurrentes:[], recOmitidos:[], avisoMes:{}, primerMesCompleto:false, tutorial:false,
            notif:false, resumen:false, horaResumen:"09:00",
            pendientes:[], ultimoResumen:"", ts:0 };
@@ -1715,8 +1838,14 @@ function mesesConDatos(){ return Object.keys(estado.meses).filter(function(k){ r
 function primerMes(){ var l = mesesConDatos(); return l.length ? l[0] : ""; }
 /* para el promedio solo valen los meses enteros: fuera el actual y, salvo que
    el usuario diga lo contrario en Ajustes, también el primero que registró */
+/* El histórico mira solo los últimos doce meses contados desde hoy: más atrás
+   el promedio y el acumulado dejan de decir algo sobre cómo estás gastando. */
+function mesesVentana(){
+  var hoyM = claveMes(hoyISO()), desde = mesVecino(hoyM, -11);
+  return mesesConDatos().filter(function(m){ return m >= desde && m <= hoyM; });
+}
 function mesesCompletos(){
-  var lista = mesesConDatos(), hoyM = claveMes(hoyISO()), pm = primerMes();
+  var lista = mesesVentana(), hoyM = claveMes(hoyISO()), pm = primerMes();
   return lista.filter(function(k){
     if (k >= hoyM) return false;
     if (k === pm && !estado.primerMesCompleto) return false;
@@ -2002,20 +2131,26 @@ function pintar(){
   $("btnBorrarMes").hidden = !items.length;
   animarTotal(total);
 
-  /* comparación con el mes anterior. Si el mes está en curso se compara
-     contra el mismo tramo del mes pasado, que es lo único justo. */
+  /* La referencia es el promedio de tus meses completos, no el mes anterior
+     suelto. Si el mes está en curso, se compara contra lo que esos mismos
+     meses llevaban gastado a esta altura, que es lo único justo. */
   var enCurso = mesActual === claveMes(hoyISO());
   var diaHoy = enCurso ? +hoyISO().slice(8,10) : 0;
-  var prev = mesVecino(mesActual,-1);
-  var tPrev = enCurso ? hastaDia(prev, diaHoy) : totalDe(prev);
+  var base = mesesCompletos().filter(function(m){ return m !== mesActual; });
+  var ref = 0;
+  if (base.length){
+    ref = base.reduce(function(a,m){
+      return a + (enCurso ? hastaDia(m, diaHoy) : totalDe(m));
+    }, 0) / base.length;
+  }
   var d = $("delta");
-  if (tPrev && total){
-    var v = (total - tPrev) / tPrev * 100, sube = v >= 0;
+  if (ref && total){
+    var v = (total - ref) / ref * 100, sube = v >= 0;
     d.hidden = false;
     d.className = "delta " + (sube ? "sube" : "baja");
     d.innerHTML = '<svg viewBox="0 0 12 12"><path d="' + (sube ? "M6 10V2M2.5 5.5L6 2l3.5 3.5" : "M6 2v8M2.5 6.5L6 10l3.5-3.5") + '"/></svg>'
       + (Math.abs(v) >= 1000 ? "+999" : Math.abs(Math.round(v)))
-      + "% vs " + mesCorto(prev) + (enCurso ? " a la fecha" : "");
+      + "% vs tu promedio" + (enCurso ? " a la fecha" : "");
   } else { d.hidden = true; d.className = "delta"; }
 
   pintarPresuMes(total, enCurso, diaHoy);
@@ -2276,7 +2411,7 @@ function pintarCatMovs(){
     items.forEach(function(g){
       html += '<div class="mov"><span class="mov-main">' + insignia(g.cat)
         + '<span class="d"><b>' + esc(g.nota || g.cat) + '</b>'
-        + '<small>' + fechaLarga(g.fecha) + '</small></span>'
+        + subMov(g, true) + '</span>'
         + '<span class="m">' + plata(g.monto) + '</span></span></div>';
     });
   });
@@ -2383,7 +2518,7 @@ function pintarMovs(items){
       + '<button class="mov-main" data-id="'+g.id+'">'
       +   insignia(g.cat)
       +   '<span class="d"><b>' + esc(g.nota || g.cat) + '</b>'
-      +     (g.nota ? '<small>' + esc(g.cat) + '</small>' : '') + '</span>'
+      +     subMov(g) + '</span>'
       +   '<span class="m">' + plata(g.monto) + '</span>'
       + '</button>'
       + '<button class="mov-del" data-del="'+g.id+'" aria-label="Eliminar gasto">'
@@ -2488,7 +2623,7 @@ function pintarAvisos(){
 }
 
 function pintarHistorico(){
-  var lista = mesesConDatos();
+  var lista = mesesVentana();
   var gran = lista.reduce(function(a,k){ return a+totalDe(k); },0);
   $("kTotal").innerHTML = plata(gran);
   var comp = mesesCompletos();
@@ -2634,9 +2769,78 @@ document.addEventListener("click", function(e){
 /* ============================================================
    Formulario: anotar y editar
    ============================================================ */
+var monedaSel = "CLP";
+function decSel(){ return (MONEDAS[monedaSel] || MONEDAS.CLP).dec; }
+function leerMonto(){
+  if (!decSel()) return parseInt(soloDigitos($("monto").value) || "0", 10);
+  var t = String($("monto").value).replace(/[^\d.]/g, "");
+  return parseFloat(t) || 0;
+}
+function formatearMonto(v){
+  if (!v) return "";
+  return decSel() ? (Math.round(v * 100) / 100).toFixed(2) : nf.format(Math.round(v));
+}
+function pintarMoneda(){
+  var act = monedasActivas(), solo = act.length <= 1;
+  if (act.indexOf(monedaSel) < 0) monedaSel = "CLP";
+  var m = MONEDAS[monedaSel];
+  $("monBtn").className = "sig monbtn" + (solo ? " solo" : "");
+  $("monBtn").innerHTML = m.s + (solo ? "" : '<span class="cod">' + monedaSel + ' \u25BE</span>');
+  $("monto").setAttribute("inputmode", decSel() ? "decimal" : "numeric");
+  if (solo){ $("monOps").hidden = true; $("monBtn").setAttribute("aria-expanded","false"); }
+  $("monOps").innerHTML = act.map(function(c){
+    return '<button type="button" data-mon="' + c + '" aria-pressed="' + (c === monedaSel) + '">'
+      + MONEDAS[c].s + " " + c + '</button>';
+  }).join("");
+  pintarEquivalencia();
+}
+function pintarEquivalencia(){
+  var v = leerMonto();
+  if (monedaSel === "CLP"){ $("monEq").hidden = true; return; }
+  var f = $("fecha").value || hoyISO();
+  var t = tasaDe(monedaSel, f);
+  $("monEq").hidden = false;
+  if (!t){
+    $("monEq").innerHTML = "Todavía no tengo el valor de " + monedaSel
+      + ". <small>Conéctate a internet un momento y vuelve a intentar.</small>";
+    return;
+  }
+  $("monEq").innerHTML = (v ? "\u2248 <b>" + plata(v * t) + "</b>" : "Se guardará convertido a pesos.")
+    + '<small>' + textoTasa(monedaSel, t)
+    + (estado.tasas && estado.tasas[f] ? " \u00B7 valor del " + fechaLarga(f) : " \u00B7 último valor conocido") + '</small>';
+}
+function ponerMoneda(c){
+  var v = leerMonto();
+  monedaSel = c;
+  $("monto").value = formatearMonto(v);
+  pintarMoneda();
+  cargarTasas($("fecha").value || hoyISO()).then(function(){ pintarEquivalencia(); });
+}
+$("monBtn").addEventListener("click", function(){
+  if (monedasActivas().length <= 1) return;
+  var ab = $("monOps").hidden;
+  $("monOps").hidden = !ab;
+  this.setAttribute("aria-expanded", ab ? "true" : "false");
+});
+$("monOps").addEventListener("click", function(e){
+  var b = e.target.closest("[data-mon]"); if (!b) return;
+  ponerMoneda(b.dataset.mon);
+  $("monOps").hidden = true;
+  $("monBtn").setAttribute("aria-expanded","false");
+});
+$("fecha").addEventListener("change", function(){
+  if (monedaSel === "CLP") return;
+  cargarTasas(this.value || hoyISO()).then(function(){ pintarEquivalencia(); });
+});
 $("monto").addEventListener("input", function(){
-  var d = limitarDigitos(this.value);
-  this.value = d ? nf.format(parseInt(d,10)) : "";
+  if (!decSel()){
+    var d = limitarDigitos(this.value);
+    this.value = d ? nf.format(parseInt(d,10)) : "";
+  } else {
+    var t = String(this.value).replace(/[^\d.]/g, "").split(".");
+    this.value = t.shift().slice(0, MAX_DIG) + (t.length ? "." + t.join("").slice(0, 2) : "");
+  }
+  pintarEquivalencia();
 });
 ["monto","nota"].forEach(function(id){
   $(id).addEventListener("keydown", function(e){ if (e.key === "Enter") guardar(); });
@@ -2651,15 +2855,18 @@ function limpiarForm(){
   catSel = "";                 /* no se arrastra la categoría del gasto anterior */
   $("monto").value = ""; $("nota").value = ""; $("hint").textContent = "";
   $("fecha").value = hoyISO();
+  monedaSel = "CLP"; $("monOps").hidden = true; pintarMoneda();
   $("hojaTitulo").textContent = "Anotar un gasto";
   $("guardar").textContent = "Guardar gasto";
   $("borrarGasto").hidden = true;
-  formOrig = { m:"", nota:"", fecha:$("fecha").value, cat:"" };
+  formOrig = { m:"", nota:"", fecha:$("fecha").value, cat:"", mon:"CLP" };
 }
 function cargarForm(id){
   var r = buscarGasto(id); if (!r) return;
   editandoId = id;
-  $("monto").value = nf.format(r.g.monto);
+  monedaSel = r.g.mon && MONEDAS[r.g.mon] ? r.g.mon : "CLP";
+  $("monto").value = r.g.mon ? formatearMonto(r.g.orig) : nf.format(r.g.monto);
+  pintarMoneda();
   $("nota").value = r.g.nota || "";
   $("fecha").value = r.g.fecha;
   catSel = r.g.cat;
@@ -2668,7 +2875,7 @@ function cargarForm(id){
   $("guardar").textContent = "Guardar cambios";
   $("borrarGasto").hidden = false;
   pintarCatVal();
-  formOrig = { m:String(r.g.monto), nota:r.g.nota || "", fecha:r.g.fecha, cat:r.g.cat };
+  formOrig = { m:String(leerMonto()), nota:r.g.nota || "", fecha:r.g.fecha, cat:r.g.cat, mon:monedaSel };
 }
 function textoGasto(g){ return (g.nota ? g.nota + " · " : "") + g.cat + " · " + plata(g.monto) + " · " + fechaLarga(g.fecha); }
 
@@ -2701,7 +2908,14 @@ $("movs").addEventListener("click", function(e){
 });
 
 function guardar(){
-  var monto = parseInt(soloDigitos($("monto").value) || "0", 10);
+  var bruto = leerMonto();
+  var mon = monedaSel || "CLP";
+  var tasa = tasaDe(mon, $("fecha").value || hoyISO());
+  if (bruto && mon !== "CLP" && !tasa){
+    $("hint").textContent = "No tengo el valor de " + mon + " todavía. Conéctate a internet un momento.";
+    return;
+  }
+  var monto = mon === "CLP" ? Math.round(bruto) : Math.round(bruto * tasa);
   var cat = catSel;
   var nota = $("nota").value.trim();
   var fecha = $("fecha").value || hoyISO();
@@ -2721,6 +2935,7 @@ function guardar(){
   var editando = editandoId;
   if (editando) quitarGasto(editando);
   var g = { id: editando || nuevoId(), monto:monto, cat:cat, nota:nota, fecha:fecha };
+  if (mon !== "CLP"){ g.mon = mon; g.orig = bruto; g.tasa = tasa; }
   estado.meses[k] = itemsDe(k).concat([g]);
   mesActual = k;
   guardarCache(true);
@@ -2816,7 +3031,8 @@ function hayCambios(){
   if (editorPendiente()) return "la categoría que estás editando";
   if (presuMesPendiente()) return "el presupuesto mensual";
   if (document.body.classList.contains("hoja-abierta") && formOrig){
-    if (soloDigitos($("monto").value) !== formOrig.m
+    if (String(leerMonto()) !== formOrig.m
+        || monedaSel !== (formOrig.mon || "CLP")
         || $("nota").value.trim() !== formOrig.nota
         || $("fecha").value !== formOrig.fecha
         || catSel !== formOrig.cat)
@@ -3221,6 +3437,7 @@ function datosDemo(){
   meses[m] = meses[m].map(function(g){ return g.id === "d1" ? Object.assign({}, g, {id:"rec_"+recId+"_"+m, rec:recId}) : g; });
   var topes = {}; topes[pv] = 500000; topes[pv2] = 420000;
   return {
+    monedas: ["CLP","USD","UF"], tasas: estado.tasas || {},
     presupuestoMes: 520000, topes: topes,
     recurrentes: [{id:recId, cat:"Arriendo", monto:320000, dia:1, nota:"Depto"}],
     recOmitidos: [], avisoMes: {},
@@ -3286,6 +3503,8 @@ function pasosTour(){
       d:'Escribes <b>8900</b> y queda <b>$8.900</b>. Se formatea solo.' },
     { abre:"hoja", form:{monto:"8900", cat:"Comida"}, sel:"#catBtn", t:"La categoría",
       d:"Obligatoria. Se elige de la lista o creas una nueva ahí mismo." },
+    { abre:"hoja", form:{monto:"8900", cat:"Comida"}, sel:"#monBtn", t:"Otras monedas",
+      d:'Tocando el signo <b>$</b> eliges la moneda: dólar, euro, real, UF o peso argentino.<br><br>Se guarda convertido a pesos con el valor de ese día, así que tus totales viven siempre en una sola moneda. Cuáles aparecen se elige en <b>Ajustes</b>.' },
     { abre:"hoja", form:{monto:"8900", cat:"Comida", nota:"Almuerzo campus"}, sel:"#nota", t:"Detalle y fecha",
       d:'Opcionales. <b>Almuerzo campus</b>, por ejemplo. La fecha viene en hoy.' },
     { abre:"hoja", form:{monto:"8900", cat:"Comida", nota:"Almuerzo campus"}, sel:"#guardar", t:"Guardar",
@@ -3296,7 +3515,7 @@ function pasosTour(){
     { abre:"mes", sel:"#movFiltrar", t:"Filtrar y ocultar",
       d:"Por categoría o por rango de fechas. Y la lista se esconde si estorba." },
     { abre:"mes", sel:"#total", t:"El total del mes",
-      d:'Abajo dice cuánto subiste o bajaste contra el <b>mismo día</b> del mes pasado, no contra su total.' },
+      d:'Abajo dice si vas por sobre o bajo <b>tu promedio</b> de meses completos. Con el mes en curso compara a la misma altura del mes, no contra meses enteros.' },
     { abre:"mes", sel:"#rank", t:"El desglose",
       d:"En qué se fue, de mayor a menor, con su porcentaje." },
     { abre:"mes", sel:"#cardPresu", t:"Tu presupuesto",
@@ -3308,7 +3527,7 @@ function pasosTour(){
       d:"Los días en azul tienen gastos. <b>Toca uno</b> y ves qué compraste ese día." },
 
     { abre:"hist", sel:"#kpis", t:"El histórico",
-      d:"Tu acumulado, el promedio de los meses completos y el mes más caro." },
+      d:"Tu acumulado, el promedio de meses completos y el mes más caro, siempre de los <b>últimos 12 meses</b> contados desde hoy." },
     { abre:"hist", sel:"#bars", t:"Tus meses",
       d:"Cada barra es un mes, con tu promedio punteado. Toca una y saltas a ese mes." },
     { abre:"hist", sel:"#cardCumple", t:"Meses cumplidos",
@@ -3469,7 +3688,7 @@ function pintarCal(){
         ? items.map(function(g){
             return '<div class="mov"><span class="mov-main">' + insignia(g.cat)
               + '<span class="d"><b>' + esc(g.nota || g.cat) + '</b>'
-              + (g.nota ? '<small>' + esc(g.cat) + '</small>' : '')
+              + subMov(g)
               + '</span><span class="m">' + plata(g.monto) + '</span></span></div>';
           }).join("")
         : '<div class="cal-vacio">Sin gastos este día.</div>')
@@ -3494,6 +3713,40 @@ function notaNotif(){
   else if (estado.notif && Notification.permission === "granted") t = "Activas. Si la app está cerrada, el aviso llega al abrirla.";
   $("cfgNota").textContent = t;
 }
+function pintarMonedasCfg(){
+  var act = monedasActivas();
+  $("monLista").innerHTML = ORDEN_MON.map(function(c){
+    var m = MONEDAS[c], fija = c === "CLP";
+    return '<label class="check"><input type="checkbox" data-moncfg="' + c + '"'
+      + (act.indexOf(c) >= 0 ? " checked" : "") + (fija ? " disabled" : "") + '>'
+      + '<span>' + m.s + " " + c + ' <small style="color:var(--faint)">' + esc(m.n)
+      + (fija ? " \u00B7 siempre activo" : "") + "</small></span></label>";
+  }).join("");
+  var f = fechaTasa();
+  $("monEstado").textContent = f
+    ? "Valores al " + fechaLarga(f) + ". UF, dólar y euro vienen de mindicador.cl; el real y el peso argentino, del cruce con el dólar."
+    : "Todavía no he podido traer los valores. Necesitas internet una vez.";
+}
+$("monLista").addEventListener("change", function(e){
+  var b = e.target.closest("[data-moncfg]"); if (!b) return;
+  var c = b.dataset.moncfg;
+  var l = monedasActivas().filter(function(x){ return x !== c; });
+  if (b.checked) l.push(c);
+  estado.monedas = ORDEN_MON.filter(function(x){ return x === "CLP" || l.indexOf(x) >= 0; });
+  guardarCache(true);
+  pintarMonedasCfg(); pintarMoneda();
+  if (b.checked && c !== "CLP") cargarTasas().then(function(){ pintarMonedasCfg(); pintarEquivalencia(); });
+});
+$("monActualizar").addEventListener("click", function(){
+  var hoy = hoyISO();
+  if (estado.tasas) delete estado.tasas[hoy];
+  $("monEstado").textContent = "Buscando valores\u2026";
+  cargarTasas(hoy).then(function(t){
+    pintarMonedasCfg(); pintarEquivalencia();
+    avisar(t ? "Valores actualizados" : "No pude conectarme");
+  });
+});
+
 function pintarCfg(){
   $("secCuenta").hidden = !usuario;
   var pm = primerMes();
@@ -3507,6 +3760,7 @@ function pintarCfg(){
     $("cfgPrimerFila").hidden = true;
   }
   if (usuario){ $("cuentaQuien").textContent = usuario.nombre; estadoSync(); }
+  pintarMonedasCfg();
   $("cfgNotif").checked = !!estado.notif;
   $("cfgResumen").checked = !!estado.resumen;
   $("cfgHora").value = estado.horaResumen || "09:00";
@@ -3554,6 +3808,7 @@ function respaldoJSON(){
     cats:estado.cats, colores:estado.colores, iconos:estado.iconos, presupuestos:estado.presupuestos,
     primerMesCompleto:estado.primerMesCompleto, tutorial:estado.tutorial,
     presupuestoMes:estado.presupuestoMes, topes:estado.topes, recurrentes:estado.recurrentes, recOmitidos:estado.recOmitidos,
+    monedas:estado.monedas, tasas:estado.tasas,
     notif:estado.notif, resumen:estado.resumen, horaResumen:estado.horaResumen,
     meses:estado.meses
   }, null, 2);
@@ -3614,6 +3869,8 @@ function aplicarReemplazo(d){
     presupuestos: (d.presupuestos && typeof d.presupuestos === "object") ? d.presupuestos : {},
     primerMesCompleto: !!d.primerMesCompleto, tutorial: !!d.tutorial,
     presupuestoMes: +d.presupuestoMes || 0, topes: (d.topes && typeof d.topes === "object") ? d.topes : {},
+    monedas: Array.isArray(d.monedas) && d.monedas.length ? d.monedas : ["CLP"],
+    tasas: (d.tasas && typeof d.tasas === "object") ? d.tasas : {},
     recurrentes: Array.isArray(d.recurrentes) ? d.recurrentes : [],
     recOmitidos: Array.isArray(d.recOmitidos) ? d.recOmitidos : [], avisoMes: {},
     notif: !!d.notif, resumen: !!d.resumen, horaResumen: d.horaResumen || "09:00",
@@ -3970,6 +4227,7 @@ function arrancarApp(){
     cats: cache.cats || [], meses: cache.meses || {}, colores: cache.colores || {}, iconos: cache.iconos || {},
     presupuestos: cache.presupuestos || {}, primerMesCompleto: !!cache.primerMesCompleto,
     presupuestoMes: +cache.presupuestoMes || 0, topes: cache.topes || {},
+    monedas: (cache.monedas && cache.monedas.length) ? cache.monedas : ["CLP"], tasas: cache.tasas || {},
     recurrentes: cache.recurrentes || [], recOmitidos: cache.recOmitidos || [], avisoMes: cache.avisoMes || {},
     tutorial: !!cache.tutorial, notif: !!cache.notif,
     resumen: !!cache.resumen, horaResumen: cache.horaResumen || "09:00",
@@ -3978,6 +4236,7 @@ function arrancarApp(){
   } : estadoVacio();
   var cambio = normColores();
   congelarTopes();
+  if (monedasActivas().length > 1) cargarTasas().then(function(){ pintarMoneda(); });
   generarRecurrentes();
   limpiarForm();
   pintar();
