@@ -77,6 +77,8 @@ button{cursor:pointer}
 :focus-visible{outline:2px solid var(--gold);outline-offset:3px;border-radius:8px}
 [hidden]{display:none!important}
 .num{font-family:"Fraunces",Georgia,serif;font-weight:400;letter-spacing:-.02em}
+sup{font-family:"Inter Tight",system-ui,sans-serif;font-size:.54em;font-weight:600;
+  vertical-align:.5em;line-height:0;letter-spacing:0;white-space:nowrap}
 
 /* ============================================================
    2. Barra superior
@@ -256,7 +258,18 @@ button{cursor:pointer}
 .fchip button:hover{background:rgba(7,16,33,.4)}
 
 .rank{list-style:none;margin:0;padding:0}
-.rank li{padding:14px 0;border-bottom:1px solid var(--line-soft)}
+.rank li{border-bottom:1px solid var(--line-soft)}
+.rank li > .rk{width:100%;background:none;border:none;color:inherit;text-align:left;padding:14px 0;display:block;border-radius:12px}
+.rank li > .rk:hover{background:var(--card-2)}
+.rank li .r1 .ch{color:var(--faint);font-size:19px;margin-left:10px;flex:none}
+.rank li.vacio{padding:34px 12px 28px}
+/* movimientos de una categoría */
+.cm-tot{display:flex;align-items:baseline;gap:12px;margin-bottom:4px;flex-wrap:wrap}
+.cm-tot .v{font-family:"Fraunces",Georgia,serif;font-size:30px;letter-spacing:-.025em;color:var(--ink)}
+.cm-tot .k{font-size:14px;color:var(--muted)}
+.cm-mes{display:flex;justify-content:space-between;align-items:baseline;gap:10px;margin:22px 0 2px;
+  font-size:12.5px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--gold)}
+.cm-mes span:last-child{font-family:"Fraunces",serif;letter-spacing:0;text-transform:none;font-size:14px;color:var(--muted)}
 .rank li:last-child{border-bottom:none;padding-bottom:0}
 .rank li:first-child{padding-top:0}
 .r1{display:flex;align-items:center;justify-content:space-between;gap:14px}
@@ -836,7 +849,6 @@ body.acceso-on #winInstalar{z-index:100}
         <span class="delta" id="delta" hidden></span>
         <span class="txt" id="metaTxt"></span>
       </div>
-      <div class="minis" id="minis"></div>
     </div>
 
     <div class="grid2">
@@ -977,6 +989,10 @@ body.acceso-on #winInstalar{z-index:100}
         <input id="presuMes" type="text" inputmode="numeric" placeholder="Sin tope" aria-label="Presupuesto mensual">
       </div>
       <div class="nota">Es el tope de todo el mes, aparte del de cada categoría. En blanco, sin tope.</div>
+      <div class="btnrow" id="presuMesAcc" hidden style="margin-top:14px">
+        <button class="btn2" id="presuMesGuardar" style="background:linear-gradient(150deg,var(--gold),var(--gold-2));color:#191203;border-color:transparent">Guardar</button>
+        <button class="btn2" id="presuMesCancelar">Cancelar</button>
+      </div>
     </div>
     <div id="presuLista"></div>
     <button class="nueva-cat" id="catNueva"><b>+</b>Nueva categoría</button>
@@ -1005,6 +1021,12 @@ body.acceso-on #winInstalar{z-index:100}
     <button class="save" id="edListo">Guardar</button>
     <div class="form-acc"><button class="linkbtn peligro" id="edBorrar">Eliminar categoría</button></div>
   </div>
+</div>
+
+<!-- Movimientos de una categoría -->
+<div class="win" id="winCatMovs" hidden role="dialog" aria-label="Movimientos de la categoría">
+  <div class="win-top"><h2><button class="volver" id="cerrarCatMovs" aria-label="Volver">‹</button><span id="cmTitulo">—</span></h2></div>
+  <div id="cmCuerpo"></div>
 </div>
 
 <!-- Pagos recurrentes -->
@@ -1616,7 +1638,24 @@ var LS = "gastos-v1";
 
 var $ = function(id){ return document.getElementById(id); };
 var nf = new Intl.NumberFormat("es-CL", {maximumFractionDigits:0});
-function plata(n){ return "$" + nf.format(Math.round(n||0)); }
+/* Sobre nueve dígitos la cifra deja de caber en pantalla, así que se abrevia.
+   El exponente va en <sup> porque las tipografías del diseño no traen los
+   caracteres de superíndice y el navegador los sustituía por otros descuadrados. */
+function plata(n){
+  n = Math.round(n || 0);
+  var abs = Math.abs(n);
+  if (abs >= 1e9){
+    var e = Math.floor(Math.log10(abs));
+    var m = abs / Math.pow(10, e);
+    if (+m.toFixed(3) >= 10){ m /= 10; e += 1; }     /* 10,000×10⁹ se lee 1,000×10¹⁰ */
+    return (n < 0 ? "-$" : "$") + m.toFixed(3).replace(".", ",") + "\u00D710<sup>" + e + "</sup>";
+  }
+  return "$" + nf.format(n);
+}
+/* la misma cifra sin etiquetas, para títulos y atributos */
+function plataTxt(n){ return plata(n).replace("<sup>", "^").replace("</sup>", ""); }
+var MAX_DIG = 10;
+function limitarDigitos(s){ return soloDigitos(s).slice(0, MAX_DIG); }
 function esc(t){ var d=document.createElement("div"); d.textContent = t==null?"":t; return d.innerHTML; }
 function soloDigitos(s){ return String(s||"").replace(/[^\d]/g,""); }
 function claveMes(d){ return String(d).slice(0,7); }
@@ -1778,6 +1817,7 @@ function renombrarCat(viejo, nuevo){
     estado.iconos[kn] = estado.iconos[kv]; delete estado.iconos[kv];
     if (estado.presupuestos[kv]){ estado.presupuestos[kn] = estado.presupuestos[kv]; delete estado.presupuestos[kv]; }
   }
+  (estado.recurrentes || []).forEach(function(r){ if (mismaCat(r.cat, viejo)) r.cat = nuevo; });
   reetiquetar(viejo, nuevo);
   if (mismaCat(catSel, viejo)) catSel = nuevo;
   guardarCache(true);
@@ -1935,12 +1975,12 @@ var totalMostrado = 0;
 function animarTotal(destino){
   var el = $("total"), desde = totalMostrado;
   totalMostrado = destino;
-  if (lento || desde === destino){ el.textContent = plata(destino); return; }
+  if (lento || desde === destino){ el.innerHTML = plata(destino); return; }
   var t0 = performance.now(), dur = 420;
   function paso(t){
     var p = Math.min((t-t0)/dur, 1);
     var e = 1 - Math.pow(1-p, 3);
-    el.textContent = plata(desde + (destino-desde)*e);
+    el.innerHTML = plata(desde + (destino-desde)*e);
     if (p < 1) requestAnimationFrame(paso);
   }
   requestAnimationFrame(paso);
@@ -1974,10 +2014,10 @@ function pintar(){
     d.hidden = false;
     d.className = "delta " + (sube ? "sube" : "baja");
     d.innerHTML = '<svg viewBox="0 0 12 12"><path d="' + (sube ? "M6 10V2M2.5 5.5L6 2l3.5 3.5" : "M6 2v8M2.5 6.5L6 10l3.5-3.5") + '"/></svg>'
-      + Math.abs(Math.round(v)) + "% vs " + mesCorto(prev) + (enCurso ? " a la fecha" : "");
+      + (Math.abs(v) >= 1000 ? "+999" : Math.abs(Math.round(v)))
+      + "% vs " + mesCorto(prev) + (enCurso ? " a la fecha" : "");
   } else { d.hidden = true; d.className = "delta"; }
 
-  pintarMinis(total, enCurso, diaHoy);
   pintarPresuMes(total, enCurso, diaHoy);
 
   $("metaTxt").innerHTML = !items.length
@@ -2000,10 +2040,11 @@ function pintar(){
 /* el desglose va en un solo tono: el color vive en la insignia */
 function filaRank(g, total){
   var pct = total ? g.monto/total*100 : 0;
-  return '<li><div class="r1"><div class="nom">' + insignia(g.cat, "sm") + '<span>' + esc(g.cat)
+  return '<li><button type="button" class="rk" data-rcat="' + esc(g.cat) + '">'
+    + '<div class="r1"><div class="nom">' + insignia(g.cat, "sm") + '<span>' + esc(g.cat)
     + '</span></div><div class="val">' + plata(g.monto)
-    + '<span class="pct">' + Math.round(pct) + '%</span></div></div>'
-    + '<div class="track"><div style="width:'+pct+'%;background:var(--barra)"></div></div></li>';
+    + '<span class="pct">' + Math.round(pct) + '%</span></div><span class="ch">\u203A</span></div>'
+    + '<div class="track"><div style="width:'+pct+'%;background:var(--barra)"></div></div></button></li>';
 }
 
 /* suma de un mes hasta cierto día, para comparar peras con peras */
@@ -2028,21 +2069,6 @@ function proyeccionMes(total, diaHoy){
    dispararía el número. Usa la forma de tu mes anterior: cuánto llevabas a esta
    altura y en cuánto terminaste. Si no hay mes anterior, recién desde el día 5
    se cae al cálculo simple. */
-function pintarMinis(total, enCurso, diaHoy){
-  if (!enCurso || !total || !diaHoy){ $("minis").innerHTML = ""; return; }
-  var dias = diasDelMes(mesActual);
-  var ritmo = total / diaHoy;
-
-  var pr = proyeccionMes(total, diaHoy);
-  var proy = pr ? pr.valor : null, base = pr ? pr.base : "";
-
-  $("minis").innerHTML =
-      '<div class="mini"><div class="k">Ritmo diario</div><div class="v">' + plata(ritmo)
-    + ' <small>día ' + diaHoy + ' de ' + dias + '</small></div></div>'
-    + (proy ? '<div class="mini"><div class="k">Proyección del mes</div><div class="v">' + plata(proy)
-              + ' <small>' + base + '</small></div></div>' : "");
-}
-
 var EE_CAT = ["cigarros","vaper","copete","puchos","piscolas"];
 var EE_ICO = { sexo:1, adultos:1, putas:1 };
 function sorpresas(cat, mes, alerta){
@@ -2084,13 +2110,21 @@ function pintarPresuMes(total, enCurso, diaHoy){
   $("cardPresu").hidden = false;
   $("pmEdit").hidden = true;
 
+  /* Sin tope el bloque igual aparece: el ritmo y la proyección sirven solos,
+     solo que sin verde ni rojo, porque no hay contra qué compararlos. */
   if (!tope){
-    $("pmCuerpo").innerHTML = '<div class="pm-vacio">Este mes no tiene tope.'
-      + (pasado ? " Puedes ponerle uno para contarlo en tus estadísticas."
-                : " Se pone en <b>Categorías</b>, con el botón dorado de arriba.") + '</div>'
-      + (pasado ? '<div class="btnrow" style="margin-top:14px"><button class="btn2" id="pmPoner">Poner un tope a '
-          + esc(nombreMes(mesActual).split(" ")[0]) + '</button></div>' : "");
-    if ($("pmPoner")) $("pmPoner").addEventListener("click", abrirEdicionTope);
+    $("pmCuerpo").innerHTML =
+        '<div class="pm-cab">'
+      +   '<div><div class="pm-k">Gastado este mes</div>'
+      +     '<div class="pm-grande">' + plata(total) + '</div></div>'
+      +   '<div class="pm-tope"><div class="pm-k">Tope</div><div class="v">Sin tope</div>'
+      +     (pasado ? '<button class="linkbtn" id="pmEditar">Poner uno</button>' : "") + '</div>'
+      + '</div>'
+      + cajasRitmo(total, enCurso, diaHoy, null)
+      + '<div class="pm-vacio" style="margin-top:14px">'
+      +   (pasado ? "Ponle un tope a este mes y entrará en tus estadísticas."
+                  : "Ponle un tope en <b>Categorías</b> y acá verás cuánto te queda.") + '</div>';
+    if ($("pmEditar")) $("pmEditar").addEventListener("click", abrirEdicionTope);
     return;
   }
 
@@ -2106,37 +2140,11 @@ function pintarPresuMes(total, enCurso, diaHoy){
     +     (pasado ? '<button class="linkbtn" id="pmEditar">Cambiar</button>' : "") + '</div>'
     + '</div>'
     + '<div class="pm-barra"><div style="width:' + Math.min(usado,100) + '%;background:' + color + '"></div></div>'
-    + '<div class="pm-pct"><span>' + plata(total) + ' gastados</span><span>' + Math.round(usado) + '%</span></div>';
+    + '<div class="pm-pct"><span>' + plata(total) + ' gastados</span><span>'
+    + (usado >= 1000 ? "+999" : Math.round(usado)) + '%</span></div>';
 
-  var dias = diasDelMes(mesActual), faltan = Math.max(0, dias - diaHoy);
-  var pr = enCurso ? proyeccionMes(total, diaHoy) : null;
-
-  html += '<div class="pm-grid">';
-  if (enCurso){
-    var ritmo = diaHoy ? total / diaHoy : 0;
-    var permitido = (queda > 0 && faltan > 0) ? queda / faltan : 0;
-    html += '<div class="pm-caja"><div class="k">Puedes gastar</div><div class="v">'
-         +  (permitido ? plata(permitido) : "$0")
-         +  ' <small>' + (faltan ? "por día, quedan " + faltan + (faltan===1?" día":" días")
-                                 : "último día del mes") + '</small></div></div>';
-    html += '<div class="pm-caja ' + (permitido && ritmo > permitido ? "mal" : (permitido ? "ok" : "mal")) + '">'
-         +  '<div class="k">Vas gastando</div><div class="v">' + plata(ritmo)
-         +  ' <small>por día, en ' + diaHoy + (diaHoy===1?" día":" días") + '</small></div></div>';
-    if (pr){
-      var dif = pr.valor - tope;
-      html += '<div class="pm-caja ' + (dif > 0 ? "mal" : "ok") + '" style="grid-column:1 / -1">'
-           +  '<div class="k">Terminarías el mes en</div><div class="v">' + plata(pr.valor)
-           +  ' <small>' + (dif > 0 ? plata(dif) + " sobre el tope" : plata(-dif) + " bajo el tope")
-           +  " · " + pr.base + '</small></div></div>';
-    }
-  } else {
-    var dias2 = diasDelMes(mesActual);
-    html += '<div class="pm-caja"><div class="k">Ritmo del mes</div><div class="v">' + plata(total/dias2)
-         +  ' <small>por día</small></div></div>';
-    html += '<div class="pm-caja ' + (queda >= 0 ? "ok" : "mal") + '"><div class="k">Cierre</div><div class="v">'
-         +  (queda >= 0 ? "Dentro" : "Excedido") + ' <small>' + plata(total) + ' de ' + plata(tope) + '</small></div></div>';
-  }
-  html += '</div>';
+  var faltan = Math.max(0, diasDelMes(mesActual) - diaHoy);
+  html += cajasRitmo(total, enCurso, diaHoy, tope);
 
   if (queda < 0){
     html += '<div class="pm-aviso"><svg viewBox="0 0 24 24"><path d="M12 8.5v5M12 17h.01M10.3 3.9L2.6 17.2A2 2 0 004.3 20h15.4a2 2 0 001.7-2.8L13.7 3.9a2 2 0 00-3.4 0z"/></svg>'
@@ -2147,6 +2155,52 @@ function pintarPresuMes(total, enCurso, diaHoy){
   if ($("pmEditar")) $("pmEditar").addEventListener("click", abrirEdicionTope);
 }
 
+/* Ritmo y proyección. Con tope se pintan en verde o rojo; sin tope, en gris. */
+function cajasRitmo(total, enCurso, diaHoy, tope){
+  var dias = diasDelMes(mesActual), faltan = Math.max(0, dias - diaHoy);
+  var queda = tope ? tope - total : 0;
+  var pr = enCurso ? proyeccionMes(total, diaHoy) : null;
+  var html = '<div class="pm-grid">';
+
+  if (enCurso){
+    var ritmo = diaHoy ? total / diaHoy : 0;
+    if (tope){
+      var permitido = (queda > 0 && faltan > 0) ? queda / faltan : 0;
+      html += '<div class="pm-caja"><div class="k">Puedes gastar</div><div class="v">'
+           +  (permitido ? plata(permitido) : "$0")
+           +  ' <small>' + (faltan ? "por día, quedan " + faltan + (faltan===1?" día":" días")
+                                   : "último día del mes") + '</small></div></div>';
+      html += '<div class="pm-caja ' + (permitido && ritmo <= permitido ? "ok" : "mal") + '">'
+           +  '<div class="k">Vas gastando</div><div class="v">' + plata(ritmo)
+           +  ' <small>por día, en ' + diaHoy + (diaHoy===1?" día":" días") + '</small></div></div>';
+    } else {
+      html += '<div class="pm-caja"><div class="k">Vas gastando</div><div class="v">' + plata(ritmo)
+           +  ' <small>por día, en ' + diaHoy + (diaHoy===1?" día":" días") + '</small></div></div>';
+      html += '<div class="pm-caja"><div class="k">Quedan</div><div class="v">' + faltan
+           +  (faltan===1?" día":" días") + ' <small>de ' + dias + ' del mes</small></div></div>';
+    }
+    if (pr){
+      var dif = tope ? pr.valor - tope : 0;
+      html += '<div class="pm-caja ' + (tope ? (dif > 0 ? "mal" : "ok") : "") + '" style="grid-column:1 / -1">'
+           +  '<div class="k">Terminarías el mes en</div><div class="v">' + plata(pr.valor)
+           +  ' <small>' + (tope ? (dif > 0 ? plata(dif) + " sobre el tope" : plata(-dif) + " bajo el tope")
+                                 : "si sigues a este ritmo")
+           +  " · " + pr.base + '</small></div></div>';
+    }
+  } else {
+    html += '<div class="pm-caja"><div class="k">Ritmo del mes</div><div class="v">' + plata(total/dias)
+         +  ' <small>por día</small></div></div>';
+    if (tope){
+      html += '<div class="pm-caja ' + (queda >= 0 ? "ok" : "mal") + '"><div class="k">Cierre</div><div class="v">'
+           +  (queda >= 0 ? "Dentro" : "Excedido") + ' <small>' + plata(total) + ' de ' + plata(tope) + '</small></div></div>';
+    } else {
+      html += '<div class="pm-caja"><div class="k">Gastos</div><div class="v">' + itemsDe(mesActual).length
+           +  ' <small>en el mes</small></div></div>';
+    }
+  }
+  return html + '</div>';
+}
+
 function abrirEdicionTope(){
   var t = topeDe(mesActual);
   $("pmTopeInp").value = t ? nf.format(t) : "";
@@ -2154,7 +2208,7 @@ function abrirEdicionTope(){
   $("pmTopeInp").focus();
 }
 $("pmTopeInp").addEventListener("input", function(){
-  var d = soloDigitos(this.value); this.value = d ? nf.format(parseInt(d,10)) : "";
+  var d = limitarDigitos(this.value); this.value = d ? nf.format(parseInt(d,10)) : "";
 });
 $("pmCancelar").addEventListener("click", function(){ $("pmEdit").hidden = true; });
 $("pmGuardar").addEventListener("click", function(){
@@ -2177,7 +2231,7 @@ function avisarTopeMes(mes){
     estado.avisoMes[mes] = 1; guardarCache();
     notificar(t >= tope
       ? "Te pasaste del presupuesto del mes: " + plata(t) + " de " + plata(tope)
-      : "Vas en el " + Math.round(t/tope*100) + "% de tu presupuesto del mes: " + plata(t) + " de " + plata(tope),
+      : "Vas en el " + Math.min(999, Math.round(t/tope*100)) + "% de tu presupuesto del mes: " + plata(t) + " de " + plata(tope),
       "topemes");
   }
 }
@@ -2194,10 +2248,59 @@ function pintarCumplimiento(){
   $("cumDe").textContent = ok.length + " de " + meses.length + (meses.length===1 ? " mes completo" : " meses completos");
   $("cumMeses").innerHTML = meses.slice(-12).map(function(m){
     var dentro = totalDe(m) <= topeDe(m);
-    return '<div class="cum-mes' + (dentro ? "" : " mal") + '" title="' + nombreMes(m) + ": " + plata(totalDe(m))
+    return '<div class="cum-mes' + (dentro ? "" : " mal") + '" title="' + nombreMes(m) + ": " + plataTxt(totalDe(m))
       + " de " + plata(topeDe(m)) + '"><span class="p"></span><span>' + mesCorto(m) + '</span></div>';
   }).join("");
 }
+
+/* ---- movimientos de una categoría, mes por mes ---- */
+var cmCat = "";
+function abrirCatMovs(cat){
+  cmCat = cat;
+  abrirWinReal("winCatMovs");
+  pintarCatMovs();
+  $("winCatMovs").scrollTop = 0;
+}
+function pintarCatMovs(){
+  if (!cmCat) return;
+  $("cmTitulo").textContent = cmCat;
+  var meses = mesesConDatos().slice().reverse();
+  var total = 0, n = 0, html = "";
+  meses.forEach(function(m){
+    var items = itemsDe(m).filter(function(g){ return mismaCat(g.cat, cmCat); })
+      .sort(function(a,b){ return a.fecha < b.fecha ? 1 : -1; });
+    if (!items.length) return;
+    var t = items.reduce(function(a,b){ return a + b.monto; }, 0);
+    total += t; n += items.length;
+    html += '<div class="cm-mes"><span>' + esc(nombreMes(m)) + '</span><span>' + plata(t) + '</span></div>';
+    items.forEach(function(g){
+      html += '<div class="mov"><span class="mov-main">' + insignia(g.cat)
+        + '<span class="d"><b>' + esc(g.nota || g.cat) + '</b>'
+        + '<small>' + fechaLarga(g.fecha) + '</small></span>'
+        + '<span class="m">' + plata(g.monto) + '</span></span></div>';
+    });
+  });
+  $("cmCuerpo").innerHTML =
+      '<div class="cm-tot"><span class="v">' + plata(total) + '</span>'
+    + '<span class="k">' + n + (n === 1 ? " gasto en total" : " gastos en total") + '</span></div>'
+    + (html || '<div class="vacio"><p>Sin movimientos.</p></div>');
+}
+$("cerrarCatMovs").addEventListener("click", function(){ cmCat = ""; cerrarWins(); });
+
+/* en el mes, tocar una categoría filtra la lista de movimientos */
+$("rank").addEventListener("click", function(e){
+  var b = e.target.closest("[data-rcat]"); if (!b) return;
+  movFiltro = { tipo:"cat", cat:b.dataset.rcat, desde:"", hasta:"" };
+  movOculto = false; movMenu = null;
+  pintar();
+  var card = $("movs").closest(".card");
+  if (card) card.scrollIntoView({ block:"start", behavior: lento ? "auto" : "smooth" });
+});
+/* en el histórico, tocar una categoría abre todos sus movimientos */
+$("rankHist").addEventListener("click", function(e){
+  var b = e.target.closest("[data-rcat]"); if (!b) return;
+  abrirCatMovs(b.dataset.rcat);
+});
 
 /* ---- pagos recurrentes ---- */
 function recDeCat(cat){
@@ -2387,7 +2490,7 @@ function pintarAvisos(){
 function pintarHistorico(){
   var lista = mesesConDatos();
   var gran = lista.reduce(function(a,k){ return a+totalDe(k); },0);
-  $("kTotal").textContent = plata(gran);
+  $("kTotal").innerHTML = plata(gran);
   var comp = mesesCompletos();
   if (comp.length){
     var sumaC = comp.reduce(function(a,k){ return a + totalDe(k); }, 0);
@@ -2532,7 +2635,7 @@ document.addEventListener("click", function(e){
    Formulario: anotar y editar
    ============================================================ */
 $("monto").addEventListener("input", function(){
-  var d = soloDigitos(this.value);
+  var d = limitarDigitos(this.value);
   this.value = d ? nf.format(parseInt(d,10)) : "";
 });
 ["monto","nota"].forEach(function(id){
@@ -2676,7 +2779,7 @@ function abrirWinReal(id){
   requestAnimationFrame(function(){ w.classList.add("on"); });
 }
 function cerrarWins(ya){
-  ["winPresu","winCfg","winInstalar","winCal","winLogos","winRec"].forEach(function(id){
+  ["winPresu","winCfg","winInstalar","winCal","winLogos","winRec","winCatMovs"].forEach(function(id){
     var w = $(id);
     if (w.hidden) return;
     w.classList.remove("on");
@@ -2686,15 +2789,32 @@ function cerrarWins(ya){
   document.body.classList.remove("win-abierta");
 }
 /* ¿hay algo a medio editar que se perdería al cambiar de pantalla? */
+function recPendiente(){
+  if ($("winRec").hidden || $("recForm").hidden) return false;
+  var m = parseInt(soloDigitos($("recMonto").value) || "0", 10);
+  var d = parseInt($("recDia").value || "1", 10);
+  var n = $("recNota").value.trim();
+  if (recEditando) return m !== recEditando.monto || d !== (recEditando.dia || 1) || n !== (recEditando.nota || "");
+  return !!m || !!n;
+}
+function editorPendiente(){
+  if ($("catEditor").hidden || !edCat || !edOrig) return false;
+  var pAhora = parseInt(soloDigitos($("edPresu").value) || "0", 10);
+  return $("edNombre").value.trim() !== edOrig.n || pAhora !== edOrig.p || edIcono !== edOrig.ico;
+}
+/* deja todo como estaba al entrar, sin guardar nada */
+function descartarCambios(){
+  edCat = null; edOrig = null; edIcono = "";
+  $("catEditor").hidden = true; $("catVista").hidden = false;
+  if (typeof cerrarRecForm === "function") cerrarRecForm();
+  $("presuMes").value = estado.presupuestoMes ? nf.format(estado.presupuestoMes) : "";
+  if ($("presuMesAcc")) $("presuMesAcc").hidden = true;
+}
 function hayCambios(){
   if (tourPaso >= 0) return "";
-  if (!$("winRec").hidden && !$("recForm").hidden && soloDigitos($("recMonto").value))
-    return "el pago recurrente que estás creando";
-  if (!$("catEditor").hidden && edCat && edOrig){
-    var pAhora = parseInt(soloDigitos($("edPresu").value) || "0", 10);
-    if ($("edNombre").value.trim() !== edOrig.n || pAhora !== edOrig.p)
-      return "la categoría que estás editando";
-  }
+  if (recPendiente()) return "el pago recurrente";
+  if (editorPendiente()) return "la categoría que estás editando";
+  if (presuMesPendiente()) return "el presupuesto mensual";
   if (document.body.classList.contains("hoja-abierta") && formOrig){
     if (soloDigitos($("monto").value) !== formOrig.m
         || $("nota").value.trim() !== formOrig.nota
@@ -2713,7 +2833,7 @@ function salirDe(hacer){
     ok: "Salir", peligro: true
   }).then(function(si){
     if (!si) return;
-    edCat = null; $("catEditor").hidden = true; $("catVista").hidden = false;
+    descartarCambios();
     cerrarHoja();
     hacer();
   });
@@ -2722,7 +2842,7 @@ function abrirWin(id){ salirDe(function(){ cerrarHoja(); abrirWinReal(id); }); }
 $("btnPresu").addEventListener("click", function(){ abrirWin("winPresu"); });
 $("btnCal").addEventListener("click", function(){ abrirWin("winCal"); });
 $("btnCfg").addEventListener("click", function(){ abrirWin("winCfg"); });
-$("cerrarPresu").addEventListener("click", cerrarWins);
+$("cerrarPresu").addEventListener("click", function(){ salirDe(function(){ cerrarWins(); }); });
 $("cerrarCfg").addEventListener("click", cerrarWins);
 $("backdrop").addEventListener("click", function(){
   if (confOk){ cerrarConfirm(false); return; }
@@ -2731,7 +2851,8 @@ $("backdrop").addEventListener("click", function(){
 document.addEventListener("keydown", function(e){
   if (e.key !== "Escape") return;
   if (confOk) cerrarConfirm(false);
-  else if (!$("winPresu").hidden || !$("winCfg").hidden || !$("winInstalar").hidden || !$("winCal").hidden || !$("winLogos").hidden || !$("winRec").hidden) cerrarWins();
+  else if (!$("winPresu").hidden || !$("winCfg").hidden || !$("winInstalar").hidden || !$("winCal").hidden || !$("winLogos").hidden || !$("winRec").hidden
+           || !$("winCatMovs").hidden) salirDe(function(){ cmCat = ""; cerrarWins(); });
   else if (document.body.classList.contains("hoja-abierta")) cerrarHoja();
 });
 
@@ -2788,12 +2909,13 @@ $("bars").addEventListener("click", function(e){
 /* ============================================================
    Ventana de presupuestos
    ============================================================ */
-var edCat = null, edOrig = null;   /* categoría abierta en el editor y su estado inicial */
+var edCat = null, edOrig = null, edIcono = "";   /* categoría abierta en el editor y su estado inicial */
 
 function pintarPresu(){
   $("catVista").hidden = false; $("catEditor").hidden = true; edCat = null;
   if (document.activeElement !== $("presuMes"))
     $("presuMes").value = estado.presupuestoMes ? nf.format(estado.presupuestoMes) : "";
+  syncPresuMesAcc();
   if ($("catNuevaFila")){ $("catNuevaFila").hidden = true; $("catNueva").hidden = false; }
   $("presuLista").innerHTML = estado.cats.length
     ? catsOrdenadas().map(function(c){
@@ -2809,7 +2931,7 @@ function pintarPresu(){
 /* ---- editor de logo y color ---- */
 function pintarEditor(filtro){
   if (!edCat) return;
-  var actual = iconoDe(edCat);
+  var actual = edIcono;
   var dentro = (actual && ICO[actual])
     ? '<svg viewBox="0 0 32 32">' + ICO[actual].s + '</svg>'
     : '<b>' + esc(edCat.trim().charAt(0).toUpperCase()) + '</b>';
@@ -2846,13 +2968,16 @@ function abrirEditor(cat){
   $("edBuscar").value = "";
   var p = presuDe(cat);
   $("edPresu").value = p ? nf.format(p) : "";
-  edOrig = { n: cat, p: p };
+  edIcono = iconoDe(cat) || "";
+  edOrig = { n: cat, p: p, ico: edIcono };
   pintarEditor("");
   $("winPresu").scrollTop = 0;
 }
 /* guarda nombre y tope juntos; devuelve false si quedó una confirmación pendiente */
 function guardarEditor(){
   if (!edCat) return true;
+  if (edIcono) estado.iconos[edCat.toLowerCase()] = edIcono;
+  else delete estado.iconos[edCat.toLowerCase()];
   var v = parseInt(soloDigitos($("edPresu").value) || "0", 10);
   if (v > 0) estado.presupuestos[edCat.toLowerCase()] = v;
   else delete estado.presupuestos[edCat.toLowerCase()];
@@ -2872,15 +2997,23 @@ function guardarEditor(){
   return true;
 }
 function cerrarEditor(){
-  edCat = null; edOrig = null;
+  edCat = null; edOrig = null; edIcono = "";
   $("catEditor").hidden = true; $("catVista").hidden = false;
   pintarPresu();
   $("winPresu").scrollTop = 0;
 }
-$("edVolver").addEventListener("click", function(){ if (guardarEditor()){ cerrarEditor(); pintar(); } });
+function salirEditor(){
+  if (!editorPendiente()) return cerrarEditor();
+  confirmar({
+    titulo: "¿Salir sin guardar?",
+    texto: "Los cambios en esta categoría no se guardarán.",
+    ok: "Salir sin guardar", peligro: true
+  }).then(function(si){ if (si) cerrarEditor(); });
+}
+$("edVolver").addEventListener("click", salirEditor);
 $("edListo").addEventListener("click", function(){ if (guardarEditor()){ cerrarEditor(); pintar(); avisar("Categoría actualizada"); } });
 $("edPresu").addEventListener("input", function(){
-  var d = soloDigitos(this.value); this.value = d ? nf.format(parseInt(d,10)) : "";
+  var d = limitarDigitos(this.value); this.value = d ? nf.format(parseInt(d,10)) : "";
 });
 $("edBorrar").addEventListener("click", function(){
   var c = edCat; if (!c) return;
@@ -2932,7 +3065,14 @@ function cerrarRecForm(){
 $("edRecurrentes").addEventListener("click", function(){
   abrirWinReal("winRec"); cerrarRecForm(); pintarRec(); $("winRec").scrollTop = 0;
 });
-$("cerrarRec").addEventListener("click", function(){ cerrarRecForm(); abrirWinReal("winPresu"); });
+$("cerrarRec").addEventListener("click", function(){
+  if (!recPendiente()){ cerrarRecForm(); abrirWinReal("winPresu"); return; }
+  confirmar({
+    titulo: "¿Salir sin guardar?",
+    texto: "El pago recurrente no se guardará.",
+    ok: "Salir sin guardar", peligro: true
+  }).then(function(si){ if (si){ cerrarRecForm(); abrirWinReal("winPresu"); } });
+});
 $("recNuevo").addEventListener("click", function(){ abrirRecForm(null); $("recMonto").focus(); });
 $("recCancelar").addEventListener("click", cerrarRecForm);
 $("recLista").addEventListener("click", function(e){
@@ -2941,7 +3081,7 @@ $("recLista").addEventListener("click", function(e){
   if (r) abrirRecForm(r);
 });
 $("recMonto").addEventListener("input", function(){
-  var d = soloDigitos(this.value); this.value = d ? nf.format(parseInt(d,10)) : "";
+  var d = limitarDigitos(this.value); this.value = d ? nf.format(parseInt(d,10)) : "";
 });
 $("recGuardar").addEventListener("click", function(){
   var monto = parseInt(soloDigitos($("recMonto").value) || "0", 10);
@@ -2979,21 +3119,38 @@ $("logosGuardar").addEventListener("click", function(){
 });
 $("edRejilla").addEventListener("click", function(e){
   var b = e.target.closest("[data-icono]"); if (!b || !edCat) return;
-  estado.iconos[edCat.toLowerCase()] = b.dataset.icono;
-  guardarCache(); pintarEditor($("edBuscar").value); pintar();
+  edIcono = b.dataset.icono;            /* se confirma al guardar la categoría */
+  pintarEditor($("edBuscar").value);
 });
 
 /* ---- acciones de la lista ---- */
+/* el tope del mes ya no se guarda solo: hay que confirmarlo */
+function presuMesPendiente(){
+  if ($("winPresu").hidden || !$("catEditor").hidden) return false;
+  return parseInt(soloDigitos($("presuMes").value) || "0", 10) !== (+estado.presupuestoMes || 0);
+}
+function syncPresuMesAcc(){ $("presuMesAcc").hidden = !presuMesPendiente(); }
 $("presuMes").addEventListener("input", function(){
-  var d = soloDigitos(this.value);
+  var d = limitarDigitos(this.value);
   this.value = d ? nf.format(parseInt(d,10)) : "";
-  estado.presupuestoMes = parseInt(d || "0", 10);
-  guardarCache();
-  pintar();
+  syncPresuMesAcc();
+});
+$("presuMesGuardar").addEventListener("click", function(){
+  estado.presupuestoMes = parseInt(soloDigitos($("presuMes").value) || "0", 10);
+  estado.topes = estado.topes || {};
+  delete estado.topes[claveMes(hoyISO())];   /* el mes en curso sigue al tope nuevo */
+  guardarCache(true);
+  syncPresuMesAcc(); pintar();
+  avisar("Presupuesto mensual guardado");
+});
+$("presuMesCancelar").addEventListener("click", function(){
+  $("presuMes").value = estado.presupuestoMes ? nf.format(estado.presupuestoMes) : "";
+  syncPresuMesAcc();
 });
 $("presuLista").addEventListener("click", function(e){
   var fila = e.target.closest(".fila-btn"); if (!fila) return;
-  abrirEditor(fila.dataset.cat);
+  var cat = fila.dataset.cat;
+  salirDe(function(){ abrirEditor(cat); });
 });
 $("catNueva").addEventListener("click", function(){
   $("catNueva").hidden = true;
@@ -3140,8 +3297,6 @@ function pasosTour(){
       d:"Por categoría o por rango de fechas. Y la lista se esconde si estorba." },
     { abre:"mes", sel:"#total", t:"El total del mes",
       d:'Abajo dice cuánto subiste o bajaste contra el <b>mismo día</b> del mes pasado, no contra su total.' },
-    { abre:"mes", sel:"#minis", t:"Ritmo y proyección",
-      d:"Cuánto llevas por día y en cuánto terminarías el mes a ese paso." },
     { abre:"mes", sel:"#rank", t:"El desglose",
       d:"En qué se fue, de mayor a menor, con su porcentaje." },
     { abre:"mes", sel:"#cardPresu", t:"Tu presupuesto",
@@ -3298,7 +3453,7 @@ function pintarCal(){
     var tot = g.reduce(function(a,b){ return a+b.monto; }, 0);
     html += '<button class="cal-d' + (g.length ? " tiene" : " vacio") + (iso===hoy ? " hoy" : "")
       + '" data-dia="' + iso + '" aria-pressed="' + (calSel===iso) + '"'
-      + (g.length ? ' title="' + plata(tot) + '"' : '') + '>' + d + '</button>';
+      + (g.length ? ' title="' + plataTxt(tot) + '"' : '') + '>' + d + '</button>';
   }
   $("calGrid").innerHTML = html;
 
