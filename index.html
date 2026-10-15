@@ -213,6 +213,9 @@ sup{font-family:"Inter Tight",system-ui,sans-serif;font-size:.54em;font-weight:6
 .grid2{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:18px;align-items:start;margin-top:18px}
 .grid2 > *{min-width:0}
 .col{display:grid;gap:18px;align-content:start;min-width:0}
+/* sin esto, una tarjeta con texto largo estira la columna entera */
+.col > *{min-width:0}
+.card{min-width:0}
 .card{
   background:linear-gradient(180deg,var(--card-2),var(--card));
   border:1px solid var(--line);border-radius:var(--r-lg);padding:22px 24px;box-shadow:var(--sh-1);
@@ -272,12 +275,14 @@ sup{font-family:"Inter Tight",system-ui,sans-serif;font-size:.54em;font-weight:6
 .cm-mes span:last-child{font-family:"Fraunces",serif;letter-spacing:0;text-transform:none;font-size:14px;color:var(--muted)}
 .rank li:last-child{border-bottom:none;padding-bottom:0}
 .rank li:first-child{padding-top:0}
-.r1{display:flex;align-items:center;justify-content:space-between;gap:14px}
-.nom{display:flex;align-items:center;gap:12px;min-width:0}
-.nom span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:16px;font-weight:500}
-.val{white-space:nowrap;font-size:16px;font-weight:600}
-.val .pct{color:var(--faint);font-size:13px;margin-left:10px;font-weight:500}
-.track{height:6px;margin-top:11px;border-radius:99px;background:var(--line-soft);overflow:hidden}
+.r1{display:flex;align-items:center;gap:12px}
+.nom{display:flex;align-items:center;gap:12px;min-width:0;flex:1}
+.nom span{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:16px;font-weight:500}
+/* el monto y el porcentaje van bajo el nombre: así un nombre largo no los empuja */
+.r2{display:flex;align-items:baseline;gap:12px;margin-top:9px;padding-left:44px}
+.val{font-size:17px;font-weight:600;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.pct{white-space:nowrap;font-size:15px;font-weight:600;color:var(--muted);margin-left:auto;margin-right:38px;flex:none}
+.track{height:6px;margin-top:10px;border-radius:99px;background:var(--line-soft);overflow:hidden}
 .track div{height:100%;border-radius:99px;transition:width .4s cubic-bezier(.2,.8,.3,1)}
 
 .dia{
@@ -803,6 +808,8 @@ body.acceso-on #winInstalar{z-index:100}
   .mes-nav .mes{font-size:13.5px;padding:0 7px}
   .mes-nav button{width:27px;height:27px}
   .fila .inp{width:104px}
+  .r2{padding-left:40px}
+  .pct{margin-right:26px}
   .conf-acc{flex-wrap:wrap}
   .conf-acc .btn2,.conf-acc .save{flex:1 1 100%}
   .opt{padding-left:13px;font-size:15px}
@@ -879,7 +886,7 @@ body.acceso-on #winInstalar{z-index:100}
             <div class="picker-panel" id="catPanel" hidden></div>
           </div>
           <div class="duo">
-            <div><label for="nota">Detalle</label><input id="nota" class="inp" type="text" autocomplete="off" placeholder="Opcional"></div>
+            <div><label for="nota">Detalle</label><input id="nota" class="inp" type="text" autocomplete="off" maxlength="50" placeholder="Opcional"></div>
             <div><label for="fecha">Fecha</label><input id="fecha" class="inp" type="date"></div>
           </div>
           <button class="save" id="guardar">Guardar gasto</button>
@@ -1008,7 +1015,7 @@ body.acceso-on #winInstalar{z-index:100}
     <div id="presuLista"></div>
     <button class="nueva-cat" id="catNueva"><b>+</b>Nueva categoría</button>
     <div id="catNuevaFila" hidden style="margin-top:14px">
-      <input class="inp" id="catNuevaWin" type="text" autocomplete="off" placeholder="Nombre de la categoría" aria-label="Categoría nueva">
+      <input class="inp" id="catNuevaWin" type="text" autocomplete="off" maxlength="50" placeholder="Nombre de la categoría" aria-label="Categoría nueva">
       <div class="btnrow" style="margin-top:10px">
         <button class="btn2" id="catNuevaOk" style="background:var(--deep);color:var(--on-deep);border-color:var(--deep)">Agregar</button>
         <button class="btn2" id="catNuevaNo">Cancelar</button>
@@ -1023,7 +1030,7 @@ body.acceso-on #winInstalar{z-index:100}
     </div>
     <div class="ed-prev">
       <span class="chip lg" id="edChip"></span>
-      <input class="inp" id="edNombre" type="text" aria-label="Nombre de la categoría">
+      <input class="inp" id="edNombre" type="text" maxlength="50" aria-label="Nombre de la categoría">
     </div>
     <label for="edPresu">Tope mensual</label>
     <input class="inp" id="edPresu" type="text" inputmode="numeric" placeholder="Sin tope" style="margin-bottom:20px">
@@ -1674,6 +1681,8 @@ function plata(n){
 /* la misma cifra sin etiquetas, para títulos y atributos */
 function plataTxt(n){ return plata(n).replace("<sup>", "^").replace("</sup>", ""); }
 var MAX_DIG = 10;
+var MAX_TXT = 50;   /* tope de nombres y detalles, para que nada reviente la fila */
+function recortar(t){ return String(t == null ? "" : t).slice(0, MAX_TXT); }
 
 /* ============================================================
    Monedas
@@ -2176,9 +2185,10 @@ function pintar(){
 function filaRank(g, total){
   var pct = total ? g.monto/total*100 : 0;
   return '<li><button type="button" class="rk" data-rcat="' + esc(g.cat) + '">'
-    + '<div class="r1"><div class="nom">' + insignia(g.cat, "sm") + '<span>' + esc(g.cat)
-    + '</span></div><div class="val">' + plata(g.monto)
-    + '<span class="pct">' + Math.round(pct) + '%</span></div><span class="ch">\u203A</span></div>'
+    + '<div class="r1"><div class="nom">' + insignia(g.cat, "sm")
+    +   '<span>' + esc(g.cat) + '</span></div><span class="ch">\u203A</span></div>'
+    + '<div class="r2"><span class="val">' + plata(g.monto) + '</span>'
+    +   '<span class="pct">' + Math.round(pct) + '%</span></div>'
     + '<div class="track"><div style="width:'+pct+'%;background:var(--barra)"></div></div></button></li>';
 }
 
@@ -2708,7 +2718,7 @@ function pintarCats(){
 
   var pie = catCreando
     ? '<div class="fila-edit">'
-      + '<input class="inp" id="catNuevaInp" type="text" autocomplete="off" placeholder="'
+      + '<input class="inp" id="catNuevaInp" type="text" autocomplete="off" maxlength="50" placeholder="'
       +   (propias ? "Nombre" : "Por ejemplo: Comida") + '" aria-label="Categoría nueva">'
       + '<div class="edit-acc"><button type="button" class="mini-btn ok" data-acc="agregar">Agregar</button>'
       +   (propias ? '<button type="button" class="mini-btn" data-acc="cancelar">Cancelar</button>' : '')
@@ -2831,6 +2841,13 @@ $("monOps").addEventListener("click", function(e){
 $("fecha").addEventListener("change", function(){
   if (monedaSel === "CLP") return;
   cargarTasas(this.value || hoyISO()).then(function(){ pintarEquivalencia(); });
+});
+/* el maxlength del HTML ya frena al escribir; esto cubre pegar y autocompletar */
+document.addEventListener("input", function(e){
+  var t = e.target;
+  if (!t || !t.id) return;
+  if (["nota","edNombre","catNuevaWin","catNuevaInp"].indexOf(t.id) < 0) return;
+  if (t.value.length > MAX_TXT) t.value = recortar(t.value);
 });
 $("monto").addEventListener("input", function(){
   if (!decSel()){
@@ -3197,7 +3214,7 @@ function guardarEditor(){
   var v = parseInt(soloDigitos($("edPresu").value) || "0", 10);
   if (v > 0) estado.presupuestos[edCat.toLowerCase()] = v;
   else delete estado.presupuestos[edCat.toLowerCase()];
-  var nuevo = $("edNombre").value.trim();
+  var nuevo = recortar($("edNombre").value).trim();
   if (nuevo && nuevo !== edCat){
     var otra = estado.cats.find(function(c){ return mismaCat(c,nuevo) && !mismaCat(c,edCat); });
     if (otra){
