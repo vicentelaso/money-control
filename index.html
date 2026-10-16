@@ -545,6 +545,52 @@ body.conf-abierta .backdrop{opacity:1;pointer-events:auto;z-index:80}
 .tour-ilu{display:flex;gap:10px;margin:0 0 18px}
 .tour-ilu .chip{--s:46px}
 
+/* cuentas por cobrar y pagar */
+.ghost{position:relative}
+.punto{position:absolute;top:7px;right:7px;width:8px;height:8px;border-radius:99px;background:var(--gold);box-shadow:0 0 0 2px var(--card)}
+.cx-res{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin:4px 0 18px}
+.cx-res-c{background:var(--bg-2);border:1px solid var(--line);border-radius:14px;padding:14px 15px}
+.cx-res-c .k{font-size:11.5px;font-weight:700;letter-spacing:.07em;text-transform:uppercase;color:var(--faint);margin-bottom:6px}
+.cx-res-c .v{font-family:"Fraunces",Georgia,serif;font-size:22px;letter-spacing:-.01em}
+.cx-res-c.cobrar .v{color:var(--ok)}
+.cx-res-c.pagar .v{color:var(--danger)}
+.cx-tabs{display:flex;gap:8px;margin-bottom:16px}
+.cx-tabs button{flex:1;background:var(--bg-2);border:1px solid var(--line);color:var(--muted);
+  border-radius:99px;padding:11px 10px;font-size:14px;font-weight:600}
+.cx-tabs button[aria-pressed="true"]{background:linear-gradient(150deg,var(--gold),var(--gold-2));border-color:transparent;color:#191203}
+.cx-fila{width:100%;display:block;text-align:left;background:none;border:none;color:inherit;
+  border-bottom:1px solid var(--line-soft);padding:14px 0}
+.cx-fila:hover{background:var(--card-2)}
+.cx-fila .l1{display:flex;align-items:center;gap:12px}
+.cx-fila .nm{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:16px;font-weight:500}
+.cx-fila .ch{color:var(--faint);font-size:19px;flex:none}
+.cx-fila .l2{display:flex;align-items:baseline;gap:12px;margin-top:8px;padding-left:44px}
+.cx-fila .mt{font-size:17px;font-weight:600;white-space:nowrap}
+.cx-fila .de{font-size:13.5px;color:var(--faint);margin-left:auto;margin-right:30px;white-space:nowrap}
+.cx-fila.lista .mt{color:var(--ok)}
+.cx-bar{height:6px;border-radius:99px;background:var(--line-soft);overflow:hidden;margin:10px 0 0 44px}
+.cx-bar div{height:100%;border-radius:99px;background:var(--barra)}
+.cx-chips{display:flex;flex-wrap:wrap;gap:8px;margin-top:10px}
+.cx-chips button{background:var(--card);border:1px solid var(--line);color:var(--muted);
+  border-radius:99px;padding:8px 13px;font-size:13.5px;font-weight:600}
+.cx-chips button:hover{border-color:var(--faint);color:var(--ink)}
+.cx-det-top{display:flex;align-items:flex-start;justify-content:space-between;gap:16px;margin-bottom:4px}
+.cx-det-top .v{font-family:"Fraunces",Georgia,serif;font-size:clamp(30px,8vw,38px);line-height:1;letter-spacing:-.025em}
+.cx-det-top .k{font-size:12px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--faint);margin-bottom:7px}
+.cx-det-top .de{text-align:right;font-size:14px;color:var(--muted);white-space:nowrap}
+.cx-meta{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin:16px 0 4px;font-size:14.5px;color:var(--muted)}
+.cx-pago{display:flex;align-items:center;gap:12px;padding:12px 0;border-bottom:1px solid var(--line-soft);font-size:15px}
+.cx-pago .f{color:var(--muted);font-size:13.5px}
+.cx-pago .m{margin-left:auto;font-weight:600;font-family:"Fraunces",serif}
+.cx-pago .x{width:36px;height:36px;border-radius:10px;background:none;border:1px solid transparent;color:var(--faint);
+  display:grid;place-items:center;flex:none;font-size:17px}
+.cx-pago .x:hover{color:var(--danger);border-color:var(--line)}
+select.inp{appearance:none;-webkit-appearance:none;padding-right:38px;
+  background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20' fill='none' stroke='%239AA6C2' stroke-width='1.9' stroke-linecap='round'><path d='M5 8l5 5 5-5'/></svg>");
+  background-repeat:no-repeat;background-position:right 12px center;background-size:18px}
+.mov .cxtag{display:inline-block;font-size:11px;font-weight:700;letter-spacing:.05em;text-transform:uppercase;
+  color:var(--ok);border:1px solid rgba(95,199,154,.4);border-radius:99px;padding:1px 7px;margin-left:7px;vertical-align:1px}
+
 /* presupuesto del mes */
 .pm-cab{display:flex;align-items:flex-start;justify-content:space-between;gap:16px}
 .pm-k{font-size:12.5px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--faint);margin-bottom:7px}
@@ -837,6 +883,11 @@ body.acceso-on #winInstalar{z-index:100}
       <button class="ghost cats" id="btnPresu" aria-label="Categorías" title="Categorías">
         <svg viewBox="0 0 24 24"><path d="M3 12.3V4.6a1.6 1.6 0 011.6-1.6h7.7L21.4 12l-9.1 9.1z"/><circle cx="7.6" cy="7.6" r="1.5"/></svg>
       </button>
+      <button class="ghost" id="btnCx" aria-label="Cuentas por cobrar y pagar" title="Cuentas">
+        <svg viewBox="0 0 24 24"><text x="12" y="16.4" text-anchor="middle" fill="currentColor" stroke="none"
+          font-family="Inter Tight, system-ui, sans-serif" font-size="12.5" font-weight="700">Cx</text></svg>
+        <i class="punto" id="cxPunto" hidden></i>
+      </button>
       <button class="ghost" id="btnCal" aria-label="Calendario" title="Calendario">
         <svg viewBox="0 0 24 24"><path d="M4 5.6h16v15H4z"/><path d="M4 10.2h16M8.6 3.2v4M15.4 3.2v4"/></svg>
       </button>
@@ -1044,6 +1095,63 @@ body.acceso-on #winInstalar{z-index:100}
     <button class="btn2" id="edCambiarLogo" style="width:100%;margin-bottom:16px">Cambiar logo</button>
     <button class="save" id="edListo">Guardar</button>
     <div class="form-acc"><button class="linkbtn peligro" id="edBorrar">Eliminar categoría</button></div>
+  </div>
+</div>
+
+<!-- Cuentas por cobrar y pagar -->
+<div class="win" id="winCx" hidden role="dialog" aria-label="Cuentas">
+  <div class="win-top"><h2><button class="volver" id="cerrarCx" aria-label="Volver">‹</button><span id="cxTitulo">Cuentas</span></h2></div>
+
+  <div id="cxVista">
+    <div class="cx-res">
+      <div class="cx-res-c cobrar"><div class="k">Te deben</div><div class="v" id="cxTotCobrar">$0</div></div>
+      <div class="cx-res-c pagar"><div class="k">Debes</div><div class="v" id="cxTotPagar">$0</div></div>
+    </div>
+    <div class="cx-tabs">
+      <button type="button" id="cxTabCobrar" aria-pressed="true">Por cobrar</button>
+      <button type="button" id="cxTabPagar" aria-pressed="false">Por pagar</button>
+    </div>
+    <p class="bajada" id="cxAyuda"></p>
+    <div id="cxLista"></div>
+    <button class="nueva-cat" id="cxNueva"><b>+</b><span id="cxNuevaTxt">Nueva cuenta</span></button>
+
+    <div class="rec-form" id="cxForm" hidden>
+      <label for="cxMonto">Monto</label>
+      <input class="inp" id="cxMonto" type="text" inputmode="numeric" placeholder="0">
+      <div style="margin-top:14px"><label for="cxCat">Categoría</label>
+        <select class="inp" id="cxCat"></select></div>
+      <div style="margin-top:14px"><label for="cxEnte" id="cxEnteLbl">Quién</label>
+        <input class="inp" id="cxEnte" type="text" maxlength="50" autocomplete="off" placeholder="Nombre o empresa">
+        <div class="cx-chips" id="cxEntes"></div></div>
+      <div class="duo" style="margin-top:14px">
+        <div><label for="cxNota">Detalle</label><input class="inp" id="cxNota" type="text" maxlength="50" placeholder="Opcional"></div>
+        <div><label for="cxFecha">Fecha</label><input class="inp" id="cxFecha" type="date"></div>
+      </div>
+      <div class="btnrow" style="margin-top:16px">
+        <button class="btn2" id="cxGuardar" style="background:linear-gradient(150deg,var(--gold),var(--gold-2));color:#191203;border-color:transparent">Guardar</button>
+        <button class="btn2" id="cxCancelar">Cancelar</button>
+      </div>
+      <div class="nota" id="cxHint"></div>
+    </div>
+  </div>
+
+  <div id="cxDet" hidden>
+    <div class="ed-top">
+      <button class="volver" id="cxVolver" aria-label="Volver">‹</button>
+      <h2 style="font-size:20px;margin:0;font-weight:600;letter-spacing:-.02em" id="cxDetTit">—</h2>
+    </div>
+    <div id="cxDetCuerpo"></div>
+    <div class="rec-form" id="cxAbonoForm" hidden>
+      <label for="cxAbMonto">Abono</label>
+      <input class="inp" id="cxAbMonto" type="text" inputmode="numeric" placeholder="0">
+      <div style="margin-top:14px"><label for="cxAbFecha">Fecha del pago</label>
+        <input class="inp" id="cxAbFecha" type="date"></div>
+      <div class="btnrow" style="margin-top:16px">
+        <button class="btn2" id="cxAbGuardar" style="background:linear-gradient(150deg,var(--gold),var(--gold-2));color:#191203;border-color:transparent">Registrar</button>
+        <button class="btn2" id="cxAbCancelar">Cancelar</button>
+      </div>
+    </div>
+    <div class="form-acc"><button class="linkbtn peligro" id="cxBorrar">Eliminar esta cuenta</button></div>
   </div>
 </div>
 
@@ -1816,7 +1924,7 @@ var lento = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
    ============================================================ */
 function estadoVacio(){
   return { cats:[], meses:{}, colores:{}, iconos:{}, presupuestos:{}, presupuestoMes:0, topes:{},
-           monedas:["CLP"], tasas:{},
+           monedas:["CLP"], tasas:{}, cuentas:[], entes:[],
            recurrentes:[], recOmitidos:[], avisoMes:{}, primerMesCompleto:false, tutorial:false,
            notif:false, resumen:false, horaResumen:"09:00",
            pendientes:[], ultimoResumen:"", ts:0 };
@@ -1882,6 +1990,13 @@ function buscarGasto(id){
 }
 function quitarGasto(id){
   var r = buscarGasto(id); if (!r) return null;
+  /* si venía de un abono de una cuenta por pagar, el abono se va con él */
+  (estado.cuentas || []).forEach(function(c){
+    if (!c.pagos) return;
+    var n = c.pagos.length;
+    c.pagos = c.pagos.filter(function(p){ return p.gid !== id; });
+    if (c.pagos.length !== n) guardarCache();
+  });
   if (String(id).indexOf("rec_") === 0){
     estado.recOmitidos = (estado.recOmitidos || []).concat([id]);
   }
@@ -2180,6 +2295,7 @@ function pintar(){
 
   pintarMovs(items);
 
+  pintarCxPunto();
   pintarMenu();
   pintarAvisos();
   pintarCats();
@@ -2430,7 +2546,8 @@ function pintarCatMovs(){
     html += '<div class="cm-mes"><span>' + esc(nombreMes(m)) + '</span><span>' + plata(t) + '</span></div>';
     items.forEach(function(g){
       html += '<div class="mov"><span class="mov-main">' + insignia(g.cat)
-        + '<span class="d"><b>' + esc(g.nota || g.cat) + '</b>'
+        + '<span class="d"><b>' + esc(g.nota || g.cat)
+        + (g.cx ? '<span class="cxtag">por cobrar</span>' : "") + '</b>'
         + subMov(g, true) + '</span>'
         + '<span class="m">' + plata(g.monto) + '</span></span></div>';
     });
@@ -2455,6 +2572,311 @@ $("rank").addEventListener("click", function(e){
 $("rankHist").addEventListener("click", function(e){
   var b = e.target.closest("[data-rcat]"); if (!b) return;
   abrirCatMovs(b.dataset.rcat);
+});
+
+/* ============================================================
+   Cuentas por cobrar y por pagar
+   ------------------------------------------------------------
+   Por cobrar: pusiste la plata tú, así que ya es un gasto tuyo.
+   Aparece en el mes y se va achicando con cada abono que te hagan.
+   Por pagar: todavía no sale plata de tu bolsillo. Recién cuando
+   abonas, ese abono entra como gasto con la fecha en que pagaste.
+   ============================================================ */
+function pagadoDe(c){ return (c.pagos || []).reduce(function(a,p){ return a + p.monto; }, 0); }
+function pendienteDe(c){ return Math.max(0, (c.monto || 0) - pagadoDe(c)); }
+function buscarCuenta(id){ return (estado.cuentas || []).filter(function(c){ return c.id === id; })[0] || null; }
+function cuentasDe(tipo, abiertas){
+  return (estado.cuentas || []).filter(function(c){
+    return c.tipo === tipo && (!abiertas || pendienteDe(c) > 0);
+  }).sort(function(a,b){
+    var pa = pendienteDe(a) > 0, pb = pendienteDe(b) > 0;
+    if (pa !== pb) return pa ? -1 : 1;
+    return a.fecha < b.fecha ? 1 : -1;
+  });
+}
+function totalCx(tipo){
+  return cuentasDe(tipo, true).reduce(function(a,c){ return a + pendienteDe(c); }, 0);
+}
+function quitarGastoId(id){
+  var cambio = false;
+  Object.keys(estado.meses).forEach(function(k){
+    var antes = estado.meses[k].length;
+    estado.meses[k] = estado.meses[k].filter(function(g){ return g.id !== id; });
+    if (estado.meses[k].length !== antes){ cambio = true; if (!estado.meses[k].length) delete estado.meses[k]; }
+  });
+  return cambio;
+}
+/* mantiene el gasto espejo de cada cuenta por cobrar al día */
+function sincronizarCuentas(){
+  if (demo) return false;
+  var cambio = false, vivos = {};
+  (estado.cuentas || []).forEach(function(c){
+    if (c.tipo !== "cobrar") return;
+    var id = "cx_" + c.id; vivos[id] = 1;
+    var pend = pendienteDe(c), actual = null, mesDe = null;
+    Object.keys(estado.meses).forEach(function(m){
+      estado.meses[m].forEach(function(g){ if (g.id === id){ actual = g; mesDe = m; } });
+    });
+    if (pend <= 0){ if (actual) cambio = quitarGastoId(id) || cambio; return; }
+    var k = claveMes(c.fecha), nota = c.nota || "";
+    if (actual && mesDe === k && actual.monto === pend && actual.cat === c.cat
+        && actual.fecha === c.fecha && actual.nota === nota) return;
+    if (actual) quitarGastoId(id);
+    estado.meses[k] = itemsDe(k).concat([{
+      id:id, monto:pend, cat:c.cat, nota:nota, fecha:c.fecha, cx:c.id
+    }]);
+    cambio = true;
+  });
+  /* espejos de cuentas que ya no existen */
+  Object.keys(estado.meses).forEach(function(k){
+    var antes = estado.meses[k].length;
+    estado.meses[k] = estado.meses[k].filter(function(g){
+      return String(g.id).indexOf("cx_") !== 0 || vivos[g.id];
+    });
+    if (estado.meses[k].length !== antes) cambio = true;
+  });
+  if (cambio) guardarCache(true);
+  return cambio;
+}
+/* un abono: en las por pagar nace un gasto con la fecha en que pagaste */
+function abonar(c, monto, fecha){
+  monto = Math.min(Math.round(monto), pendienteDe(c));
+  if (monto <= 0) return false;
+  var pago = { id: nuevoId(), monto: monto, fecha: fecha };
+  if (c.tipo === "pagar"){
+    pago.gid = nuevoId();
+    var k = claveMes(fecha);
+    estado.meses[k] = itemsDe(k).concat([{
+      id: pago.gid, monto: monto, cat: c.cat, nota: c.nota || c.ente, fecha: fecha
+    }]);
+  }
+  c.pagos = (c.pagos || []).concat([pago]);
+  sincronizarCuentas();
+  guardarCache(true);
+  return true;
+}
+function quitarAbono(c, pagoId){
+  var pago = (c.pagos || []).filter(function(p){ return p.id === pagoId; })[0];
+  if (!pago) return;
+  if (pago.gid) quitarGastoId(pago.gid);
+  c.pagos = (c.pagos || []).filter(function(p){ return p.id !== pagoId; });
+  sincronizarCuentas();
+  guardarCache(true);
+}
+function eliminarCuenta(c){
+  (c.pagos || []).forEach(function(p){ if (p.gid) quitarGastoId(p.gid); });
+  quitarGastoId("cx_" + c.id);
+  estado.cuentas = (estado.cuentas || []).filter(function(x){ return x.id !== c.id; });
+  guardarCache(true);
+}
+function agregarEnte(n){
+  n = recortar(String(n || "").trim());
+  if (!n) return "";
+  var ya = (estado.entes || []).filter(function(e){ return e.toLowerCase() === n.toLowerCase(); })[0];
+  if (ya) return ya;
+  estado.entes = (estado.entes || []).concat([n]);
+  return n;
+}
+
+/* ---- pantalla de cuentas ---- */
+var cxTipo = "cobrar", cxSel = null, cxEdit = null;
+
+function pintarCxPunto(){
+  if (!$("cxPunto")) return;
+  $("cxPunto").hidden = (totalCx("cobrar") + totalCx("pagar")) <= 0;
+}
+function filaCx(c){
+  var pend = pendienteDe(c), pag = pagadoDe(c), lista = pend <= 0;
+  var pct = c.monto ? Math.min(100, pag / c.monto * 100) : 0;
+  return '<button type="button" class="cx-fila' + (lista ? " lista" : "") + '" data-cuenta="' + c.id + '">'
+    + '<div class="l1">' + insignia(c.cat, "sm")
+    +   '<span class="nm">' + esc(c.ente) + (c.nota ? " \u00B7 " + esc(c.nota) : "") + '</span>'
+    +   '<span class="ch">\u203A</span></div>'
+    + '<div class="l2"><span class="mt">' + (lista ? "Pagada" : plata(pend)) + '</span>'
+    +   '<span class="de">' + (pag ? "abonado " + plata(pag) + " de " + plata(c.monto) : "de " + plata(c.monto)) + '</span></div>'
+    + (pag ? '<div class="cx-bar"><div style="width:' + pct + '%"></div></div>' : "")
+    + '</button>';
+}
+function pintarCx(){
+  var tc = totalCx("cobrar"), tp = totalCx("pagar");
+  $("cxTotCobrar").innerHTML = plata(tc);
+  $("cxTotPagar").innerHTML = plata(tp);
+  $("cxTotCobrar").style.color = tc ? "" : "var(--faint)";
+  $("cxTotPagar").style.color  = tp ? "" : "var(--faint)";
+  $("cxTabCobrar").setAttribute("aria-pressed", cxTipo === "cobrar" ? "true" : "false");
+  $("cxTabPagar").setAttribute("aria-pressed", cxTipo === "pagar" ? "true" : "false");
+  $("cxNuevaTxt").textContent = cxTipo === "cobrar" ? "Nueva cuenta por cobrar" : "Nueva cuenta por pagar";
+  $("cxAyuda").textContent = cxTipo === "cobrar"
+    ? "Plata que pusiste tú y te deben. Ya cuenta como gasto del mes y se achica con cada abono que te hagan."
+    : "Plata que debes. No cuenta como gasto hasta que la pagues: cada abono entra con la fecha en que pagaste.";
+  var lista = cuentasDe(cxTipo);
+  $("cxLista").innerHTML = lista.length
+    ? lista.map(filaCx).join("")
+    : '<div class="vacio"><p>' + (cxTipo === "cobrar" ? "Nadie te debe nada." : "No le debes nada a nadie.") + '</p></div>';
+}
+function pintarCxCats(sel){
+  var cats = estado.cats || [];
+  $("cxCat").innerHTML = cats.length
+    ? cats.map(function(c){ return '<option value="' + esc(c) + '"' + (c === sel ? " selected" : "") + '>' + esc(c) + '</option>'; }).join("")
+    : '<option value="">Primero crea una categoría</option>';
+}
+function pintarCxEntes(){
+  $("cxEntes").innerHTML = (estado.entes || []).map(function(e){
+    return '<button type="button" data-ente="' + esc(e) + '">' + esc(e) + '</button>';
+  }).join("");
+}
+function abrirCxForm(c){
+  cxEdit = c || null;
+  var t = c ? c.tipo : cxTipo;
+  pintarCxCats(c ? c.cat : (estado.cats || [])[0]);
+  pintarCxEntes();
+  $("cxMonto").value = c ? nf.format(c.monto) : "";
+  $("cxEnte").value = c ? c.ente : "";
+  $("cxNota").value = c ? (c.nota || "") : "";
+  $("cxFecha").value = c ? c.fecha : hoyISO();
+  $("cxEnteLbl").textContent = t === "cobrar" ? "Quién te debe" : "A quién le debes";
+  $("cxHint").textContent = "";
+  $("cxForm").hidden = false; $("cxNueva").hidden = true;
+}
+function cerrarCxForm(){
+  cxEdit = null; $("cxForm").hidden = true; $("cxNueva").hidden = false;
+  $("cxMonto").value = ""; $("cxEnte").value = ""; $("cxNota").value = "";
+}
+function cxFormPendiente(){
+  if ($("winCx").hidden || $("cxForm").hidden) return false;
+  return !!soloDigitos($("cxMonto").value) || !!$("cxEnte").value.trim();
+}
+function cxAbonoPendiente(){
+  if ($("winCx").hidden || $("cxAbonoForm").hidden) return false;
+  return !!soloDigitos($("cxAbMonto").value);
+}
+
+$("cxTabCobrar").addEventListener("click", function(){ cxTipo = "cobrar"; cerrarCxForm(); pintarCx(); });
+$("cxTabPagar").addEventListener("click", function(){ cxTipo = "pagar"; cerrarCxForm(); pintarCx(); });
+$("cxNueva").addEventListener("click", function(){ abrirCxForm(null); $("cxMonto").focus(); });
+$("cxCancelar").addEventListener("click", cerrarCxForm);
+$("cxMonto").addEventListener("input", function(){
+  var d = limitarDigitos(this.value); this.value = d ? nf.format(parseInt(d, 10)) : "";
+});
+$("cxEntes").addEventListener("click", function(e){
+  var b = e.target.closest("[data-ente]"); if (!b) return;
+  $("cxEnte").value = b.dataset.ente;
+});
+$("cxGuardar").addEventListener("click", function(){
+  var monto = parseInt(soloDigitos($("cxMonto").value) || "0", 10);
+  var cat = $("cxCat").value;
+  var ente = recortar($("cxEnte").value.trim());
+  var fecha = $("cxFecha").value || hoyISO();
+  if (!monto){ $("cxHint").textContent = "Falta el monto."; return; }
+  if (!cat){ $("cxHint").textContent = "Primero crea una categoría, en el botón dorado."; return; }
+  if (!ente){ $("cxHint").textContent = "Falta decir de quién se trata."; return; }
+  var editando = !!cxEdit;
+  agregarEnte(ente);
+  if (cxEdit){
+    if (monto < pagadoDe(cxEdit)){ $("cxHint").textContent = "El monto no puede ser menor a lo ya abonado."; return; }
+    cxEdit.monto = monto; cxEdit.cat = cat; cxEdit.ente = ente;
+    cxEdit.nota = recortar($("cxNota").value.trim()); cxEdit.fecha = fecha;
+  } else {
+    estado.cuentas = (estado.cuentas || []).concat([{
+      id: nuevoId(), tipo: cxTipo, monto: monto, cat: cat, ente: ente,
+      nota: recortar($("cxNota").value.trim()), fecha: fecha, pagos: []
+    }]);
+  }
+  sincronizarCuentas(); guardarCache(true);
+  cerrarCxForm(); pintarCx(); pintar();
+  avisar(editando ? "Cuenta actualizada" : "Cuenta creada");
+});
+
+/* ---- detalle de una cuenta ---- */
+function abrirCxDet(id){
+  cxSel = id;
+  $("cxVista").hidden = true; $("cxDet").hidden = false;
+  $("cxAbonoForm").hidden = true;
+  $("cxTitulo").textContent = "Cuenta";
+  pintarCxDet(); $("winCx").scrollTop = 0;
+}
+function cerrarCxDet(){
+  cxSel = null;
+  $("cxDet").hidden = true; $("cxVista").hidden = false;
+  $("cxTitulo").textContent = "Cuentas";
+  pintarCx(); $("winCx").scrollTop = 0;
+}
+function pintarCxDet(){
+  var c = buscarCuenta(cxSel); if (!c) return cerrarCxDet();
+  var pend = pendienteDe(c), pag = pagadoDe(c);
+  var pct = c.monto ? Math.min(100, pag / c.monto * 100) : 0;
+  $("cxDetTit").textContent = c.ente;
+  var pagos = (c.pagos || []).slice().sort(function(a, b){ return a.fecha < b.fecha ? 1 : -1; });
+  $("cxDetCuerpo").innerHTML =
+      '<div class="cx-det-top"><div><div class="k">'
+    +   (pend > 0 ? (c.tipo === "cobrar" ? "Te deben" : "Debes") : "Pagada") + '</div>'
+    +   '<div class="v">' + plata(pend) + '</div></div>'
+    +   '<div class="de">de ' + plata(c.monto) + (pag ? "<br>abonado " + plata(pag) : "") + '</div></div>'
+    + '<div class="cx-bar" style="margin-left:0"><div style="width:' + pct + '%"></div></div>'
+    + '<div class="cx-meta">' + insignia(c.cat, "sm") + '<span>' + esc(c.cat) + '</span>'
+    +   '<span>\u00B7</span><span>' + fechaLarga(c.fecha) + '</span></div>'
+    + (c.nota ? '<div class="nota" style="margin-top:2px">' + esc(c.nota) + '</div>' : "")
+    + '<div class="nota">' + (c.tipo === "cobrar"
+        ? "Lo pendiente aparece como gasto en " + nombreMes(claveMes(c.fecha)) + "."
+        : "Cada abono entra como gasto el día que lo pagas.") + '</div>'
+    + '<div class="btnrow" style="margin-top:18px">'
+    +   (pend > 0 ? '<button class="btn2" id="cxAbonar" style="background:var(--deep);color:var(--on-deep);border-color:var(--deep)">Registrar abono</button>'
+                  + '<button class="btn2" id="cxTodo">Pagar todo</button>' : "")
+    +   '<button class="btn2" id="cxEditar">Editar</button></div>'
+    + (pagos.length
+        ? '<div class="sec"><h3>Abonos</h3>' + pagos.map(function(pg){
+            return '<div class="cx-pago"><span>' + plata(pg.monto) + '</span>'
+              + '<span class="f">' + fechaLarga(pg.fecha) + '</span>'
+              + '<button class="x" data-pago="' + pg.id + '" aria-label="Quitar abono">\u00D7</button></div>';
+          }).join("") + '</div>'
+        : "");
+
+  if ($("cxAbonar")) $("cxAbonar").addEventListener("click", function(){
+    $("cxAbMonto").value = ""; $("cxAbFecha").value = hoyISO();
+    $("cxAbonoForm").hidden = false; $("cxAbMonto").focus();
+  });
+  if ($("cxTodo")) $("cxTodo").addEventListener("click", function(){
+    confirmar({ titulo: "¿Dar por pagada?", texto: "Se registra un abono por los " + plata(pend) + " que faltan.", ok: "Pagar todo" })
+      .then(function(si){ if (!si) return; abonar(c, pend, hoyISO()); pintarCxDet(); pintar(); avisar("Cuenta saldada"); });
+  });
+  if ($("cxEditar")) $("cxEditar").addEventListener("click", function(){
+    var cc = c; cerrarCxDet(); cxTipo = cc.tipo; pintarCx(); abrirCxForm(cc);
+  });
+}
+$("cxDetCuerpo").addEventListener("click", function(e){
+  var b = e.target.closest("[data-pago]"); if (!b) return;
+  var c = buscarCuenta(cxSel); if (!c) return;
+  confirmar({ titulo: "¿Quitar este abono?", texto: "Vuelve a quedar pendiente.", ok: "Quitar", peligro: true })
+    .then(function(si){ if (!si) return; quitarAbono(c, b.dataset.pago); pintarCxDet(); pintar(); });
+});
+$("cxAbMonto").addEventListener("input", function(){
+  var d = limitarDigitos(this.value); this.value = d ? nf.format(parseInt(d, 10)) : "";
+});
+$("cxAbCancelar").addEventListener("click", function(){ $("cxAbonoForm").hidden = true; });
+$("cxAbGuardar").addEventListener("click", function(){
+  var c = buscarCuenta(cxSel); if (!c) return;
+  var v = parseInt(soloDigitos($("cxAbMonto").value) || "0", 10);
+  if (!v){ $("cxAbMonto").focus(); return; }
+  abonar(c, v, $("cxAbFecha").value || hoyISO());
+  $("cxAbonoForm").hidden = true;
+  pintarCxDet(); pintar();
+  avisar(pendienteDe(c) > 0 ? "Abono registrado" : "Cuenta saldada");
+});
+$("cxBorrar").addEventListener("click", function(){
+  var c = buscarCuenta(cxSel); if (!c) return;
+  confirmar({ titulo: "¿Eliminar la cuenta?",
+    texto: "Se borra junto con sus abonos y los gastos que haya generado.", ok: "Eliminar", peligro: true })
+    .then(function(si){ if (!si) return; eliminarCuenta(c); cerrarCxDet(); pintar(); avisar("Cuenta eliminada"); });
+});
+$("cxVolver").addEventListener("click", cerrarCxDet);
+$("cxLista").addEventListener("click", function(e){
+  var b = e.target.closest("[data-cuenta]"); if (!b) return;
+  abrirCxDet(b.dataset.cuenta);
+});
+$("btnCx").addEventListener("click", function(){ abrirWin("winCx"); });
+$("cerrarCx").addEventListener("click", function(){
+  salirDe(function(){ cxSel = null; $("cxDet").hidden = true; $("cxVista").hidden = false;
+    $("cxTitulo").textContent = "Cuentas"; cerrarWins(); });
 });
 
 /* ---- pagos recurrentes ---- */
@@ -2543,15 +2965,18 @@ function pintarMovs(items){
       html += '<div class="dia"><span>' + fechaLarga(dia) + '</span><span>' + plata(tot) + '</span></div>';
     }
     html += '<div class="mov">'
-      + '<button class="mov-main" data-id="'+g.id+'">'
+      + '<button class="mov-main" ' + (g.cx ? 'data-cuentagasto="' + g.cx + '"' : 'data-id="' + g.id + '"') + '>'
       +   insignia(g.cat)
-      +   '<span class="d"><b>' + esc(g.nota || g.cat) + '</b>'
+      +   '<span class="d"><b>' + esc(g.nota || g.cat)
+      +     (g.cx ? '<span class="cxtag">por cobrar</span>' : "") + '</b>'
       +     subMov(g) + '</span>'
       +   '<span class="m">' + plata(g.monto) + '</span>'
       + '</button>'
-      + '<button class="mov-del" data-del="'+g.id+'" aria-label="Eliminar gasto">'
-      +   '<svg viewBox="0 0 20 20"><path d="M4 6h12M8 6V4h4v2M7 6l.8 10h4.4L13 6"/></svg>'
-      + '</button></div>';
+      + (g.cx ? '' :
+          '<button class="mov-del" data-del="'+g.id+'" aria-label="Eliminar gasto">'
+        +   '<svg viewBox="0 0 20 20"><path d="M4 6h12M8 6V4h4v2M7 6l.8 10h4.4L13 6"/></svg>'
+        + '</button>')
+      + '</div>';
   });
   $("movs").innerHTML = html;
 }
@@ -2944,6 +3369,8 @@ function eliminarGasto(id){
 $("movs").addEventListener("click", function(e){
   var del = e.target.closest("[data-del]");
   if (del){ eliminarGasto(del.dataset.del); return; }
+  var cg = e.target.closest("[data-cuentagasto]");
+  if (cg){ abrirWinReal("winCx"); abrirCxDet(cg.dataset.cuentagasto); return; }
   var b = e.target.closest("[data-id]"); if (!b) return;
   var r = buscarGasto(b.dataset.id); if (!r) return;
   confirmar({ titulo: "¿Editar este gasto?", texto: textoGasto(r.g), ok: "Editar" })
@@ -3030,6 +3457,11 @@ function abrirWinReal(id){
     else pintarPresu();
   }
   else if (id === "winCal"){ calMes = mesActual; calSel = null; pintarCal(); }
+  else if (id === "winCx"){
+    cxSel = null; $("cxDet").hidden = true; $("cxVista").hidden = false;
+    $("cxTitulo").textContent = "Cuentas"; pintarCx();
+  }
+  else if (id === "winRec" || id === "winLogos" || id === "winCatMovs"){ /* ya vienen pintadas */ }
   else pintarCfg();
   var w = $(id);
   w.hidden = false;
@@ -3037,7 +3469,7 @@ function abrirWinReal(id){
   requestAnimationFrame(function(){ w.classList.add("on"); });
 }
 function cerrarWins(ya){
-  ["winPresu","winCfg","winInstalar","winCal","winLogos","winRec","winCatMovs"].forEach(function(id){
+  ["winPresu","winCfg","winInstalar","winCal","winLogos","winRec","winCatMovs","winCx"].forEach(function(id){
     var w = $(id);
     if (w.hidden) return;
     w.classList.remove("on");
@@ -3065,12 +3497,15 @@ function descartarCambios(){
   edCat = null; edOrig = null; edIcono = "";
   $("catEditor").hidden = true; $("catVista").hidden = false;
   if (typeof cerrarRecForm === "function") cerrarRecForm();
+  if (typeof cerrarCxForm === "function"){ cerrarCxForm(); $("cxAbonoForm").hidden = true; }
   $("presuMes").value = estado.presupuestoMes ? nf.format(estado.presupuestoMes) : "";
   if ($("presuMesAcc")) $("presuMesAcc").hidden = true;
 }
 function hayCambios(){
   if (tourPaso >= 0) return "";
   if (recPendiente()) return "el pago recurrente";
+  if (cxFormPendiente()) return "la cuenta que estás creando";
+  if (cxAbonoPendiente()) return "el abono que estás registrando";
   if (editorPendiente()) return "la categoría que estás editando";
   if (presuMesPendiente()) return "el presupuesto mensual";
   if (document.body.classList.contains("hoja-abierta") && formOrig){
@@ -3111,7 +3546,7 @@ document.addEventListener("keydown", function(e){
   if (e.key !== "Escape") return;
   if (confOk) cerrarConfirm(false);
   else if (!$("winPresu").hidden || !$("winCfg").hidden || !$("winInstalar").hidden || !$("winCal").hidden || !$("winLogos").hidden || !$("winRec").hidden
-           || !$("winCatMovs").hidden) salirDe(function(){ cmCat = ""; cerrarWins(); });
+           || !$("winCatMovs").hidden || !$("winCx").hidden) salirDe(function(){ cmCat = ""; cerrarWins(); });
   else if (document.body.classList.contains("hoja-abierta")) cerrarHoja();
 });
 
@@ -3463,7 +3898,9 @@ function datosDemo(){
     {id:"d3", monto:28000,  cat:"Carrete",      nota:"Previa del finde",fecha:hoyMenos(3)},
     {id:"d4", monto:4500,   cat:"Uber",         nota:"Al centro",       fecha:hoyMenos(2)},
     {id:"d5", monto:8900,   cat:"Comida",       nota:"Almuerzo campus", fecha:hoyMenos(1)},
-    {id:"d6", monto:6200,   cat:"Comida",       nota:"Café",            fecha:dd(m,d)}
+    {id:"d6", monto:6200,   cat:"Comida",       nota:"Café",            fecha:dd(m,d)},
+    {id:"cx_cxd1", monto:24000, cat:"Comida", nota:"Cena del viernes", fecha:hoyMenos(4), cx:"cxd1"},
+    {id:"cx_cxd2", monto:9000,  cat:"Uber",   nota:"",                 fecha:hoyMenos(2), cx:"cxd2"}
   ];
   meses[pv] = [
     {id:"e1", monto:320000, cat:"Arriendo",     nota:"", fecha:dd(pv,1)},
@@ -3481,6 +3918,14 @@ function datosDemo(){
   var topes = {}; topes[pv] = 500000; topes[pv2] = 420000;
   return {
     monedas: ["CLP","USD","UF"], tasas: estado.tasas || {},
+    entes: ["Pancho", "Javi", "Mamá"],
+    cuentas: [
+      { id:"cxd1", tipo:"cobrar", monto:36000, cat:"Comida", ente:"Pancho",
+        nota:"Cena del viernes", fecha:hoyMenos(4), pagos:[{id:"p1", monto:12000, fecha:hoyMenos(1)}] },
+      { id:"cxd2", tipo:"cobrar", monto:9000, cat:"Uber", ente:"Javi", nota:"", fecha:hoyMenos(2), pagos:[] },
+      { id:"cxd3", tipo:"pagar", monto:50000, cat:"Supermercado", ente:"Mamá",
+        nota:"Compra del mes", fecha:hoyMenos(6), pagos:[] }
+    ],
     presupuestoMes: 520000, topes: topes,
     recurrentes: [{id:recId, cat:"Arriendo", monto:320000, dia:1, nota:"Depto"}],
     recOmitidos: [], avisoMes: {},
@@ -3566,6 +4011,15 @@ function pasosTour(){
     { abre:"mes", sel:"#avisos", t:"Las alertas",
       d:'Carrete va en $28.000 de $30.000, así que aparece la alerta amarilla.' },
 
+    { abre:"mes", sel:"#btnCx", t:"Cuentas",
+      d:"Acá llevas la plata que te deben y la que debes. El punto dorado avisa cuando hay algo abierto." },
+    { abre:"cx", sel:"#cxLista", t:"Por cobrar",
+      d:'Pusiste la plata tú, así que <b>ya es un gasto tuyo</b>: aparece en el mes marcado <b>por cobrar</b> y se achica con cada abono.<br><br>Pancho te debe $24.000 de los $36.000 de la cena.' },
+    { abre:"cxpagar", sel:"#cxLista", t:"Por pagar",
+      d:'Al revés: todavía no sale plata de tu bolsillo, así que <b>no cuenta como gasto</b>.<br><br>Recién cuando abonas, ese abono entra como gasto con la fecha en que pagaste.' },
+    { abre:"cx", sel:"#cxNueva", t:"Crear una cuenta",
+      d:"Monto, categoría y quién: una persona o una empresa. Los nombres quedan guardados para la próxima." },
+
     { abre:"cal", sel:"#calGrid", t:"El calendario",
       d:"Los días en azul tienen gastos. <b>Toca uno</b> y ves qué compraste ese día." },
 
@@ -3618,6 +4072,8 @@ function prepararPaso(p){
   var acc = {
     presu: function(){ abrirWinReal("winPresu"); },
     cal:   function(){ abrirWinReal("winCal"); },
+    cx:    function(){ cxTipo = "cobrar"; cerrarCxForm(); abrirWinReal("winCx"); },
+    cxpagar: function(){ cxTipo = "pagar"; cerrarCxForm(); abrirWinReal("winCx"); },
     cfg:   function(){ abrirWinReal("winCfg"); },
     hoja:  function(){ cerrarWins(true); if (!document.body.classList.contains("hoja-abierta")){ limpiarForm(); abrirHoja(); } },
     hist:  function(){ cerrarWins(true); cerrarHoja(); verTab("hist"); },
@@ -3730,7 +4186,8 @@ function pintarCal(){
     + (items.length
         ? items.map(function(g){
             return '<div class="mov"><span class="mov-main">' + insignia(g.cat)
-              + '<span class="d"><b>' + esc(g.nota || g.cat) + '</b>'
+              + '<span class="d"><b>' + esc(g.nota || g.cat)
+              + (g.cx ? '<span class="cxtag">por cobrar</span>' : "") + '</b>'
               + subMov(g)
               + '</span><span class="m">' + plata(g.monto) + '</span></span></div>';
           }).join("")
@@ -3851,7 +4308,7 @@ function respaldoJSON(){
     cats:estado.cats, colores:estado.colores, iconos:estado.iconos, presupuestos:estado.presupuestos,
     primerMesCompleto:estado.primerMesCompleto, tutorial:estado.tutorial,
     presupuestoMes:estado.presupuestoMes, topes:estado.topes, recurrentes:estado.recurrentes, recOmitidos:estado.recOmitidos,
-    monedas:estado.monedas, tasas:estado.tasas,
+    monedas:estado.monedas, tasas:estado.tasas, cuentas:estado.cuentas, entes:estado.entes,
     notif:estado.notif, resumen:estado.resumen, horaResumen:estado.horaResumen,
     meses:estado.meses
   }, null, 2);
@@ -3912,6 +4369,8 @@ function aplicarReemplazo(d){
     presupuestos: (d.presupuestos && typeof d.presupuestos === "object") ? d.presupuestos : {},
     primerMesCompleto: !!d.primerMesCompleto, tutorial: !!d.tutorial,
     presupuestoMes: +d.presupuestoMes || 0, topes: (d.topes && typeof d.topes === "object") ? d.topes : {},
+    cuentas: Array.isArray(d.cuentas) ? d.cuentas : [],
+    entes: Array.isArray(d.entes) ? d.entes : [],
     monedas: Array.isArray(d.monedas) && d.monedas.length ? d.monedas : ["CLP"],
     tasas: (d.tasas && typeof d.tasas === "object") ? d.tasas : {},
     recurrentes: Array.isArray(d.recurrentes) ? d.recurrentes : [],
@@ -4271,6 +4730,7 @@ function arrancarApp(){
     presupuestos: cache.presupuestos || {}, primerMesCompleto: !!cache.primerMesCompleto,
     presupuestoMes: +cache.presupuestoMes || 0, topes: cache.topes || {},
     monedas: (cache.monedas && cache.monedas.length) ? cache.monedas : ["CLP"], tasas: cache.tasas || {},
+    cuentas: cache.cuentas || [], entes: cache.entes || [],
     recurrentes: cache.recurrentes || [], recOmitidos: cache.recOmitidos || [], avisoMes: cache.avisoMes || {},
     tutorial: !!cache.tutorial, notif: !!cache.notif,
     resumen: !!cache.resumen, horaResumen: cache.horaResumen || "09:00",
@@ -4279,6 +4739,7 @@ function arrancarApp(){
   } : estadoVacio();
   var cambio = normColores();
   congelarTopes();
+  sincronizarCuentas();
   if (monedasActivas().length > 1) cargarTasas().then(function(){ pintarMoneda(); });
   generarRecurrentes();
   limpiarForm();
