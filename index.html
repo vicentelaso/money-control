@@ -542,14 +542,39 @@ body.conf-abierta .backdrop{opacity:1;pointer-events:auto;z-index:80}
 .tour-card p{margin:0 0 20px;font-size:16px;line-height:1.6;color:var(--muted)}
 .tour-card p b{color:var(--ink);font-weight:600}
 .tour-pie{display:flex;align-items:center;gap:10px}
-.tour-dots{display:flex;gap:5px;margin-right:auto;flex-wrap:wrap;max-width:46%}
-.tour-dots i{width:6px;height:6px;border-radius:99px;background:var(--line);transition:width .2s,background .2s}
-.tour-dots i.on{background:var(--gold);width:18px}
+.tour-prog{flex:1;min-width:0;margin-right:auto;height:5px;border-radius:99px;background:var(--line);overflow:hidden}
+.tour-prog i{display:block;height:100%;border-radius:99px;
+  background:linear-gradient(90deg,var(--gold-2),var(--gold));transition:width .3s cubic-bezier(.2,.8,.3,1)}
+.tour-txt{margin:0 0 20px;font-size:16px;line-height:1.6;color:var(--muted)}
+.tour-txt b{color:var(--ink);font-weight:600}
+.tour-cap{font-family:"Fraunces",Georgia,serif;font-size:40px;line-height:1;color:var(--gold);
+  opacity:.28;margin:0 0 2px}
+/* maquetas chicas para mostrar en vez de contar */
+.tour-mock{background:var(--bg-2);border:1px solid var(--line);border-radius:14px;padding:12px 13px;margin:0 0 16px}
+.tour-mock .fila{display:flex;align-items:center;gap:11px}
+.tour-mock .nm{flex:1;min-width:0;font-size:15px;font-weight:500;color:var(--ink);
+  overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.tour-mock .sb{font-size:12.5px;color:var(--faint);margin-top:3px;display:flex;align-items:center;gap:7px}
+.tour-mock .mt{font-family:"Fraunces",Georgia,serif;font-size:16px;flex:none;color:var(--ink)}
+.tour-mock .chip{--s:34px}
+.tour-mock .cxtag{flex:none;font-size:10px;font-weight:700;letter-spacing:.05em;text-transform:uppercase;
+  color:var(--ok);border:1px solid rgba(95,199,154,.4);border-radius:99px;padding:1px 6px}
+.tour-bar{height:9px;border-radius:99px;background:var(--line-soft);overflow:hidden;margin-top:11px}
+.tour-bar i{display:block;height:100%;border-radius:99px;background:var(--barra)}
+.tour-bar i.rojo{background:linear-gradient(90deg,#F0798F,#D9435F)}
+.tour-dias{display:flex;gap:8px;align-items:center;justify-content:space-between}
+.tour-dias .cal-d{width:40px;height:40px;font-size:13.5px;flex:none}
+.tour-dias small{font-size:11px;color:var(--faint)}
+.tour-tiles{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.tour-tiles .t{background:var(--card);border:1px solid var(--line);border-radius:11px;padding:9px 10px;min-width:0}
+.tour-tiles .k{font-size:9px;font-weight:700;letter-spacing:.05em;text-transform:uppercase;color:var(--faint)}
+.tour-tiles .v{font-family:"Fraunces",Georgia,serif;font-size:14.5px;margin-top:4px;
+  overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .tour-pie .btn2{padding:11px 16px}
 .tour-pie .save{margin:0;width:auto;padding:12px 22px;border-radius:12px;font-size:15px}
 .tour-x{position:absolute;top:13px;right:13px;width:32px;height:32px;border-radius:11px;background:none;border:none;color:var(--faint);font-size:19px;line-height:1;display:grid;place-items:center}
 .tour-x:hover{color:var(--ink);background:var(--bg-2)}
-.tour-ilu{display:flex;gap:10px;margin:0 0 18px}
+.tour-ilu{display:flex;gap:10px;margin:0 0 18px;flex-wrap:wrap}
 .tour-ilu .chip{--s:46px}
 
 /* cuentas por cobrar y pagar */
@@ -688,11 +713,30 @@ select.inp{appearance:none;-webkit-appearance:none;padding-right:38px;
 .cal-sem span{text-align:center;font-size:11.5px;font-weight:700;color:var(--faint);letter-spacing:.06em;text-transform:uppercase}
 .cal-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:6px}
 .cal-grid .hueco{height:46px}
-.cal-d{height:46px;border-radius:13px;border:1px solid transparent;background:var(--bg-2);color:var(--muted);font-size:15px;font-weight:500;display:grid;place-items:center}
+/* mismo peso y mismo centrado en todos los días: el número nunca se mueve */
+.cal-d{height:46px;border-radius:13px;border:1px solid transparent;background:var(--bg-2);
+  color:var(--muted);font-size:15px;font-weight:600;font-variant-numeric:tabular-nums;
+  line-height:1;padding:0;display:flex;align-items:center;justify-content:center}
 .cal-d:hover{border-color:var(--faint);color:var(--ink)}
-.cal-d.vacio{color:var(--faint);background:transparent}
-.cal-d.tiene{background:linear-gradient(170deg,#4E82DE,#2C58AC);color:#fff;font-weight:700;border-color:transparent;box-shadow:0 6px 16px -8px rgba(94,146,236,.9)}
+.cal-d.vacio{color:var(--faint);background:transparent;font-weight:500}
+/* cuatro intensidades según cuánto gastaste ese día */
+.cal-d.n1{background:rgba(94,146,236,.20);color:#BFD2F3}
+.cal-d.n2{background:rgba(94,146,236,.40);color:#DFEAFB}
+.cal-d.n3{background:linear-gradient(170deg,#4E82DE,#2C58AC);color:#fff}
+.cal-d.n4{background:linear-gradient(170deg,#74A4F2,#2449A0);color:#fff;
+  box-shadow:0 6px 16px -8px rgba(94,146,236,.9)}
 .cal-d.hoy{box-shadow:inset 0 0 0 2px var(--gold)}
+.cal-res{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-top:22px;
+  border-top:1px solid var(--line);padding-top:18px}
+.cal-res .c{min-width:0}
+.cal-res .k{font-size:10.5px;font-weight:700;letter-spacing:.07em;text-transform:uppercase;
+  color:var(--faint);margin-bottom:6px}
+.cal-res .v{font-family:"Fraunces",Georgia,serif;font-size:17px;letter-spacing:-.015em;
+  overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.cal-res .s{font-size:12.5px;color:var(--faint);margin-top:3px;
+  overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.movs-barra{display:flex;align-items:center;gap:10px;margin:2px 0 14px}
+.movs-cnt{margin-left:auto;font-size:13.5px;color:var(--faint)}
 .cal-d[aria-pressed="true"]{outline:2px solid var(--gold);outline-offset:2px}
 .cal-det{margin-top:22px;border-top:1px solid var(--line);padding-top:18px}
 .cal-det h4{margin:0 0 5px;font-size:17px;font-weight:600;text-transform:capitalize;letter-spacing:-.02em}
@@ -995,24 +1039,6 @@ body.acceso-on #winInstalar{z-index:100}
 
       </div>
 
-      <div class="card">
-        <h2>
-          <span>Movimientos</span>
-          <span class="movs-acc">
-            <button class="hbtn" id="movFiltrar">
-              <svg viewBox="0 0 24 24"><path d="M3 5.5h18l-7 8v5.5l-4-2.2v-3.3z"/></svg>
-              <span id="movFiltrarTxt">Filtrar</span>
-            </button>
-            <button class="hbtn" id="movToggle" aria-expanded="true">
-              <span id="movToggleIco"></span><span id="movToggleTxt">Ocultar</span>
-            </button>
-          </span>
-        </h2>
-        <div id="movMenu" hidden></div>
-        <div id="movChip"></div>
-        <div id="movAviso"></div>
-        <div id="movs"></div>
-      </div>
     </div>
 
     <div class="avisos" id="avisos"></div>
@@ -1213,6 +1239,7 @@ body.acceso-on #winInstalar{z-index:100}
 <!-- Movimientos de una categoría -->
 <div class="win" id="winCatMovs" hidden role="dialog" aria-label="Movimientos de la categoría">
   <div class="win-top"><h2><button class="volver" id="cerrarCatMovs" aria-label="Volver">‹</button><span id="cmTitulo">—</span></h2></div>
+  <p class="bajada" id="cmBajada"></p>
   <div id="cmCuerpo"></div>
 </div>
 
@@ -1253,23 +1280,36 @@ body.acceso-on #winInstalar{z-index:100}
 
 <!-- Calendario -->
 <div class="win" id="winCal" hidden role="dialog" aria-label="Calendario">
-  <div class="win-top"><h2><button class="volver" id="cerrarCal" aria-label="Volver">‹</button>Calendario</h2></div>
-  <p class="bajada">Los días en azul tienen gastos. Toca uno para ver qué anotaste.</p>
-  <div id="calVista">
-  <div class="cal-nav">
+  <div class="win-top"><h2><button class="volver" id="cerrarCal" aria-label="Volver">‹</button><span id="calTitulo">Calendario</span></h2>
+    <button class="pill-top" id="calVerMovs" type="button">Ver movimientos</button></div>
+  <p class="bajada" id="calBajada">Mientras más fuerte el azul, más gastaste ese día. Toca uno para ver qué anotaste.</p>
+
+  <div class="cal-nav" id="calNav">
     <button id="calPrev" aria-label="Mes anterior">‹</button>
     <div class="m" id="calMesLabel">—</div>
     <button id="calNext" aria-label="Mes siguiente">›</button>
   </div>
-  <div class="cal-sem"><span>L</span><span>M</span><span>M</span><span>J</span><span>V</span><span>S</span><span>D</span></div>
-  <div class="cal-grid" id="calGrid"></div>
+
+  <div id="calVista">
+    <div class="cal-sem"><span>L</span><span>M</span><span>M</span><span>J</span><span>V</span><span>S</span><span>D</span></div>
+    <div class="cal-grid" id="calGrid"></div>
+    <div class="cal-res" id="calRes"></div>
   </div>
-  <div id="calDia" hidden>
-    <div class="ed-top">
-      <button class="volver" id="calVolver" aria-label="Volver">‹</button>
-      <h2 style="font-size:20px;margin:0;font-weight:600;letter-spacing:-.02em" id="calDiaTit">—</h2>
+
+  <div id="calDia" hidden><div id="calDet"></div></div>
+
+  <div id="calMovs" hidden>
+    <div class="movs-barra">
+      <button class="hbtn" id="movFiltrar">
+        <svg viewBox="0 0 24 24"><path d="M3 5.5h18l-7 8v5.5l-4-2.2v-3.3z"/></svg>
+        <span id="movFiltrarTxt">Filtrar</span>
+      </button>
+      <span class="movs-cnt" id="movCuenta"></span>
     </div>
-    <div id="calDet"></div>
+    <div id="movMenu" hidden></div>
+    <div id="movChip"></div>
+    <div id="movAviso"></div>
+    <div id="movs"></div>
   </div>
 </div>
 
@@ -1837,6 +1877,39 @@ function insigniaEnte(n, clase){
 }
 /* el título de un movimiento: si viene de una cuenta, lleva el ente en paréntesis */
 function tituloHTML(g){ return '<b>' + esc(tituloMov(g)) + '</b>'; }
+var ICO_TARRO = '<svg viewBox="0 0 20 20"><path d="M4 6h12M8 6V4h4v2M7 6l.8 10h4.4L13 6"/></svg>';
+/* la misma fila en el mes, el calendario y la categoría: tocar edita, el tarro borra */
+function filaMov(g, conFecha){
+  return '<div class="mov">'
+    + '<button class="mov-main" ' + (g.cx ? 'data-cuentagasto="' + g.cx + '"' : 'data-id="' + g.id + '"') + '>'
+    +   insignia(g.cat) + '<span class="d">' + tituloHTML(g) + subMov(g, conFecha) + '</span>'
+    +   '<span class="m">' + plata(g.monto) + '</span>'
+    + '</button>'
+    + (g.cx ? '' : '<button class="mov-del" data-del="' + g.id + '" aria-label="Eliminar gasto">'
+        + ICO_TARRO + '</button>')
+    + '</div>';
+}
+/* al editar desde una ventana, volvemos a ella cuando termina */
+var volverTras = null;
+function volverDeEdicion(){
+  var f = volverTras; volverTras = null;
+  if (f) f();
+}
+function clickMov(e, volver){
+  var del = e.target.closest("[data-del]");
+  if (del){ eliminarGasto(del.dataset.del, volver); return true; }
+  var cg = e.target.closest("[data-cuentagasto]");
+  if (cg){ abrirWinReal("winCx"); abrirCxDet(cg.dataset.cuentagasto); return true; }
+  var b = e.target.closest("[data-id]"); if (!b) return false;
+  var r = buscarGasto(b.dataset.id); if (!r) return false;
+  confirmar({ titulo: "\u00bfEditar este gasto?", texto: textoGasto(r.g), ok: "Editar" })
+    .then(function(si){
+      if (!si) return;
+      volverTras = volver || null;
+      cerrarWins(true); cargarForm(b.dataset.id); abrirHoja(true);
+    });
+  return true;
+}
 function tituloMov(g){
   if (g.ente) return g.nota ? g.nota + " (" + g.ente + ")" : g.ente;
   return g.nota || g.cat;
@@ -2008,7 +2081,7 @@ var catSel = "", catEditando = null, catCreando = false;
 var alertasAbierto = false, editandoId = null;
 var movFiltro = { tipo:"todos", cat:"", desde:"", hasta:"" };
 var formOrig = null;   /* cómo estaba el formulario al abrirlo */
-var movMenu = null, movOculto = false;
+var movMenu = null;
 
 var usuario = null;                       /* {id, nombre} cuando hay sesión */
 function claveLS(){ return usuario ? LS + ":" + usuario.id : LS; }
@@ -2366,7 +2439,7 @@ function pintar(){
     ? grupos.map(function(g){ return filaRank(g, total, alertasMes); }).join("")
     : '<li class="vacio"><p>Nada todavía.</p></li>';
 
-  pintarMovs(items);
+  if (!$("winCal").hidden && !$("calMovs").hidden) pintarMovs();
 
   pintarCxPunto();
   pintarMenu();
@@ -2598,52 +2671,64 @@ function pintarCumplimiento(){
 }
 
 /* ---- movimientos de una categoría, mes por mes ---- */
-var cmCat = "";
-function abrirCatMovs(cat){
-  cmCat = cat;
+var cmCat = "", cmMes = "";
+/* mes vac\u00edo = todos los meses (desde el hist\u00f3rico); con mes, solo ese (desde el desglose) */
+function abrirCatMovs(cat, mes){
+  cmCat = cat; cmMes = mes || "";
   abrirWinReal("winCatMovs");
   pintarCatMovs();
-  $("winCatMovs").scrollTop = 0;
+}
+function volverACatMovs(){
+  return function(){
+    if ($("winCatMovs").hidden) abrirWinReal("winCatMovs");
+    pintarCatMovs();
+  };
 }
 function pintarCatMovs(){
   if (!cmCat) return;
   $("cmTitulo").textContent = cmCat;
-  var meses = mesesConDatos().slice().reverse();
+  $("cmBajada").textContent = cmMes
+    ? nombreMes(cmMes) + " \u00B7 toca un gasto para editarlo; el tarro lo elimina."
+    : "\u00daltimos 12 meses \u00B7 toca un gasto para editarlo; el tarro lo elimina.";
+  var meses = (cmMes ? [cmMes] : mesesConDatos().slice().reverse());
   var total = 0, n = 0, html = "";
   meses.forEach(function(m){
     var items = itemsDe(m).filter(function(g){ return mismaCat(g.cat, cmCat); })
-      .sort(function(a,b){ return a.fecha < b.fecha ? 1 : -1; });
+      .sort(function(a, b){ return a.fecha < b.fecha ? 1 : -1; });
     if (!items.length) return;
-    var t = items.reduce(function(a,b){ return a + b.monto; }, 0);
+    var t = items.reduce(function(a, b){ return a + b.monto; }, 0);
     total += t; n += items.length;
-    html += '<div class="cm-mes"><span>' + esc(nombreMes(m)) + '</span><span>' + plata(t) + '</span></div>';
-    items.forEach(function(g){
-      html += '<div class="mov"><span class="mov-main">' + insignia(g.cat)
-        + '<span class="d">' + tituloHTML(g)
-        + subMov(g, true) + '</span>'
-        + '<span class="m">' + plata(g.monto) + '</span></span></div>';
-    });
+    if (!cmMes) html += '<div class="cm-mes"><span>' + esc(nombreMes(m)) + '</span><span>'
+      + plata(t) + '</span></div>';
+    items.forEach(function(g){ html += filaMov(g, true); });
   });
+  /* si la categor\u00eda tiene alerta en ese mes, aparece ac\u00e1 mismo */
+  var avi = "";
+  if (cmMes){
+    var ale = alertasDe(cmMes).filter(function(x){ return mismaCat(x.cat, cmCat); })[0];
+    if (ale) avi = '<div style="margin:0 0 16px">' + bloqueAlerta(ale) + '</div>';
+  }
   $("cmCuerpo").innerHTML =
       '<div class="cm-tot"><span class="v">' + plata(total) + '</span>'
-    + '<span class="k">' + n + (n === 1 ? " gasto en total" : " gastos en total") + '</span></div>'
+    + '<span class="k">' + n + (n === 1 ? " gasto" : " gastos")
+    + (cmMes ? " en " + esc(nombreMes(cmMes).split(" ")[0]) : " en total") + '</span></div>'
+    + avi
     + (html || '<div class="vacio"><p>Sin movimientos.</p></div>');
 }
-$("cerrarCatMovs").addEventListener("click", function(){ cmCat = ""; cerrarWins(); });
+$("cmCuerpo").addEventListener("click", function(e){ clickMov(e, volverACatMovs()); });
+$("cerrarCatMovs").addEventListener("click", function(){
+  salirDe(function(){ cmCat = ""; cmMes = ""; cerrarWins(); });
+});
 
-/* en el mes, tocar una categoría filtra la lista de movimientos */
+/* en el mes, tocar una categor\u00eda abre sus movimientos de ese mes */
 $("rank").addEventListener("click", function(e){
   var b = e.target.closest("[data-rcat]"); if (!b) return;
-  movFiltro = { tipo:"cat", cat:b.dataset.rcat, desde:"", hasta:"" };
-  movOculto = false; movMenu = null;
-  pintar();
-  var card = $("movs").closest(".card");
-  if (card) card.scrollIntoView({ block:"start", behavior: lento ? "auto" : "smooth" });
+  abrirCatMovs(b.dataset.rcat, mesActual);
 });
 /* en el histórico, tocar una categoría abre todos sus movimientos */
 $("rankHist").addEventListener("click", function(e){
   var b = e.target.closest("[data-rcat]"); if (!b) return;
-  abrirCatMovs(b.dataset.rcat);
+  abrirCatMovs(b.dataset.rcat, "");
 });
 
 /* ============================================================
@@ -3332,43 +3417,40 @@ function textoFiltro(){
   return "";
 }
 
-function pintarMovs(items){
-  var ver = filtrados(items);
+function pintarMovs(){
+  var items = itemsDe(calMes), ver = filtrados(items);
 
   $("movChip").innerHTML = movFiltro.tipo === "todos" ? ""
-    : '<div class="fchip"><span>' + esc(textoFiltro()) + ' · ' + ver.length
-      + (ver.length===1 ? " gasto" : " gastos") + '</span>'
-      + '<button id="movChipX" aria-label="Quitar filtro">×</button></div>';
+    : '<div class="fchip"><span>' + esc(textoFiltro()) + '</span>'
+      + '<button id="movChipX" aria-label="Quitar filtro">\u00D7</button></div>';
   if ($("movChipX")) $("movChipX").addEventListener("click", function(){
-    movFiltro = { tipo:"todos", cat:"", desde:"", hasta:"" }; pintar();
+    movFiltro = { tipo:"todos", cat:"", desde:"", hasta:"" }; pintarMovs();
   });
 
-  var OJO = '<svg viewBox="0 0 24 24"><path d="M2.5 12S6 5.8 12 5.8 21.5 12 21.5 12 18 18.2 12 18.2 2.5 12 2.5 12z"/><circle cx="12" cy="12" r="2.9"/></svg>';
-  var OJO_NO = '<svg viewBox="0 0 24 24"><path d="M9.6 6.1A8.6 8.6 0 0112 5.8c6 0 9.5 6.2 9.5 6.2a16 16 0 01-3.3 3.9M6.1 7.9A16 16 0 002.5 12s3.5 6.2 9.5 6.2c1 0 1.9-.2 2.7-.5"/><path d="M3.5 3.5l17 17"/></svg>';
-  /* la alerta de la categoría filtrada, para no tener que subir a buscarla */
+  /* la alerta de la categor\u00eda filtrada, para no tener que ir a buscarla */
   var avi = "";
   if (movFiltro.tipo === "cat"){
-    var ale = alertasDe(mesActual).filter(function(x){ return mismaCat(x.cat, movFiltro.cat); })[0];
+    var ale = alertasDe(calMes).filter(function(x){ return mismaCat(x.cat, movFiltro.cat); })[0];
     if (ale) avi = '<div style="margin-bottom:14px">' + bloqueAlerta(ale) + '</div>';
   }
   $("movAviso").innerHTML = avi;
 
-  $("movToggle").setAttribute("aria-expanded", movOculto ? "false" : "true");
-  $("movToggle").setAttribute("aria-label", movOculto ? "Mostrar movimientos" : "Ocultar movimientos");
-  $("movToggleIco").innerHTML = movOculto ? OJO_NO : OJO;
-  $("movToggleTxt").textContent = movOculto ? "Mostrar" : "Ocultar";
-  $("movToggle").classList.toggle("activo", movOculto);
   $("movFiltrar").classList.toggle("activo", movFiltro.tipo !== "todos");
   $("movFiltrarTxt").textContent = movFiltro.tipo === "todos" ? "Filtrar" : "Filtro";
-  $("movs").hidden = movOculto;
-  if (movOculto) return;
+  $("movCuenta").textContent = ver.length
+    ? ver.length + (ver.length === 1 ? " gasto \u00B7 " : " gastos \u00B7 ")
+      + plataTxt(ver.reduce(function(a, b){ return a + b.monto; }, 0))
+    : "";
 
   if (!ver.length){
     $("movs").innerHTML = items.length
-      ? '<div class="vacio"><p>Ningún gasto calza con el filtro.</p></div>'
-      : '<div class="vacio"><p>Sin movimientos este mes.</p>'
-        + '<button class="cta" id="vacioNuevo">Anotar el primero</button></div>';
-    if ($("vacioNuevo")) $("vacioNuevo").addEventListener("click", function(){ abrirHoja(); });
+      ? '<div class="vacio"><p>Ning\u00fan gasto calza con el filtro.</p></div>'
+      : '<div class="vacio"><p>Sin movimientos en ' + esc(nombreMes(calMes)) + '.</p>'
+        + (calMes === mesActual ? '<button class="cta" id="vacioNuevo">Anotar el primero</button>' : '')
+        + '</div>';
+    if ($("vacioNuevo")) $("vacioNuevo").addEventListener("click", function(){
+      volverTras = null; cerrarWins(true); abrirHoja();
+    });
     return;
   }
 
@@ -3376,21 +3458,11 @@ function pintarMovs(items){
   ver.forEach(function(g){
     if (g.fecha !== dia){
       dia = g.fecha;
-      var tot = ver.filter(function(x){ return x.fecha === dia; }).reduce(function(a,b){ return a+b.monto; },0);
+      var tot = ver.filter(function(x){ return x.fecha === dia; })
+                   .reduce(function(a, b){ return a + b.monto; }, 0);
       html += '<div class="dia"><span>' + fechaLarga(dia) + '</span><span>' + plata(tot) + '</span></div>';
     }
-    html += '<div class="mov">'
-      + '<button class="mov-main" ' + (g.cx ? 'data-cuentagasto="' + g.cx + '"' : 'data-id="' + g.id + '"') + '>'
-      +   insignia(g.cat)
-      +   '<span class="d">' + tituloHTML(g)
-      +     subMov(g) + '</span>'
-      +   '<span class="m">' + plata(g.monto) + '</span>'
-      + '</button>'
-      + (g.cx ? '' :
-          '<button class="mov-del" data-del="'+g.id+'" aria-label="Eliminar gasto">'
-        +   '<svg viewBox="0 0 20 20"><path d="M4 6h12M8 6V4h4v2M7 6l.8 10h4.4L13 6"/></svg>'
-        + '</button>')
-      + '</div>';
+    html += filaMov(g);
   });
   $("movs").innerHTML = html;
 }
@@ -3410,7 +3482,7 @@ function pintarMenu(){
     return;
   }
   if (movMenu === "cat"){
-    var items = itemsDe(mesActual);
+    var items = itemsDe(calMes);
     var usadas = porCategoria(items);
     caja.innerHTML = '<div class="fmenu">'
       + '<button class="fback" data-f="atras">‹ <b>Por categoría</b></button>'
@@ -3440,32 +3512,30 @@ function pintarMenu(){
     if (!d || !h) return;
     if (d > h){ var t = d; d = h; h = t; }
     movFiltro = { tipo:"fechas", cat:"", desde:d, hasta:h };
-    movMenu = null; pintar();
+    movMenu = null; pintarMenu(); pintarMovs();
   });
   $("fQuitar").addEventListener("click", function(){
-    movFiltro = { tipo:"todos", cat:"", desde:"", hasta:"" }; movMenu = null; pintar();
+    movFiltro = { tipo:"todos", cat:"", desde:"", hasta:"" };
+    movMenu = null; pintarMenu(); pintarMovs();
   });
 }
-function calveUltimoDia(){ return mesActual + "-" + ("0"+diasDelMes(mesActual)).slice(-2); }
+function calveUltimoDia(){ return calMes + "-" + ("0"+diasDelMes(calMes)).slice(-2); }
 
 $("movFiltrar").addEventListener("click", function(){
   movMenu = movMenu ? null : "raiz";
   pintarMenu();
 });
-$("movToggle").addEventListener("click", function(){
-  movOculto = !movOculto;
-  if (movOculto){ movMenu = null; pintarMenu(); }
-  pintar();
-});
+
 $("movMenu").addEventListener("click", function(e){
   var b = e.target.closest("[data-f],[data-cat]"); if (!b) return;
   if (b.dataset.cat){
     movFiltro = { tipo:"cat", cat:b.dataset.cat, desde:"", hasta:"" };
-    movMenu = null; pintar(); return;
+    movMenu = null; pintarMenu(); pintarMovs(); return;
   }
   var f = b.dataset.f;
   if (f === "atras"){ movMenu = "raiz"; pintarMenu(); return; }
-  if (f === "todos"){ movFiltro = { tipo:"todos", cat:"", desde:"", hasta:"" }; movMenu = null; pintar(); return; }
+  if (f === "todos"){ movFiltro = { tipo:"todos", cat:"", desde:"", hasta:"" };
+    movMenu = null; pintarMenu(); pintarMovs(); return; }
   movMenu = f; pintarMenu();
 });
 
@@ -3831,7 +3901,7 @@ function cargarForm(id){
 }
 function textoGasto(g){ return (g.nota ? g.nota + " · " : "") + g.cat + " · " + plata(g.monto) + " · " + fechaLarga(g.fecha); }
 
-function eliminarGasto(id){
+function eliminarGasto(id, repintar){
   var r = buscarGasto(id); if (!r) return;
   confirmar({
     titulo: "¿Eliminar este gasto?",
@@ -3841,11 +3911,11 @@ function eliminarGasto(id){
     if (!si) return;
     quitarGasto(id);
     if (editandoId === id) { cerrarHoja(); }
-    pintar();
+    pintar(); if (repintar) repintar();
     avisar("Gasto eliminado", function(){
       estado.meses[r.mes] = itemsDe(r.mes).concat([r.g]);
       estado.recOmitidos = (estado.recOmitidos || []).filter(function(x){ return x !== id; });
-      guardarCache(true); pintar();
+      guardarCache(true); pintar(); if (repintar) repintar();
     });
   });
 }
@@ -3898,7 +3968,8 @@ function guardar(){
   if (esMovil()) cerrarHoja(); else $("monto").focus();
   pintar();
 
-  if (editando){ avisar("Cambios guardados"); return; }
+  if (editando){ avisar("Cambios guardados"); volverDeEdicion(); return; }
+  volverTras = null;
 
   var alerta = mensajePresu(cat, k);
   sorpresas(cat, k, alerta);
@@ -3925,10 +3996,12 @@ function abrirHoja(sinLimpiar){
   document.body.classList.add("hoja-abierta");   /* sin foco automático: el teclado tapaba todo */
 }
 function cerrarHoja(){
+  var volvia = document.body.classList.contains("hoja-abierta") || editandoId;
   document.body.classList.remove("hoja-abierta");
   cerrarPanel();
   limpiarForm();
   if (document.activeElement && document.activeElement.blur) document.activeElement.blur();
+  if (volvia) volverDeEdicion(); else volverTras = null;
 }
 $("fab").addEventListener("click", function(){ salirDe(function(){ cerrarWins(true); limpiarForm(); abrirHoja(); }); });
 $("cerrarHoja").addEventListener("click", cerrarHoja);
@@ -3940,7 +4013,10 @@ function abrirWinReal(id){
     if (edCat){ $("catVista").hidden = true; $("catEditor").hidden = false; }
     else pintarPresu();
   }
-  else if (id === "winCal"){ calMes = mesActual; calSel = null; pintarCal(); }
+  else if (id === "winCal"){
+    calMes = mesActual; calSel = null; movMenu = null;
+    calIr("calVista"); pintarCal();
+  }
   else if (id === "winCx"){ cxInicio(); }
   else if (id === "winRec" || id === "winLogos" || id === "winCatMovs"){ /* ya vienen pintadas */ }
   else pintarCfg();
@@ -4431,7 +4507,7 @@ function entrarDemo(){
   estadoReal = estado; demo = true;
   estado = datosDemo();
   mesActual = claveMes(hoyISO());
-  movOculto = false; movMenu = null;
+  movMenu = null;
   movFiltro = { tipo:"todos", cat:"", desde:"", hasta:"" };
   catSel = ""; editandoId = null; alertasAbierto = true;
   limpiarForm(); pintar();
@@ -4445,97 +4521,156 @@ function salirDemo(){
 
 function pasosTour(){
   var m = esMovil();
+  /* maquetas chicas: mostrar en vez de contar */
   var ilu = function(ids){
     return '<div class="tour-ilu">' + ids.map(function(i){
-      return '<span class="chip">' + (ICO[i] ? '<svg viewBox="0 0 32 32">'+ICO[i].s+'</svg>' : "") + '</span>';
+      return '<span class="chip">' + (ICO[i] ? '<svg viewBox="0 0 32 32">' + ICO[i].s + '</svg>' : "") + '</span>';
     }).join("") + '</div>';
   };
+  var mock = function(dentro){ return '<div class="tour-mock">' + dentro + '</div>'; };
+  var fila = function(ico, nombre, sub, monto, tag){
+    return mock('<div class="fila">'
+      + (ICO[ico] ? '<span class="chip"><svg viewBox="0 0 32 32">' + ICO[ico].s + '</svg></span>' : "")
+      + '<span style="flex:1;min-width:0"><span class="nm">' + nombre + '</span>'
+      +   '<span class="sb">' + (tag ? '<span class="cxtag">por cobrar</span>' : "") + sub + '</span></span>'
+      + '<span class="mt">' + monto + '</span></div>');
+  };
+  var barra = function(txt, pct, rojo){
+    return mock('<div class="fila"><span class="nm">' + txt + '</span>'
+      + '<span class="mt">' + pct + '%</span></div>'
+      + '<div class="tour-bar"><i class="' + (rojo ? "rojo" : "") + '" style="width:' + pct + '%"></i></div>');
+  };
+  var tiles = function(ts){
+    return mock('<div class="tour-tiles">' + ts.map(function(t){
+      return '<div class="t"><div class="k">' + t[0] + '</div><div class="v">' + t[1] + '</div></div>';
+    }).join("") + '</div>');
+  };
+  var dias = function(){
+    return mock('<div class="tour-dias">'
+      + ["vacio","n1","n2","n3","n4"].map(function(c, i){
+          return '<span class="cal-d ' + c + '">' + (i ? (i * 6) : 3) + '</span>';
+        }).join("")
+      + '</div><div class="sb" style="display:flex;justify-content:space-between;margin-top:8px">'
+      + '<small>nada</small><small>harto</small></div>');
+  };
+  var cap = function(n, titulo, texto, dibujo){
+    return { centro:true, cap:"Cap\u00edtulo " + n, t:titulo, d:(dibujo || "") + texto };
+  };
+
   return [
     { centro:true, abre:"mes", t:"Vamos a recorrerla",
-      d: ilu(["comida","casa","fiesta","auto"]) +
-         "Llené la app con <b>gastos de ejemplo</b> para mostrarte cómo funciona.<br><br>"
-       + "Nada de esto se guarda: al terminar vuelven tus datos de verdad." },
+      d: ilu(["comida","casa","fiesta","auto"])
+       + "Llen\u00e9 la app con <b>gastos de ejemplo</b>. Nada de esto se guarda: al terminar vuelven tus datos." },
 
-    { abre:"mes", sel:"#btnPresu", t:"Toca acá",
-      d:"El botón dorado abre tus <b>categorías</b>. Empecemos por ahí." },
-    { abre:"presu", sel:"#presuLista", t:"Tus categorías",
-      d:"Estas son las de ejemplo: Arriendo, Comida, Supermercado, Uber y Carrete.<br><br>Cada una con su logo y su tope." },
-    { abre:"presu", sel:"#presuMes", t:"Tu tope del mes",
-      d:'Arriba de las categorías pones cuánto quieres gastar en total. En el ejemplo, <b>$520.000</b>.<br><br>Al llegar al <b>80%</b> te avisa.' },
-    { abre:"presu", sel:"#catNueva", t:"Crear una",
-      d:'Acá creas una nueva. Si escribes <b>Bencina</b>, la app le pone sola el logo del surtidor.' },
-    { abre:"presu", sel:'[data-cat="Carrete"]', t:"Toca para editar",
-      d:"Tocando una categoría entras a editarla. Vamos a abrir <b>Carrete</b>." },
-    { editar:"Carrete", sel:"#edNombre", t:"El nombre",
-      d:"Acá lo cambias. Si lo renombras, se actualizan todos los gastos anteriores." },
-    { editar:"Carrete", sel:"#edPresu", t:"El tope mensual",
-      d:'Carrete tiene <b>$30.000</b>. Al llegar a $25.000 te avisa, y otra vez si te pasas.' },
-    { editar:"Carrete", sel:"#edRecurrentes", t:"Pagos recurrentes",
-      d:'Lo que pagas todos los meses se anota solo. El arriendo del ejemplo entra cada día 1 sin que hagas nada.<br><br>Desde acá los creas, editas o eliminas, y el monto puede ir en <b>otra moneda</b>.' },
-    { editar:"Carrete", sel:"#edCambiarLogo", t:"El logo",
-      d:"Acá eliges entre <b>144 logos</b>. El buscador entiende por tema: escribe <b>carrete</b> y salen todos los relacionados.<br><br>O dejas la inicial." },
+    /* ---------- 1. categor\u00edas ---------- */
+    Object.assign(cap(1, "Tus categor\u00edas", "Todo gasto cae en una. Partamos por ah\u00ed.",
+      ilu(["casa","comida","super","auto","fiesta"])), { abre:"mes" }),
+    { abre:"mes", sel:"#btnPresu", cap:"Categor\u00edas", t:"El bot\u00f3n dorado",
+      d:"Ac\u00e1 viven tus categor\u00edas." },
+    { abre:"presu", sel:"#presuLista", cap:"Categor\u00edas", t:"Las tuyas",
+      d:"Cada una con su logo, su tope y lo que llevas gastado." },
+    { abre:"presu", sel:"#presuMes", cap:"Categor\u00edas", t:"Tope del mes",
+      d: barra("$486.500 de $520.000", 94, true)
+       + "Cu\u00e1nto quieres gastar <b>en total</b>. Al 80% te avisa." },
+    { abre:"presu", sel:"#catNueva", cap:"Categor\u00edas", t:"Crear una",
+      d: ilu(["bencina"]) + "Escribe <b>Bencina</b> y le pone sola el surtidor." },
+    { abre:"presu", sel:'[data-cat="Carrete"]', cap:"Categor\u00edas", t:"T\u00f3cala para editar",
+      d:"Vamos a abrir <b>Carrete</b>." },
+    { editar:"Carrete", sel:"#edNombre", cap:"Categor\u00edas", t:"El nombre",
+      d:"Si lo cambias, se actualizan todos sus gastos anteriores." },
+    { editar:"Carrete", sel:"#edPresu", cap:"Categor\u00edas", t:"Su tope",
+      d: barra("Carrete: $28.000 de $30.000", 93)
+       + "Te avisa al 80% y otra vez si te pasas." },
+    { editar:"Carrete", sel:"#edRecurrentes", cap:"Categor\u00edas", t:"Pagos recurrentes",
+      d: fila("casa", "Arriendo \u00b7 Depto", "cada d\u00eda 1", "$320.000")
+       + "Lo de todos los meses se anota solo. Tambi\u00e9n en otra moneda." },
+    { editar:"Carrete", sel:"#edCambiarLogo", cap:"Categor\u00edas", t:"El logo",
+      d: ilu(["fiesta","copete","puchos","musica"])
+       + "144 logos. Busca por tema: escribe <b>carrete</b>." },
 
-    { abre:"mes", sel: m ? "#fab" : "#hoja", t:"Anotar un gasto",
-      d:(m ? "El <b>+</b> abre el formulario." : "Acá está el formulario.") },
-    { abre:"hoja", form:{monto:"8900"}, sel:"#monto", t:"El monto",
-      d:'Escribes <b>8900</b> y queda <b>$8.900</b>. Se formatea solo.' },
-    { abre:"hoja", form:{monto:"8900", cat:"Comida"}, sel:"#catBtn", t:"La categoría",
-      d:"Obligatoria. Se elige de la lista o creas una nueva ahí mismo." },
-    { abre:"hoja", form:{monto:"8900", cat:"Comida"}, sel:"#monBtn", t:"Otras monedas",
-      d:'Tocando el signo <b>$</b> eliges la moneda: dólar, euro, real, UF o peso argentino.<br><br>Se guarda convertido a pesos con el valor de ese día, así que tus totales viven siempre en una sola moneda. Cuáles aparecen se elige en <b>Ajustes</b>.' },
-    { abre:"hoja", form:{monto:"8900", cat:"Comida", nota:"Almuerzo campus"}, sel:"#nota", t:"Detalle y fecha",
-      d:'Opcionales. <b>Almuerzo campus</b>, por ejemplo. La fecha viene en hoy.' },
-    { abre:"hoja", form:{monto:"8900", cat:"Comida", nota:"Almuerzo campus"}, sel:"#guardar", t:"Guardar",
-      d:"Y listo. Se suma al mes y aparece en los movimientos." },
+    /* ---------- 2. anotar ---------- */
+    Object.assign(cap(2, "Anotar un gasto", "Tres toques y listo.",
+      ilu(["comida"])), { abre:"mes" }),
+    { abre:"mes", sel: m ? "#fab" : "#hoja", cap:"Anotar", t:(m ? "El bot\u00f3n +" : "El formulario"),
+      d:(m ? "Siempre abajo al medio." : "Siempre a la izquierda.") },
+    { abre:"hoja", form:{monto:"8900"}, sel:"#monto", cap:"Anotar", t:"El monto",
+      d:"Escribes <b>8900</b> y queda <b>$8.900</b>." },
+    { abre:"hoja", form:{monto:"8900"}, sel:"#monBtn", cap:"Anotar", t:"Otras monedas",
+      d: tiles([["USD","$950"], ["UF","$39.400"], ["EUR","$1.030"]])
+       + "Tocas el <b>$</b>. Se guarda convertido a pesos con el valor del d\u00eda." },
+    { abre:"hoja", form:{monto:"8900", cat:"Comida"}, sel:"#catBtn", cap:"Anotar", t:"La categor\u00eda",
+      d:"Obligatoria. De la lista, o creas una ah\u00ed mismo." },
+    { abre:"hoja", form:{monto:"8900", cat:"Comida", nota:"Almuerzo campus"}, sel:"#nota",
+      cap:"Anotar", t:"Detalle y fecha", d:"Opcionales. La fecha viene en hoy." },
+    { abre:"hoja", form:{monto:"8900", cat:"Comida", nota:"Almuerzo campus"}, sel:"#guardar",
+      cap:"Anotar", t:"Guardar", d:"Y aparece en el mes al tiro." },
 
-    { abre:"mes", sel:"#movs", t:"Los movimientos",
-      d:"Agrupados por día. <b>Toca uno</b> para editarlo; el tarro lo elimina.<br><br>Los que vienen de una cuenta muestran el detalle y <b>el nombre entre paréntesis</b>. Siempre aparece <b>Deshacer</b>." },
-    { abre:"mes", sel:"#movFiltrar", t:"Filtrar y ocultar",
-      d:"Por categoría o por rango de fechas. Y la lista se esconde si estorba." },
-    { abre:"mes", sel:"#total", t:"El total del mes",
-      d:'Abajo dice si vas por sobre o bajo <b>tu promedio</b> de meses completos. Con el mes en curso compara a la misma altura del mes, no contra meses enteros.' },
-    { abre:"mes", sel:"#cardPresu", t:"Tu presupuesto",
-      d:"Tres números: lo que <b>puedes</b> gastar por día sin pasarte, lo que <b>vas</b> gastando por día de verdad, y en cuánto <b>terminarías</b> el mes a ese ritmo.<br><br>La barra se pone roja al pasar el <b>75%</b>." },
-    { abre:"mes", sel:"#rank", t:"El desglose",
-      d:"En qué se fue, de mayor a menor, con su porcentaje." },
-    { abre:"mes", sel:"#avisos", t:"Las alertas",
-      d:'Carrete va en $28.000 de $30.000, así que aparece la alerta amarilla.' },
+    /* ---------- 3. este mes ---------- */
+    Object.assign(cap(3, "Este mes", "La foto de c\u00f3mo vas.",
+      tiles([["Total","$486.500"], ["Promedio","\u21934%"], ["Gastos","23"]])), { abre:"mes" }),
+    { abre:"mes", sel:"#total", cap:"Este mes", t:"El total",
+      d:"Abajo, si vas sobre o bajo tu <b>promedio</b> de meses completos \u2014 comparado a la misma altura del mes." },
+    { abre:"mes", sel:"#cardPresu", cap:"Este mes", t:"Tu presupuesto",
+      d: tiles([["Puedes","$7.567"], ["Vas","$30.406"], ["Terminas en","$516.188"]])
+       + "Por d\u00eda. La barra se pone roja pasado el 75%." },
+    { abre:"mes", sel:"#rank", cap:"Este mes", t:"El desglose",
+      d:"En qu\u00e9 se fue, de mayor a menor. <b>Toca una</b> categor\u00eda." },
+    { abre:"desglose", sel:"#cmCuerpo", cap:"Este mes", t:"Sus gastos",
+      d:"Los de esa categor\u00eda, con su alerta. Tocas uno y lo editas; el tarro lo borra." },
+    { abre:"mes", sel:"#avisos", cap:"Este mes", t:"Las alertas",
+      d:"Las categor\u00edas que van cerca del tope o ya se pasaron." },
 
-    { abre:"mes", sel:"#btnCx", t:"Cuentas",
-      d:"Acá llevas la plata que te deben y la que debes. El punto dorado avisa cuando hay algo abierto." },
-    { abre:"cx", sel:"#cxLista", t:"Por cobrar",
-      d:'Pusiste la plata tú, así que <b>ya es un gasto tuyo</b>: aparece en el mes marcado <b>por cobrar</b> y se achica con cada abono.<br><br>Las cuentas vienen <b>agrupadas por persona</b>: Pancho te debe $38.000 entre la cena y las entradas.' },
-    { abre:"cxgrupo", sel:"#cxGrCuerpo", t:"Todo de una persona",
-      d:'Tocas a Pancho y ves sus dos cuentas. <b>Marcar todo como cobrado</b> las cierra juntas de una vez.<br><br>Si te va a pagar por partes, entras a una sola y registras el abono ahí.' },
-    { abre:"cxgrupo", sel:"#cxGrCuerpo", t:"Cuando se salda",
-      d:'Una cuenta <b>por cobrar</b> que te pagan entera desaparece: ya no es plata tuya, así que sale del mes.<br><br>Una <b>por pagar</b> que terminas de pagar se va de la lista pero <b>queda como gasto</b>, con la fecha de cada abono.' },
-    { abre:"cxpagar", sel:"#cxLista", t:"Por pagar",
-      d:'Al revés: todavía no sale plata de tu bolsillo, así que <b>no cuenta como gasto</b>.<br><br>Recién cuando abonas, ese abono entra como gasto con la fecha en que pagaste.' },
-    { abre:"cxnueva", sel:"#cxForm", t:"Crear una cuenta",
-      d:'Monto, categoría y quién. El monto también puede ir en <b>otra moneda</b>: tocas el <b>$</b> y se guarda convertido a pesos.' },
-    { abre:"cxnueva", sel:"#cxEntePick", t:"Quién",
-      d:'La lista te muestra primero a los que <b>más usas</b>. Escribes para buscar, y si no está lo agregas ahí mismo.' },
-    { abre:"cxentes", sel:"#cxEnLista", t:"Tus entes",
-      d:'En <b>Entes</b>, arriba a la derecha, están todas las personas y empresas. Las agregas, les cambias el nombre o las eliminas.<br><br>Si renombras a alguien, el cambio llega a todas sus cuentas y movimientos.' },
+    /* ---------- 4. calendario ---------- */
+    Object.assign(cap(4, "El calendario", "Tus d\u00edas y todos tus movimientos.", dias()), { abre:"mes" }),
+    { abre:"cal", sel:"#calGrid", cap:"Calendario", t:"D\u00eda por d\u00eda",
+      d:"Mientras m\u00e1s fuerte el azul, m\u00e1s gastaste. <b>Toca uno</b> y ves qu\u00e9 compraste." },
+    { abre:"cal", sel:"#calRes", cap:"Calendario", t:"El resumen",
+      d:"Lo del mes, tu d\u00eda m\u00e1s caro y cu\u00e1ntos d\u00edas no gastaste nada." },
+    { abre:"cal", sel:"#calVerMovs", cap:"Calendario", t:"Ver movimientos",
+      d:"Ac\u00e1 vive la lista completa del mes." },
+    { abre:"calmovs", sel:"#movs", cap:"Calendario", t:"Tus movimientos",
+      d: fila("comida", "Cena del viernes (Pancho)", "Comida", "$24.000", true)
+       + "Tocas uno y lo editas; el tarro lo borra, siempre con <b>Deshacer</b>." },
+    { abre:"calmovs", sel:"#movFiltrar", cap:"Calendario", t:"Filtrar",
+      d:"Por categor\u00eda o por rango de fechas." },
 
-    { abre:"cal", sel:"#calGrid", t:"El calendario",
-      d:"Los días en azul tienen gastos. <b>Toca uno</b> y ves qué compraste ese día." },
+    /* ---------- 5. cuentas ---------- */
+    Object.assign(cap(5, "Cuentas", "Lo que te deben y lo que debes.",
+      tiles([["Te deben","$47.000"], ["Debes","$50.000"], ["Personas","3"]])), { abre:"mes" }),
+    { abre:"mes", sel:"#btnCx", cap:"Cuentas", t:"El bot\u00f3n Cx",
+      d:"El punto dorado avisa cuando hay algo abierto." },
+    { abre:"cx", sel:"#cxLista", cap:"Cuentas", t:"Por cobrar",
+      d:"La pusiste t\u00fa, as\u00ed que <b>ya es gasto tuyo</b> y se achica con cada abono. Vienen agrupadas por persona." },
+    { abre:"cxgrupo", sel:"#cxGrCuerpo", cap:"Cuentas", t:"Todo de una persona",
+      d:"Las cierras <b>todas juntas</b>, o entras a una y registras el abono." },
+    { abre:"cxgrupo", sel:"#cxGrCuerpo", cap:"Cuentas", t:"Cuando se salda",
+      d:"La <b>por cobrar</b> desaparece: ya no es plata tuya. La <b>por pagar</b> se va de la lista pero queda como gasto." },
+    { abre:"cxpagar", sel:"#cxLista", cap:"Cuentas", t:"Por pagar",
+      d:"No cuenta como gasto hasta que pagas. Cada abono entra con su fecha." },
+    { abre:"cxnueva", sel:"#cxEntePick", cap:"Cuentas", t:"Qui\u00e9n",
+      d:"Primero los que m\u00e1s usas. Escribes para buscar, y si no est\u00e1 lo agregas ah\u00ed." },
+    { abre:"cxentes", sel:"#cxEnLista", cap:"Cuentas", t:"Tus entes",
+      d:"Agregas, renombras o eliminas. Renombrar llega a todas sus cuentas y movimientos." },
 
-    { abre:"hist", sel:"#kpis", t:"El histórico",
-      d:"Tu acumulado, el promedio de meses completos y el mes más caro, siempre de los <b>últimos 12 meses</b> contados desde hoy." },
-    { abre:"hist", sel:"#bars", t:"Tus meses",
-      d:"Cada barra es un mes, con tu promedio punteado. Toca una y saltas a ese mes." },
-    { abre:"hist", sel:"#cardCumple", t:"Meses cumplidos",
-      d:"Cuántos meses cerraste dentro de tu tope. Cada mes se compara contra <b>el tope que tenía</b>, no contra el de hoy.<br><br>Las barritas verdes son los que cumpliste." },
+    /* ---------- 6. hist\u00f3rico ---------- */
+    Object.assign(cap(6, "Hist\u00f3rico", "C\u00f3mo vienes en el a\u00f1o.",
+      tiles([["12 meses","$5,2M"], ["Promedio","$436.000"], ["Cumpl\u00ed","67%"]])), { abre:"mes" }),
+    { abre:"hist", sel:"#kpis", cap:"Hist\u00f3rico", t:"Los n\u00fameros",
+      d:"Siempre de los <b>\u00faltimos 12 meses</b> contados desde hoy." },
+    { abre:"hist", sel:"#bars", cap:"Hist\u00f3rico", t:"Tus meses",
+      d:"Cada barra un mes, con tu promedio punteado. T\u00f3cala y saltas a ese mes." },
+    { abre:"hist", sel:"#cardCumple", cap:"Hist\u00f3rico", t:"Meses cumplidos",
+      d:"Cu\u00e1ntos cerraste dentro del tope <b>que ten\u00edan</b>, no del de hoy." },
+    { abre:"hist", sel:"#rankHist", cap:"Hist\u00f3rico", t:"Por categor\u00eda",
+      d:"El acumulado del a\u00f1o. T\u00f3cala y ves todos sus gastos." },
 
-    { abre:"cfg", centro:true, t:"Ajustes",
-      d:"Notificaciones, respaldo, tu cuenta y este tutorial para repetirlo." },
+    { abre:"cfg", centro:true, cap:"Ajustes", t:"Lo \u00faltimo",
+      d:"Notificaciones, monedas, respaldo, tu cuenta y este tutorial para repetirlo." },
 
     { centro:true, abre:"mes", t:"Eso es todo",
-      d: ilu(["estrella"]) + "Vuelven tus datos reales.<br><br>Empieza creando tus categorías y anotando lo de hoy." }
+      d: ilu(["estrella"]) + "Vuelven tus datos reales. Empieza creando tus categor\u00edas y anotando lo de hoy." }
   ];
 }
-
 function iniciarTour(){
   cerrarWins(true); cerrarHoja(); cerrarTooltipCal();
   entrarDemo();
@@ -4570,6 +4705,8 @@ function prepararPaso(p){
   var acc = {
     presu: function(){ abrirWinReal("winPresu"); },
     cal:   function(){ abrirWinReal("winCal"); },
+    calmovs: function(){ abrirWinReal("winCal"); calIr("calMovs"); pintarMovs(); },
+    desglose: function(){ cerrarWins(true); cerrarHoja(); verTab("mes"); abrirCatMovs("Carrete", mesActual); },
     cx:    function(){ cxTipo = "cobrar"; cerrarCxForm(); abrirWinReal("winCx"); },
     cxpagar: function(){ cxTipo = "pagar"; cerrarCxForm(); abrirWinReal("winCx"); },
     cxgrupo: function(){ cxTipo = "cobrar"; cerrarCxForm(); abrirWinReal("winCx"); abrirCxGrupo("Pancho"); },
@@ -4600,12 +4737,12 @@ function pintarTour(){
   else if (ultimo) pie = '<button class="save" data-t="fin">Entendido</button>';
   else pie = '<button class="btn2" data-t="atras">Atrás</button><button class="save" data-t="sig">Siguiente</button>';
 
-  var dots = pasos.map(function(_,i){ return '<i class="' + (i===tourPaso ? "on" : "") + '"></i>'; }).join("");
+  var pct = Math.round(tourPaso / (pasos.length - 1) * 100);
 
   $("tourCuerpo").innerHTML =
-    (primero || ultimo ? "" : '<div class="paso">Paso ' + tourPaso + ' de ' + (pasos.length-2) + '</div>')
-    + '<h3>' + esc(p.t) + '</h3><p>' + p.d + '</p>'
-    + '<div class="tour-pie"><div class="tour-dots">' + dots + '</div>' + pie + '</div>';
+    (primero || ultimo ? "" : '<div class="paso">' + (p.cap ? esc(p.cap) : "Paso " + tourPaso + " de " + (pasos.length-2)) + '</div>')
+    + '<h3>' + esc(p.t) + '</h3><div class="tour-txt">' + p.d + '</div>'
+    + '<div class="tour-pie"><span class="tour-prog"><i style="width:' + pct + '%"></i></span>' + pie + '</div>';
 
   ubicarTour(p);
   setTimeout(function(){ if (tourPaso >= 0) ubicarTour(p); }, p.abre || p.editar || p.form ? 330 : 60);
@@ -4668,47 +4805,117 @@ function gastosDelDia(iso){
   return itemsDe(claveMes(iso)).filter(function(g){ return g.fecha === iso; })
     .sort(function(a,b){ return b.monto - a.monto; });
 }
+/* ---- el calendario tiene tres vistas: la cuadr\u00edcula, un d\u00eda y los movimientos ---- */
+var calVistaAct = "calVista";
+function calIr(v, titulo){
+  calVistaAct = v;
+  ["calVista", "calDia", "calMovs"].forEach(function(id){ $(id).hidden = (id !== v); });
+  $("calNav").hidden = (v === "calDia");
+  $("calVerMovs").hidden = (v !== "calVista");
+  $("calTitulo").textContent = titulo || "Calendario";
+  $("calBajada").hidden = (v === "calDia");
+  $("calBajada").textContent = v === "calMovs"
+    ? "Todo lo del mes, del m\u00e1s nuevo al m\u00e1s viejo. Toca uno para editarlo; el tarro lo elimina."
+    : "Mientras m\u00e1s fuerte el azul, m\u00e1s gastaste ese d\u00eda. Toca uno para ver qu\u00e9 anotaste.";
+  $("winCal").scrollTop = 0;
+}
+function calAtras(){
+  if (calVistaAct !== "calVista")
+    return salirDe(function(){ calSel = null; movMenu = null; pintarMenu(); calIr("calVista"); pintarCal(); });
+  salirDe(function(){ cerrarWins(); });
+}
+/* para volver a la misma pantalla despu\u00e9s de editar o borrar un gasto */
+function volverAlCal(vista, dia){
+  var m = calMes;
+  return function(){
+    if ($("winCal").hidden) abrirWinReal("winCal");
+    calMes = m; calSel = dia || null;
+    pintarCal();
+    if (vista === "calDia" && dia && gastosDelDia(dia).length){
+      calIr("calDia", fechaLarga(dia)); pintarCalDia();
+    } else if (vista === "calMovs"){ calIr("calMovs", "Movimientos"); pintarMovs(); }
+    else { calSel = null; calIr("calVista"); }
+  };
+}
+/* cuatro intensidades, relativas al d\u00eda m\u00e1s caro del mes */
+function nivelDia(tot, max){
+  if (!tot) return "vacio";
+  if (!max) return "n3";
+  var r = tot / max;
+  return r >= .75 ? "n4" : r >= .45 ? "n3" : r >= .2 ? "n2" : "n1";
+}
 function pintarCal(){
   $("calMesLabel").textContent = nombreMes(calMes);
   var n = diasDelMes(calMes), off = primerDiaSemana(calMes), hoy = hoyISO();
+  var totales = [], max = 0, d, iso, t;
+  for (d = 1; d <= n; d++){
+    iso = calMes + "-" + ("0" + d).slice(-2);
+    t = gastosDelDia(iso).reduce(function(a, b){ return a + b.monto; }, 0);
+    totales.push(t); if (t > max) max = t;
+  }
   var html = "";
-  for (var i=0;i<off;i++) html += '<div class="hueco"></div>';
-  for (var d=1; d<=n; d++){
-    var iso = calMes + "-" + ("0"+d).slice(-2);
-    var g = gastosDelDia(iso);
-    var tot = g.reduce(function(a,b){ return a+b.monto; }, 0);
-    html += '<button class="cal-d' + (g.length ? " tiene" : " vacio") + (iso===hoy ? " hoy" : "")
-      + '" data-dia="' + iso + '" aria-pressed="' + (calSel===iso) + '"'
-      + (g.length ? ' title="' + plataTxt(tot) + '"' : '') + '>' + d + '</button>';
+  for (var i = 0; i < off; i++) html += '<div class="hueco"></div>';
+  for (d = 1; d <= n; d++){
+    iso = calMes + "-" + ("0" + d).slice(-2); t = totales[d-1];
+    html += '<button class="cal-d ' + nivelDia(t, max) + (iso === hoy ? " hoy" : "")
+      + '" data-dia="' + iso + '" aria-pressed="' + (calSel === iso) + '"'
+      + (t ? ' title="' + plataTxt(t) + '"' : '') + '>' + d + '</button>';
   }
   $("calGrid").innerHTML = html;
-
-  $("calVista").hidden = !!calSel;
-  $("calDia").hidden = !calSel;
-  if (!calSel){ $("calDet").innerHTML = ""; return; }
+  pintarCalRes(totales, max);
+}
+/* bajo la cuadr\u00edcula: lo del mes, el d\u00eda m\u00e1s caro y cu\u00e1ntos d\u00edas no gastaste nada */
+function pintarCalRes(totales, max){
+  var items = itemsDe(calMes);
+  var total = items.reduce(function(a, b){ return a + b.monto; }, 0);
+  var hoy = hoyISO();
+  var limite = calMes === hoy.slice(0, 7) ? parseInt(hoy.slice(8), 10) : totales.length;
+  var cero = 0;
+  for (var i = 0; i < limite; i++) if (!totales[i]) cero++;
+  var pico = max ? calMes + "-" + ("0" + (totales.indexOf(max) + 1)).slice(-2) : "";
+  $("calRes").innerHTML =
+      '<div class="c"><div class="k">Gastado</div><div class="v">' + plata(total) + '</div>'
+    +   '<div class="s">' + items.length + (items.length === 1 ? " gasto" : " gastos") + '</div></div>'
+    + '<div class="c"><div class="k">D\u00eda m\u00e1s caro</div><div class="v">' + (max ? plata(max) : "\u2014") + '</div>'
+    +   '<div class="s">' + (pico ? fechaLarga(pico) : "sin gastos") + '</div></div>'
+    + '<div class="c"><div class="k">D\u00edas en cero</div><div class="v">' + cero + '</div>'
+    +   '<div class="s">de ' + limite + '</div></div>';
+}
+function pintarCalDia(){
   var items = gastosDelDia(calSel);
-  var total = items.reduce(function(a,b){ return a+b.monto; }, 0);
-  $("calDiaTit").textContent = fechaLarga(calSel);
-  $("calDet").innerHTML = '<div class="cal-det" style="border:none;margin:0;padding:0">'
-    + '<div class="tot">' + (items.length ? items.length + (items.length===1?" gasto · ":" gastos · ") + plata(total) : "") + '</div>'
+  var total = items.reduce(function(a, b){ return a + b.monto; }, 0);
+  $("calDet").innerHTML =
+      '<div class="cm-tot"><span class="v">' + plata(total) + '</span>'
+    +   '<span class="k">' + (items.length
+          ? items.length + (items.length === 1 ? " gasto ese d\u00eda" : " gastos ese d\u00eda")
+          : "sin gastos ese d\u00eda") + '</span></div>'
     + (items.length
-        ? items.map(function(g){
-            return '<div class="mov"><span class="mov-main">' + insignia(g.cat)
-              + '<span class="d">' + tituloHTML(g)
-              + subMov(g)
-              + '</span><span class="m">' + plata(g.monto) + '</span></span></div>';
-          }).join("")
-        : '<div class="cal-vacio">Sin gastos este día.</div>')
-    + '</div>';
+        ? items.map(function(g){ return filaMov(g); }).join("")
+        : '<div class="vacio"><p>No anotaste nada ese d\u00eda.</p>'
+          + '<button class="cta" id="calNuevoDia">Anotar uno</button></div>');
+  if ($("calNuevoDia")) $("calNuevoDia").addEventListener("click", function(){
+    var dia = calSel;
+    volverTras = null; cerrarWins(true); limpiarForm(); abrirHoja();
+    $("fecha").value = dia;
+  });
 }
 $("calGrid").addEventListener("click", function(e){
   var b = e.target.closest("[data-dia]"); if (!b) return;
-  calSel = b.dataset.dia; pintarCal(); $("winCal").scrollTop = 0;
+  calSel = b.dataset.dia;
+  calIr("calDia", fechaLarga(calSel)); pintarCalDia();
 });
-$("calVolver").addEventListener("click", function(){ calSel = null; pintarCal(); });
-$("calPrev").addEventListener("click", function(){ calMes = mesVecino(calMes,-1); calSel = null; pintarCal(); });
-$("calNext").addEventListener("click", function(){ calMes = mesVecino(calMes, 1); calSel = null; pintarCal(); });
-$("cerrarCal").addEventListener("click", cerrarWins);
+$("calDet").addEventListener("click", function(e){ clickMov(e, volverAlCal("calDia", calSel)); });
+$("movs").addEventListener("click", function(e){ clickMov(e, volverAlCal("calMovs")); });
+$("calVerMovs").addEventListener("click", function(){ calIr("calMovs", "Movimientos"); pintarMovs(); });
+$("calPrev").addEventListener("click", function(){
+  calMes = mesVecino(calMes, -1); calSel = null; pintarCal();
+  if (calVistaAct === "calMovs") pintarMovs(); else calIr("calVista");
+});
+$("calNext").addEventListener("click", function(){
+  calMes = mesVecino(calMes, 1); calSel = null; pintarCal();
+  if (calVistaAct === "calMovs") pintarMovs(); else calIr("calVista");
+});
+$("cerrarCal").addEventListener("click", calAtras);
 
 /* ============================================================
    Ventana de ajustes
