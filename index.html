@@ -614,6 +614,14 @@ body.conf-abierta .backdrop{opacity:1;pointer-events:auto;z-index:80}
 .cx-tabs button{flex:1;background:var(--bg-2);border:1px solid var(--line);color:var(--muted);
   border-radius:99px;padding:11px 10px;font-size:14px;font-weight:600}
 .cx-tabs button[aria-pressed="true"]{background:linear-gradient(150deg,var(--gold),var(--gold-2));border-color:transparent;color:#191203}
+#cxTabNeto{flex:0 1 auto;padding-left:18px;padding-right:18px}
+.neto-par{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:16px 0 2px}
+.neto-par .c{background:var(--bg-2);border:1px solid var(--line);border-radius:14px;padding:12px 13px;min-width:0}
+.neto-par .k{font-size:10.5px;font-weight:700;letter-spacing:.07em;text-transform:uppercase;color:var(--faint);margin-bottom:5px}
+.neto-par .v{font-family:"Fraunces",Georgia,serif;font-size:19px;letter-spacing:-.01em;
+  overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.neto-par .c.ok .v{color:var(--ok)}
+.neto-par .c.dg .v{color:var(--danger)}
 .cx-fila{width:100%;display:block;text-align:left;background:none;border:none;color:inherit;
   border-bottom:1px solid var(--line-soft);padding:14px 0}
 .cx-fila:hover{background:var(--card-2)}
@@ -1164,6 +1172,7 @@ body.acceso-on #winInstalar{z-index:100}
     <div class="cx-tabs">
       <button type="button" id="cxTabCobrar" aria-pressed="true">Por cobrar</button>
       <button type="button" id="cxTabPagar" aria-pressed="false">Por pagar</button>
+      <button type="button" id="cxTabNeto" aria-pressed="false" hidden>Neto</button>
     </div>
     <p class="bajada" id="cxAyuda"></p>
     <div id="cxLista"></div>
@@ -1207,6 +1216,22 @@ body.acceso-on #winInstalar{z-index:100}
 
   <div id="cxGrupo" hidden>
     <div id="cxGrCuerpo"></div>
+    <div class="rec-form" id="cxNtForm" hidden>
+      <label for="cxNtMonto">Cu\u00e1nto compensar</label>
+      <div class="monto-row chico">
+        <button type="button" class="sig monbtn solo" id="cxNtMonBtn" aria-expanded="false" aria-label="Moneda">$</button>
+        <input id="cxNtMonto" type="text" inputmode="numeric" placeholder="0" aria-label="Monto a compensar">
+      </div>
+      <div class="mon-ops" id="cxNtMonOps" hidden></div>
+      <div class="mon-eq" id="cxNtMonEq" hidden></div>
+      <div style="margin-top:14px"><label for="cxNtFecha">Fecha</label>
+        <input class="inp" id="cxNtFecha" type="date"></div>
+      <div class="btnrow" style="margin-top:16px">
+        <button class="btn2" id="cxNtGuardar" style="background:linear-gradient(150deg,var(--gold),var(--gold-2));color:#191203;border-color:transparent">Compensar</button>
+        <button class="btn2" id="cxNtCancelar">Cancelar</button>
+      </div>
+      <div class="nota" id="cxNtHint"></div>
+    </div>
   </div>
 
   <div id="cxEntesVista" hidden>
@@ -2811,7 +2836,7 @@ function abonar(c, monto, fecha, mon, orig){
   c.pagos = (c.pagos || []).concat([pago]);
   sincronizarCuentas();
   guardarCache(true);
-  return true;
+  return pago;
 }
 function quitarAbono(c, pagoId){
   var pago = (c.pagos || []).filter(function(p){ return p.id === pagoId; })[0];
@@ -2821,11 +2846,24 @@ function quitarAbono(c, pagoId){
   sincronizarCuentas();
   guardarCache(true);
 }
+/* eliminar borra lo que falta. Lo que ya abonaste pas\u00f3 de verdad, as\u00ed que queda:
+   en las por pagar como gasto con su fecha, y en las por cobrar ya estaba descontado. */
 function eliminarCuenta(c){
-  (c.pagos || []).forEach(function(p){ if (p.gid) quitarGastoId(p.gid); });
   quitarGastoId("cx_" + c.id);
   estado.cuentas = (estado.cuentas || []).filter(function(x){ return x.id !== c.id; });
   guardarCache(true);
+}
+function textoBorrarCuenta(c){
+  var n = (c.pagos || []).length, pend = pendienteDe(c);
+  if (c.tipo === "pagar"){
+    return n
+      ? "Se borra lo que falta (" + plataTxt(pend) + "). "
+        + (n === 1 ? "El abono que ya hiciste queda" : "Los " + n + " abonos que ya hiciste quedan")
+        + " como gasto."
+      : "Nunca abonaste nada, as\u00ed que no toca tus gastos.";
+  }
+  return "Se borra lo que falta por cobrar (" + plataTxt(pend) + ") y sale de tus gastos del mes."
+    + (n ? " Lo que ya te devolvieron no se toca." : "");
 }
 function usoEntes(){
   var u = {};
@@ -2871,6 +2909,58 @@ function borrarEnte(n){
   var k = String(n || "").toLowerCase();
   estado.entes = (estado.entes || []).filter(function(e){ return e.toLowerCase() !== k; });
   guardarCache(true);
+}
+/* ---- el neto: cuando un mismo ente est\u00e1 en las dos listas ---- */
+function abiertasDe(ente, tipo){
+  return cuentasDeEnte(ente, tipo).filter(function(c){ return pendienteDe(c) > 0; });
+}
+function netoDe(ente){
+  var co = abiertasDe(ente, "cobrar"), pa = abiertasDe(ente, "pagar");
+  var tc = co.reduce(function(a, c){ return a + pendienteDe(c); }, 0);
+  var tp = pa.reduce(function(a, c){ return a + pendienteDe(c); }, 0);
+  return { ente:ente, cobrar:co, pagar:pa, tc:tc, tp:tp, cruce:Math.min(tc, tp), neto:tc - tp };
+}
+function entesConNeto(){
+  var vistos = {}, out = [];
+  (estado.cuentas || []).forEach(function(c){
+    var k = (c.ente || "").toLowerCase();
+    if (!k || vistos[k]) return;
+    vistos[k] = 1;
+    var n = netoDe(c.ente);
+    if (n.tc > 0 && n.tp > 0) out.push(n);
+  });
+  return out.sort(function(a, b){ return b.cruce - a.cruce; });
+}
+/* reparte un abono entre las cuentas abiertas, de la m\u00e1s vieja a la m\u00e1s nueva */
+function repartirAbono(lista, monto, fecha, gids){
+  lista.slice().sort(function(a, b){ return a.fecha < b.fecha ? -1 : 1; }).forEach(function(c){
+    if (monto <= 0) return;
+    var x = Math.min(monto, pendienteDe(c));
+    if (x <= 0) return;
+    var pago = abonar(c, x, fecha);
+    if (pago && pago.gid) gids.push(pago.gid);
+    monto -= x;
+  });
+}
+/* Compensar cancela deuda mutua: lo que te debe paga lo que debes, peso a peso.
+   Por dentro es un abono en cada lado, as\u00ed que el gasto de la cuenta por pagar
+   se registra igual que siempre y el espejo de la por cobrar se achica lo mismo:
+   en total tus gastos del mes no se mueven, que es justo lo que corresponde. */
+function moverNeto(ente, deCobrar, dePagar, fecha){
+  var n = netoDe(ente), gids = [];
+  var antes = cuentasDeEnte(ente).map(function(c){ return JSON.parse(JSON.stringify(c)); });
+  repartirAbono(n.cobrar, deCobrar, fecha, gids);
+  repartirAbono(n.pagar,  dePagar,  fecha, gids);
+  cuentasDeEnte(ente).slice().forEach(function(c){ cerrarSiSaldada(c); });
+  guardarCache(true);
+  var k = String(ente || "").toLowerCase();
+  return function deshacer(){
+    gids.forEach(quitarGastoId);
+    estado.cuentas = (estado.cuentas || []).filter(function(x){
+      return (x.ente || "").toLowerCase() !== k;
+    }).concat(antes);
+    sincronizarCuentas(); guardarCache(true);
+  };
 }
 /* una cuenta saldada no queda dando vueltas: la por cobrar se borra entera
    (ya no es gasto tuyo) y la por pagar se va dejando sus gastos hechos */
@@ -2926,16 +3016,41 @@ function pintarCx(){
   $("cxTotPagar").innerHTML = plata(tp);
   $("cxTotCobrar").style.color = tc ? "" : "var(--faint)";
   $("cxTotPagar").style.color  = tp ? "" : "var(--faint)";
+  var netos = entesConNeto();
+  $("cxTabNeto").hidden = !netos.length;
+  if (cxTipo === "neto" && !netos.length) cxTipo = "cobrar";
   $("cxTabCobrar").setAttribute("aria-pressed", cxTipo === "cobrar" ? "true" : "false");
   $("cxTabPagar").setAttribute("aria-pressed", cxTipo === "pagar" ? "true" : "false");
+  $("cxTabNeto").setAttribute("aria-pressed", cxTipo === "neto" ? "true" : "false");
+  $("cxNueva").hidden = (cxTipo === "neto") || !$("cxForm").hidden;
   $("cxNuevaTxt").textContent = cxTipo === "cobrar" ? "Nueva cuenta por cobrar" : "Nueva cuenta por pagar";
-  $("cxAyuda").textContent = cxTipo === "cobrar"
-    ? "Plata que pusiste tú y te deben. Ya cuenta como gasto del mes y se achica con cada abono que te hagan."
-    : "Plata que debes. No cuenta como gasto hasta que la pagues: cada abono entra con la fecha en que pagaste.";
+  $("cxAyuda").textContent = cxTipo === "neto"
+    ? "Gente que te debe y a la que le debes al mismo tiempo. Puedes cruzar las deudas sin que se mueva plata."
+    : cxTipo === "cobrar"
+      ? "Plata que pusiste t\u00fa y te deben. Ya cuenta como gasto del mes y se achica con cada abono que te hagan."
+      : "Plata que debes. No cuenta como gasto hasta que la pagues: cada abono entra con la fecha en que pagaste.";
+
+  if (cxTipo === "neto"){
+    $("cxLista").innerHTML = netos.map(filaNeto).join("");
+    return;
+  }
   var gr = gruposCx(cxTipo);
   $("cxLista").innerHTML = gr.length
     ? gr.map(filaGrupo).join("")
     : '<div class="vacio"><p>' + (cxTipo === "cobrar" ? "Nadie te debe nada." : "No le debes nada a nadie.") + '</p></div>';
+}
+function filaNeto(n){
+  var aFavor = n.neto > 0;
+  return '<button type="button" class="cx-gr" data-ente="' + esc(n.ente) + '">'
+    + '<div class="l1">' + insigniaEnte(n.ente)
+    +   '<span class="nm">' + esc(n.ente) + '</span>'
+    +   '<span class="mt" style="color:' + (n.neto === 0 ? "var(--ok)" : aFavor ? "var(--ok)" : "var(--danger)") + '">'
+    +     (n.neto === 0 ? "A mano" : plata(Math.abs(n.neto))) + '</span>'
+    +   '<span class="ch">\u203A</span></div>'
+    + '<div class="l2">' + (n.neto === 0 ? "se cruzan enteras"
+        : aFavor ? "te queda a favor" : "le quedas debiendo")
+    +   " \u00B7 " + plataTxt(n.tc) + " / " + plataTxt(n.tp) + '</div>'
+    + '</button>';
 }
 /* las cuentas se juntan por persona: una fila por ente, con lo que suma */
 function gruposCx(tipo){
@@ -3099,6 +3214,7 @@ function cxAbonoPendiente(){
 
 $("cxTabCobrar").addEventListener("click", function(){ salirDe(function(){ cxTipo = "cobrar"; cxInicio(); }); });
 $("cxTabPagar").addEventListener("click", function(){ salirDe(function(){ cxTipo = "pagar"; cxInicio(); }); });
+$("cxTabNeto").addEventListener("click", function(){ salirDe(function(){ cxTipo = "neto"; cxInicio(); }); });
 $("cxNueva").addEventListener("click", function(){ abrirCxForm(null); if (!esMovil()) $("cxMonto").focus(); });
 $("cxCancelar").addEventListener("click", cerrarCxForm);
 var selCx = selectorMoneda({ btn:"cxMonBtn", ops:"cxMonOps", eq:"cxMonEq", input:"cxMonto", fecha:"cxFecha" });
@@ -3149,13 +3265,14 @@ function cxAtras(){
   if (cxVistaAct !== "cxVista") return salirDe(cxInicio);
   salirDe(function(){ cxInicio(); cerrarWins(); });
 }
-function cxInicio(){ cxSel = null; cxEnteVer = ""; cerrarCxForm(); cxIr("cxVista"); pintarCx(); }
+function cxInicio(){ cxSel = null; cxEnteVer = ""; cerrarCxForm(); cerrarNtForm(); cxIr("cxVista"); pintarCx(); }
 
 /* ---- todas las cuentas de una persona ---- */
 function abrirCxGrupo(ente){
-  cxEnteVer = ente; cerrarCxForm(); cxIr("cxGrupo", ente); pintarCxGrupo();
+  cxEnteVer = ente; cerrarCxForm(); cerrarNtForm(); cxIr("cxGrupo", ente); pintarCxGrupo();
 }
 function pintarCxGrupo(){
+  if (cxTipo === "neto") return pintarCxNeto();
   var cuentas = cuentasDeEnte(cxEnteVer, cxTipo).sort(function(a, b){
     var pa = pendienteDe(a) > 0, pb = pendienteDe(b) > 0;
     if (pa !== pb) return pa ? -1 : 1;
@@ -3200,6 +3317,98 @@ $("cxGrCuerpo").addEventListener("click", function(e){
   var b = e.target.closest("[data-cuenta]"); if (!b) return;
   abrirCxDet(b.dataset.cuenta);
 });
+
+/* ---- el neto de una persona ---- */
+var selNt = null;
+function pintarCxNeto(){
+  var n = netoDe(cxEnteVer);
+  if (!n.tc || !n.tp) return cxInicio();
+  var aFavor = n.neto > 0, resto = Math.abs(n.neto);
+  $("cxGrCuerpo").innerHTML =
+      '<div class="cx-det-top"><div><div class="k">'
+    +   (n.neto === 0 ? "Quedan a mano" : aFavor ? "Te queda a favor" : "Le quedas debiendo") + '</div>'
+    +   '<div class="v" style="color:' + (aFavor || n.neto === 0 ? "var(--ok)" : "var(--danger)") + '">'
+    +     plata(resto) + '</div></div></div>'
+    + '<div class="neto-par">'
+    +   '<div class="c ok"><div class="k">Te debe</div><div class="v">' + plata(n.tc) + '</div></div>'
+    +   '<div class="c dg"><div class="k">Le debes</div><div class="v">' + plata(n.tp) + '</div></div>'
+    + '</div>'
+    + '<button class="btn2" id="cxNtCruce" style="width:100%;margin:16px 0 4px;background:var(--deep);color:var(--on-deep);border-color:var(--deep)">'
+    +   "Cruzar " + plataTxt(n.cruce) + '</button>'
+    + '<div class="nota">Lo que te debe paga lo que le debes. No se mueve plata y tus gastos del mes '
+    +   'quedan igual: el gasto de la cuenta por pagar entra, y el de la por cobrar sale.</div>'
+    + '<div class="btnrow" style="margin-top:12px">'
+    +   '<button class="btn2" id="cxNtParte">Cruzar una parte</button>'
+    +   '<button class="btn2" id="cxNtTodo">Saldar todo</button>'
+    + '</div>'
+    + '<div class="nota">Saldar todo cierra las dos listas: cruza lo que calza y da por pagado '
+    +   (n.neto === 0 ? "el resto" : (aFavor ? "los " + plataTxt(resto) + " que te quedaban a favor"
+                                             : "los " + plataTxt(resto) + " que le quedabas debiendo")) + '.</div>'
+    + '<div class="sec"><h3>Te debe</h3>' + n.cobrar.map(filaCx).join("") + '</div>'
+    + '<div class="sec"><h3>Le debes</h3>' + n.pagar.map(filaCx).join("") + '</div>';
+
+  $("cxNtCruce").addEventListener("click", function(){
+    confirmar({ titulo: "\u00bfCruzar las deudas?",
+      texto: "Se cancelan " + plataTxt(n.cruce) + " de lado y lado con " + cxEnteVer + ". No se mueve plata.",
+      ok: "Cruzar" }).then(function(si){ if (si) aplicarNeto(n.cruce, n.cruce, "Deudas cruzadas"); });
+  });
+  $("cxNtParte").addEventListener("click", function(){
+    abrirNtForm(n);
+  });
+  $("cxNtTodo").addEventListener("click", function(){
+    confirmar({ titulo: "\u00bfSaldar todo?",
+      texto: "Se cierran todas las cuentas con " + cxEnteVer + ". "
+        + (n.neto === 0 ? "Quedan a mano." : aFavor
+            ? "Te pasa los " + plataTxt(resto) + " que quedaban a tu favor."
+            : "Le pagas los " + plataTxt(resto) + " que quedabas debiendo."),
+      ok: "Saldar todo" }).then(function(si){ if (si) aplicarNeto(n.tc, n.tp, "Cuentas al d\u00eda con " + cxEnteVer); });
+  });
+}
+function aplicarNeto(deCobrar, dePagar, texto){
+  var ente = cxEnteVer;
+  var deshacer = moverNeto(ente, deCobrar, dePagar, $("cxNtFecha").value || hoyISO());
+  cerrarNtForm(); pintar();
+  var n = netoDe(ente);
+  if (n.tc && n.tp){ pintarCxNeto(); } else { cxInicio(); }
+  avisar(texto, function(){
+    deshacer(); pintar(); cxInicio();
+  });
+}
+function abrirNtForm(n){
+  selNt.poner("CLP", 0);
+  $("cxNtFecha").value = hoyISO();
+  $("cxNtHint").textContent = "Hasta " + plataTxt(n.cruce) + ", que es lo que calza entre las dos listas.";
+  $("cxNtForm").hidden = false;
+  if (!esMovil()) $("cxNtMonto").focus();
+}
+function cerrarNtForm(){
+  $("cxNtForm").hidden = true;
+  if (selNt) selNt.poner("CLP", 0);
+}
+/* nunca se puede cruzar m\u00e1s de lo que calza entre los dos lados */
+function topeNeto(){
+  if (!cxEnteVer) return;
+  var max = netoDe(cxEnteVer).cruce;
+  if (selNt.clp() > max){
+    var t = selNt.mon() === "CLP" ? 1 : (selNt.tasa() || 1);
+    selNt.poner(selNt.mon(), max / t);
+  }
+}
+selNt = selectorMoneda({ btn:"cxNtMonBtn", ops:"cxNtMonOps", eq:"cxNtMonEq",
+                         input:"cxNtMonto", fecha:"cxNtFecha", alCambiar: topeNeto });
+$("cxNtCancelar").addEventListener("click", cerrarNtForm);
+$("cxNtGuardar").addEventListener("click", function(){
+  var v = selNt.clp();
+  if (!v){ $("cxNtMonto").focus(); return; }
+  if (selNt.mon() !== "CLP" && !selNt.tasa()){
+    $("cxNtHint").textContent = "No tengo el valor de " + selNt.mon() + " todav\u00eda."; return;
+  }
+  aplicarNeto(v, v, "Cruzado " + plataTxt(v));
+});
+function cxNetoPendiente(){
+  if ($("winCx").hidden || $("cxNtForm").hidden) return false;
+  return !!soloDigitos($("cxNtMonto").value);
+}
 
 /* ---- entes: agregar, renombrar, eliminar ---- */
 var enEdit = "", enNuevo = false;
@@ -3286,7 +3495,10 @@ function abrirCxDet(id){
 }
 function cerrarCxDet(){
   cxSel = null;
-  if (cxEnteVer && cuentasDeEnte(cxEnteVer, cxTipo).length){ cxIr("cxGrupo", cxEnteVer); pintarCxGrupo(); }
+  var sigue = cxEnteVer && (cxTipo === "neto"
+    ? (netoDe(cxEnteVer).tc > 0 && netoDe(cxEnteVer).tp > 0)
+    : cuentasDeEnte(cxEnteVer, cxTipo).length > 0);
+  if (sigue){ cxIr("cxGrupo", cxEnteVer); pintarCxGrupo(); }
   else cxInicio();
 }
 function pintarCxDet(){
@@ -3368,9 +3580,16 @@ $("cxAbGuardar").addEventListener("click", function(){
 });
 $("cxBorrar").addEventListener("click", function(){
   var c = buscarCuenta(cxSel); if (!c) return;
-  confirmar({ titulo: "¿Eliminar la cuenta?",
-    texto: "Se borra junto con sus abonos y los gastos que haya generado.", ok: "Eliminar", peligro: true })
-    .then(function(si){ if (!si) return; eliminarCuenta(c); pintar(); cerrarCxDet(); avisar("Cuenta eliminada"); });
+  confirmar({ titulo: "\u00bfEliminar la cuenta?", texto: textoBorrarCuenta(c), ok: "Eliminar", peligro: true })
+    .then(function(si){
+      if (!si) return;
+      var copia = JSON.parse(JSON.stringify(c));
+      eliminarCuenta(c); pintar(); cerrarCxDet();
+      avisar("Cuenta eliminada", function(){
+        estado.cuentas = (estado.cuentas || []).concat([copia]);
+        sincronizarCuentas(); guardarCache(true); pintar(); pintarCx();
+      });
+    });
 });
 $("cxLista").addEventListener("click", function(e){
   var b = e.target.closest("[data-ente]"); if (!b) return;
@@ -4055,6 +4274,7 @@ function descartarCambios(){
   $("catEditor").hidden = true; $("catVista").hidden = false;
   if (typeof cerrarRecForm === "function") cerrarRecForm();
   if (typeof cerrarCxForm === "function"){ cerrarCxForm(); $("cxAbonoForm").hidden = true; }
+  if (typeof cerrarNtForm === "function") cerrarNtForm();
   if (typeof pintarEntesVista === "function" && !$("cxEntesVista").hidden){
     enEdit = ""; enNuevo = false; pintarEntesVista();
   }
@@ -4067,6 +4287,7 @@ function hayCambios(){
   if (cxFormPendiente()) return "la cuenta que estás creando";
   if (cxAbonoPendiente()) return "el abono que estás registrando";
   if (cxEntePendiente()) return "el nombre que estás escribiendo";
+  if (cxNetoPendiente()) return "el cruce que estás registrando";
   if (editorPendiente()) return "la categoría que estás editando";
   if (presuMesPendiente()) return "el presupuesto mensual";
   if (document.body.classList.contains("hoja-abierta") && formOrig){
@@ -4489,6 +4710,8 @@ function datosDemo(){
       { id:"cxd2", tipo:"cobrar", monto:9000, cat:"Uber", ente:"Javi", nota:"", fecha:hoyMenos(2), pagos:[] },
       { id:"cxd4", tipo:"cobrar", monto:14000, cat:"Carrete", ente:"Pancho",
         nota:"Entradas", fecha:hoyMenos(3), pagos:[] },
+      { id:"cxd5", tipo:"pagar", monto:30000, cat:"Supermercado", ente:"Pancho",
+        nota:"Me pag\u00f3 la compra", fecha:hoyMenos(5), pagos:[] },
       { id:"cxd3", tipo:"pagar", monto:50000, cat:"Supermercado", ente:"Mamá",
         nota:"Compra del mes", fecha:hoyMenos(6), pagos:[] }
     ],
@@ -4645,8 +4868,18 @@ function pasosTour(){
       d:"Las cierras <b>todas juntas</b>, o entras a una y registras el abono." },
     { abre:"cxgrupo", sel:"#cxGrCuerpo", cap:"Cuentas", t:"Cuando se salda",
       d:"La <b>por cobrar</b> desaparece: ya no es plata tuya. La <b>por pagar</b> se va de la lista pero queda como gasto." },
+    { abre:"cxgrupo", sel:"#cxGrCuerpo", cap:"Cuentas", t:"Si la eliminas",
+      d:"Se borra <b>lo que falta</b>. Lo que ya abonaste pas\u00f3 de verdad, as\u00ed que queda anotado igual." },
     { abre:"cxpagar", sel:"#cxLista", cap:"Cuentas", t:"Por pagar",
       d:"No cuenta como gasto hasta que pagas. Cada abono entra con su fecha." },
+    { abre:"cxneto", sel:"#cxGrCuerpo", cap:"Cuentas", t:"El neto",
+      d: mock('<div class="tour-tiles" style="grid-template-columns:1fr 1fr">'
+          + '<div class="t"><div class="k">Te debe</div><div class="v" style="color:var(--ok)">$50.000</div></div>'
+          + '<div class="t"><div class="k">Le debes</div><div class="v" style="color:var(--danger)">$30.000</div></div>'
+          + '</div>')
+       + "Si le debes a alguien que tambi\u00e9n te debe, aparece la pesta\u00f1a <b>Neto</b>." },
+    { abre:"cxneto", sel:"#cxNtCruce", cap:"Cuentas", t:"Cruzar deudas",
+      d:"Lo que te debe paga lo que le debes. <b>No se mueve plata</b> y tus gastos del mes quedan igual." },
     { abre:"cxnueva", sel:"#cxEntePick", cap:"Cuentas", t:"Qui\u00e9n",
       d:"Primero los que m\u00e1s usas. Escribes para buscar, y si no est\u00e1 lo agregas ah\u00ed." },
     { abre:"cxentes", sel:"#cxEnLista", cap:"Cuentas", t:"Tus entes",
@@ -4714,6 +4947,9 @@ function prepararPaso(p){
       cxTipo = "cobrar"; abrirWinReal("winCx"); abrirCxForm(null);
       cxCatSel = "Comida"; cxEnteSel = "Pancho"; pintarCxCatVal(); pintarCxEnteVal();
       $("cxMonto").value = nf.format(36000);
+    },
+    cxneto: function(){
+      cxTipo = "neto"; cerrarCxForm(); abrirWinReal("winCx"); abrirCxGrupo("Pancho");
     },
     cxentes: function(){
       cxTipo = "cobrar"; cerrarCxForm(); abrirWinReal("winCx");
