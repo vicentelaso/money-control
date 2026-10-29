@@ -745,7 +745,11 @@ select.inp{appearance:none;-webkit-appearance:none;padding-right:38px;
 .presu-mes input::placeholder{color:var(--faint);opacity:.5}
 
 /* pagos recurrentes */
-.rec-fila{width:100%;display:flex;align-items:center;gap:14px;background:none;border:none;border-bottom:1px solid var(--line-soft);padding:15px 0;text-align:left;color:var(--ink)}
+.rec-item{border-bottom:1px solid var(--line-soft)}
+.rec-fila{width:100%;display:flex;align-items:center;gap:14px;background:none;border:none;padding:15px 0;text-align:left;color:var(--ink)}
+.rec-add{background:none;border:none;color:var(--gold);font-size:13px;font-weight:600;
+  padding:0 0 13px;text-align:left}
+.rec-add:hover{text-decoration:underline}
 .rec-fila:hover{background:var(--card-2)}
 .rec-fila .m{font-family:"Fraunces",serif;font-size:19px;letter-spacing:-.01em}
 .rec-fila .d{flex:1;min-width:0}
@@ -951,9 +955,11 @@ body.acceso-on #winInstalar{z-index:100}
     display:grid;place-items:center;width:60px;height:60px;border-radius:50%;
     background:linear-gradient(150deg,var(--gold),var(--gold-2));color:#191203;
     border:4px solid var(--bg);margin-top:-24px;
-    box-shadow:0 12px 30px -10px rgba(227,187,102,.9);transition:transform .12s;
+    box-shadow:0 12px 30px -10px rgba(227,187,102,.9);transition:transform .12s,opacity .15s;
   }
   .bottombar .fab:active{transform:scale(.93)}
+  /* en las ventanas con formulario propio el + confunde: parece que guarda ahí */
+  .bottombar .fab.off{opacity:0;pointer-events:none;transform:scale(.6)}
   .bottombar .fab svg{width:27px;height:27px;stroke:currentColor;stroke-width:2.4;fill:none;stroke-linecap:round}
   .toast{bottom:calc(env(safe-area-inset-bottom, 0px) + 92px)}
 }
@@ -2544,7 +2550,7 @@ function pintar(){
 
   var alertasMes = mapaAlertas(mesActual);
   $("rank").innerHTML = grupos.length
-    ? grupos.map(function(g){ return filaRank(g, total, alertasMes, diaHoy); }).join("")
+    ? grupos.map(function(g){ return filaRank(g, total, alertasMes, diaHoy, true); }).join("")
     : '<li class="vacio"><p>Nada todavía.</p></li>';
 
   if (!$("winCal").hidden && !$("calMovs").hidden) pintarMovs();
@@ -2557,9 +2563,11 @@ function pintar(){
 }
 
 /* el desglose va en un solo tono: el color vive en la insignia */
-function filaRank(g, total, alertas, diaHoy){
+function filaRank(g, total, alertas, diaHoy, conRef){
   var pct = total ? g.monto/total*100 : 0;
-  var r = refCat(g.cat, mesActual, diaHoy);
+  /* el chip compara contra el promedio mensual: solo tiene sentido en un mes,
+     no sobre el acumulado de los últimos doce */
+  var r = conRef ? refCat(g.cat, mesActual, diaHoy) : null;
   var chip = r ? chipDelta(g.monto, r.ref, false) : "";
   var al = alertas ? alertas[g.cat.toLowerCase()] : null;
   var color = al === "pasado" ? "var(--danger)"
@@ -3822,6 +3830,8 @@ function generarRecurrentes(){
   (estado.recurrentes || []).forEach(function(r){
     var dia = Math.min(r.dia || 1, diasDelMes(m));
     if (d < dia) return;
+    /* no se cobra hacia atrás: solo desde el día en que lo creaste */
+    if (r.desde && (m + "-" + ("0" + dia).slice(-2)) < r.desde) return;
     var id = "rec_" + r.id + "_" + m;
     if ((estado.recOmitidos || []).indexOf(id) >= 0) return;
     if (itemsDe(m).some(function(g){ return g.id === id; })) return;
@@ -4447,6 +4457,12 @@ function cerrarHoja(){
 $("fab").addEventListener("click", function(){ salirDe(function(){ cerrarWins(true); limpiarForm(); abrirHoja(); }); });
 $("cerrarHoja").addEventListener("click", cerrarHoja);
 
+/* ventanas donde el + no corresponde: tienen su propio botón de guardar */
+var SIN_FAB = ["winCx", "winRec", "winPresu", "winLogos"];
+function actualizarFab(){
+  $("fab").classList.toggle("off", SIN_FAB.indexOf(winAbierta) >= 0);
+}
+var winAbierta = "";
 function abrirWinReal(id){
   cerrarWins(true);
   /* si venimos del panel de logos, el editor sigue abierto */
@@ -4463,6 +4479,7 @@ function abrirWinReal(id){
   else pintarCfg();
   var w = $(id);
   w.hidden = false;
+  winAbierta = id; actualizarFab();
   document.body.classList.add("win-abierta");
   requestAnimationFrame(function(){ w.classList.add("on"); });
 }
@@ -4475,6 +4492,7 @@ function cerrarWins(ya){
     else setTimeout(function(){ if (!w.classList.contains("on")) w.hidden = true; }, lento ? 0 : 180);
   });
   document.body.classList.remove("win-abierta");
+  winAbierta = ""; actualizarFab();
 }
 /* ¿hay algo a medio editar que se perdería al cambiar de pantalla? */
 function recPendiente(){
@@ -4732,16 +4750,42 @@ $("cerrarLogos").addEventListener("click", function(){ abrirWinReal("winPresu");
 
 /* ---- pagos recurrentes ---- */
 var recEditando = null;
+/* cuándo cae el próximo cobro, contando lo que ya se anotó y desde cuándo rige */
+function proximoRec(r){
+  var hoy = hoyISO(), m = claveMes(hoy);
+  var dia = Math.min(r.dia || 1, diasDelMes(m));
+  var f = m + "-" + ("0" + dia).slice(-2);
+  var hecho = itemsDe(m).some(function(g){ return g.id === "rec_" + r.id + "_" + m; });
+  if (!hecho && f >= hoy && (!r.desde || f >= r.desde)) return f;
+  var m2 = mesVecino(m, 1), d2 = Math.min(r.dia || 1, diasDelMes(m2));
+  return m2 + "-" + ("0" + d2).slice(-2);
+}
+function fechaCorta(f){ return +f.slice(8, 10) + " " + mesCorto(f); }
+/* si su día ya pasó y este mes no quedó anotado, se ofrece agregarlo a mano */
+function faltaEsteMes(r){
+  var hoy = hoyISO(), m = claveMes(hoy);
+  var dia = Math.min(r.dia || 1, diasDelMes(m));
+  if (+hoy.slice(8, 10) < dia) return "";
+  var id = "rec_" + r.id + "_" + m;
+  return itemsDe(m).some(function(g){ return g.id === id; }) ? "" : id;
+}
 function pintarRec(){
-  var lista = recDeCat(edCat);
+  var lista = recDeCat(edCat), mes = claveMes(hoyISO());
   $("recBajada").innerHTML = 'Se anotan solos en <b>' + esc(edCat) + '</b> el día del mes que indiques.';
   $("recLista").innerHTML = lista.length
     ? lista.map(function(r){
-        return '<button type="button" class="rec-fila" data-rec="'+r.id+'">'
-          + '<span class="m">' + plata(r.monto) + '</span>'
-          + '<span class="d"><b>día ' + Math.max(1, Math.min(31, r.dia||1)) + ' de cada mes</b>'
-          + (r.nota ? '<small>' + esc(r.nota) + '</small>' : '') + '</span>'
-          + '<span class="ch">›</span></button>';
+        return '<div class="rec-item">'
+          + '<button type="button" class="rec-fila" data-rec="'+r.id+'">'
+          +   '<span class="m">' + plata(r.monto) + '</span>'
+          +   '<span class="d"><b>día ' + Math.max(1, Math.min(31, r.dia||1)) + ' de cada mes</b>'
+          +   '<small>' + (r.nota ? esc(r.nota) + ' \u00b7 ' : '')
+          +     'próximo ' + fechaCorta(proximoRec(r)) + '</small></span>'
+          +   '<span class="ch">›</span></button>'
+          + (faltaEsteMes(r)
+              ? '<button type="button" class="rec-add" data-recmes="'+r.id+'">+ Agregarlo en '
+                + esc(nombreMes(mes).split(" ")[0]) + '</button>'
+              : "")
+          + '</div>';
       }).join("")
     : '<div class="vacio"><p>Sin pagos recurrentes todavía.</p></div>';
 }
@@ -4774,6 +4818,23 @@ $("cerrarRec").addEventListener("click", function(){
 $("recNuevo").addEventListener("click", function(){ abrirRecForm(null); $("recMonto").focus(); });
 $("recCancelar").addEventListener("click", cerrarRecForm);
 $("recLista").addEventListener("click", function(e){
+  var am = e.target.closest("[data-recmes]");
+  if (am){
+    var rr = (estado.recurrentes || []).find(function(x){ return x.id === am.dataset.recmes; });
+    if (!rr) return;
+    var mm = claveMes(hoyISO()), dd = Math.min(rr.dia || 1, diasDelMes(mm));
+    var gid = "rec_" + rr.id + "_" + mm;
+    var g = { id:gid, monto:rr.monto, cat:rr.cat, nota:rr.nota || "",
+              fecha: mm + "-" + ("0" + dd).slice(-2), rec:rr.id };
+    if (rr.mon){ g.mon = rr.mon; g.orig = rr.orig; g.tasa = rr.tasa; }
+    estado.recOmitidos = (estado.recOmitidos || []).filter(function(x){ return x !== gid; });
+    estado.meses[mm] = itemsDe(mm).concat([g]);
+    guardarCache(true); pintarRec(); pintar();
+    avisar("Anotado en " + nombreMes(mm).split(" ")[0], function(){
+      quitarGasto(gid); guardarCache(true); pintarRec(); pintar();
+    });
+    return;
+  }
   var b = e.target.closest("[data-rec]"); if (!b) return;
   var r = (estado.recurrentes || []).find(function(x){ return x.id === b.dataset.rec; });
   if (r) abrirRecForm(r);
@@ -4792,7 +4853,7 @@ $("recGuardar").addEventListener("click", function(){
   } else {
     estado.recurrentes = (estado.recurrentes || []).concat([{
       id: nuevoId(), cat: edCat, monto: monto, dia: dia, nota: $("recNota").value.trim(),
-      mon: datosMon.mon, orig: datosMon.orig, tasa: datosMon.tasa
+      desde: hoyISO(), mon: datosMon.mon, orig: datosMon.orig, tasa: datosMon.tasa
     }]);
   }
   guardarCache(true);
@@ -5040,7 +5101,8 @@ function pasosTour(){
        + "Te avisa al 80% y otra vez si te pasas." },
     { editar:"Carrete", sel:"#edRecurrentes", cap:"Categor\u00edas", t:"Pagos recurrentes",
       d: fila("casa", "Arriendo \u00b7 Depto", "cada d\u00eda 1", "$320.000")
-       + "Lo de todos los meses se anota solo. Tambi\u00e9n en otra moneda." },
+       + "Lo de todos los meses se anota solo, <b>desde que lo creas</b> hacia adelante. "
+       + "Tambi\u00e9n en otra moneda." },
     { editar:"Carrete", sel:"#edCambiarLogo", cap:"Categor\u00edas", t:"El logo",
       d: ilu(["fiesta","copete","puchos","musica"])
        + "144 logos. Busca por tema: escribe <b>carrete</b>." },
