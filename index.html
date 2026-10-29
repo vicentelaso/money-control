@@ -693,24 +693,12 @@ select.inp{appearance:none;-webkit-appearance:none;padding-right:38px;
 .pm-tope{text-align:right;flex:none}
 .pm-tope .v{font-family:"Fraunces",Georgia,serif;font-size:20px;color:var(--muted);letter-spacing:-.01em}
 .pm-tope .linkbtn{padding:2px 0;font-size:13px;color:var(--gold)}
-/* la barra se parte: fijo, comprometido y día a día. Ver dónde se va
-   el tope explica el bloque entero sin escribir una línea */
-.pm-barra{height:14px;border-radius:99px;background:var(--line-soft);overflow:hidden;
-  margin:20px 0 11px;display:flex}
-.pm-barra .s{height:100%;border-radius:0;transition:width .45s cubic-bezier(.2,.8,.3,1)}
-.pm-barra .s.fijo{background:#3E63A0}
-.pm-barra .s.pend{background:repeating-linear-gradient(115deg,#3E63A0 0 5px,#27406E 5px 10px)}
-.pm-barra .s.dia{background:var(--barra)}
-.pm-barra .s.dia.rojo{background:linear-gradient(90deg,#C9475F,#F0798F)}
-.pm-leyenda{display:flex;flex-wrap:wrap;align-items:center;gap:7px 16px;
-  font-size:12.5px;color:var(--muted);margin-bottom:18px}
-.pm-leyenda span{display:inline-flex;align-items:center;gap:6px;white-space:nowrap}
-.pm-leyenda i{width:9px;height:9px;border-radius:3px;flex:none}
-.pm-leyenda i.fijo{background:#3E63A0}
-.pm-leyenda i.dia{background:var(--barra)}
-.pm-leyenda i.libre{background:var(--line-soft);box-shadow:inset 0 0 0 1px var(--line)}
-.pm-leyenda b{color:var(--ink);font-weight:600;font-family:"Fraunces",Georgia,serif;letter-spacing:-.01em}
-.pm-leyenda em{font-style:normal;color:var(--faint);font-size:11.5px}
+.pm-barra{height:14px;border-radius:99px;background:var(--line-soft);overflow:hidden;margin:20px 0 6px}
+.pm-barra div{height:100%;border-radius:99px;transition:width .45s cubic-bezier(.2,.8,.3,1),background .3s}
+.pm-pct{display:flex;justify-content:space-between;font-size:12.5px;color:var(--faint);font-weight:600;margin-bottom:6px}
+.pm-fijos{font-size:12.5px;color:var(--faint);margin-bottom:18px;line-height:1.5}
+.pm-fijos b{color:var(--muted);font-weight:600;font-family:"Fraunces",Georgia,serif;letter-spacing:-.01em}
+.pm-fijos em{font-style:normal;opacity:.75}
 .pm-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
 .pm-caja{background:var(--bg-2);border:1px solid var(--line);border-radius:14px;padding:14px 15px}
 .pm-caja .k{font-size:11.5px;font-weight:700;letter-spacing:.07em;text-transform:uppercase;color:var(--faint);margin-bottom:6px}
@@ -2633,29 +2621,29 @@ function variableHasta(mes, dia){
 }
 /* el ritmo se mide solo con días cerrados: si contara el día en curso,
    un gasto de hoy se multiplicaría por todo el mes y el color bailaría solo */
+/* el ritmo del día a día, contando el día en curso */
 function ritmoMes(mes, diaHoy){
-  var cerrados = diaHoy - 1;
-  if (cerrados < 1) return null;
-  return variableHasta(mes, cerrados) / cerrados;
+  return diaHoy ? variableHasta(mes, diaHoy) / diaHoy : 0;
 }
+/* La proyección estira el goteo diario a todo el mes y suma los fijos UNA vez,
+   no una por día. Con menos de tres días no hay nada que proyectar todavía. */
 function proyeccionMes(mes, diaHoy){
-  var rep = repartoMes(mes), r = ritmoMes(mes, diaHoy), dias = diasDelMes(mes);
-  var porVenir = r === null ? 0 : r * Math.max(0, dias - diaHoy);
-  return { valor: rep.gastado + rep.pendiente + porVenir, ritmo: r, rep: rep };
+  if (diaHoy < 3) return null;
+  var rp = repartoMes(mes), r = ritmoMes(mes, diaHoy);
+  return { valor: r * diasDelMes(mes) + rp.fijo, ritmo: r, rep: rp };
 }
-/* un solo veredicto para todo el bloque, así las cajas nunca se contradicen */
-function veredicto(proy, tope, ritmo, permitido){
-  if (!tope) return "";
-  if (proy > tope) return "mal";
-  if (ritmo === null) return "ok";
-  return (permitido > 0 && ritmo <= permitido) ? "ok" : "medio";
+/* Verde: la proyección de hoy ya cumple el tope.
+   Amarillo: hoy te pasas, pero si no anotas nada más en el día, mañana cumples.
+   Rojo: ni cerrando el día acá alcanzas. */
+function veredicto(mes, diaHoy, tope, pr){
+  if (!tope || !pr) return "";
+  if (pr.valor <= tope) return "ok";
+  var dias = diasDelMes(mes);
+  if (diaHoy >= dias) return "mal";
+  return (pr.rep.variable / (diaHoy + 1) * dias + pr.rep.fijo) <= tope ? "medio" : "mal";
 }
 
-/* ritmo y proyección: solo tienen sentido en el mes que está corriendo.
-   La proyección no extrapola en línea recta, porque un arriendo pagado el día 1
-   dispararía el número. Usa la forma de tu mes anterior: cuánto llevabas a esta
-   altura y en cuánto terminaste. Si no hay mes anterior, recién desde el día 5
-   se cae al cálculo simple. */
+
 var EE_CAT = ["cigarros","vaper","copete","puchos","piscolas"];
 var EE_ICO = { sexo:1, adultos:1, putas:1 };
 function sorpresas(cat, mes, alerta){
@@ -2696,15 +2684,20 @@ function pintarPresuMes(total, enCurso, diaHoy){
   var pasado = mesActual < claveMes(hoyISO());
   var rep = repartoMes(mesActual);
   var pr = enCurso ? proyeccionMes(mesActual, diaHoy) : null;
-  var dias = diasDelMes(mesActual), faltan = Math.max(0, dias - diaHoy + 1);
-  var libre = tope ? tope - rep.fijo - rep.variable : 0;
-  var permitido = (tope && enCurso && faltan > 0 && libre > 0) ? libre / faltan : 0;
-  var ver = (tope && enCurso) ? veredicto(pr.valor, tope, pr.ritmo, permitido) : "";
+  var ver = enCurso ? veredicto(mesActual, diaHoy, tope, pr) : "";
   $("cardPresu").hidden = false;
   $("pmEdit").hidden = true;
 
-  /* Sin tope el bloque igual aparece: el ritmo y la proyecci\u00f3n sirven solos,
-     solo que sin colores, porque no hay contra qu\u00e9 compararlos. */
+  /* el reparto fijo / día a día: sin esta línea el ritmo diario no cuadraría
+     con el total gastado dividido por los días */
+  var fijos = rep.fijo
+    ? '<div class="pm-fijos">Fijos <b>' + plata(rep.fijo) + '</b>'
+      + (rep.pendiente ? ' <em>(' + plata(rep.pendiente) + ' por venir)</em>' : "")
+      + ' · Día a día <b>' + plata(rep.variable) + '</b></div>'
+    : "";
+
+  /* Sin tope el bloque igual aparece: el ritmo y la proyección sirven solos,
+     solo que sin colores, porque no hay contra qué compararlos. */
   if (!tope){
     $("pmCuerpo").innerHTML =
         '<div class="pm-cab">'
@@ -2713,59 +2706,46 @@ function pintarPresuMes(total, enCurso, diaHoy){
       +   '<div class="pm-tope"><span class="pm-sintope">Sin tope</span>'
       +     (pasado ? '<button class="linkbtn" id="pmEditar">Poner uno</button>' : "") + '</div>'
       + '</div>'
+      + fijos
       + '<div class="pm-sep"></div>'
       + cajasRitmo(rep, enCurso, diaHoy, 0, pr, "")
       + '<div class="pm-vacio">'
-      +   (pasado ? "Ponle un tope a este mes y entrar\u00e1 en tus estad\u00edsticas."
-                  : "Ponle un tope en <b>Categor\u00edas</b> y ac\u00e1 ver\u00e1s cu\u00e1nto te queda.") + '</div>';
+      +   (pasado ? "Ponle un tope a este mes y entrará en tus estadísticas."
+                  : "Ponle un tope en <b>Categorías</b> y acá verás cuánto te queda.") + '</div>';
     if ($("pmEditar")) $("pmEditar").addEventListener("click", abrirEdicionTope);
     return;
   }
 
-
-  /* la barra se parte en tres: lo fijo, lo comprometido y el d\u00eda a d\u00eda.
-     Ver d\u00f3nde se va el tope explica el bloque entero sin una l\u00ednea de texto. */
-  var pct = function(v){ return Math.max(0, Math.min(100, v / tope * 100)); };
-  var sFijo = pct(rep.cobrado), sPend = pct(rep.pendiente);
-  var sVar = Math.min(pct(rep.variable), Math.max(0, 100 - sFijo - sPend));
-  var rojoVar = libre < 0;
-
+  var queda = tope - rep.gastado, usado = rep.gastado / tope * 100;
+  var color = usado >= 100 ? "var(--danger)"
+            : usado >= 75  ? "linear-gradient(90deg,#C9475F,#F0798F)"
+                           : "var(--barra)";
   var html =
-      '<div class="pm-cab' + (libre < 0 ? " rojo" : "") + '">'
-    +   '<div><div class="pm-k">' + (libre < 0 ? "Te pasaste por" : "Te queda libre") + '</div>'
-    +     '<div class="pm-grande">' + plata(Math.abs(libre)) + '</div></div>'
+      '<div class="pm-cab' + (queda < 0 ? " rojo" : "") + '">'
+    +   '<div><div class="pm-k">' + (queda < 0 ? "Te pasaste por" : "Te queda") + '</div>'
+    +     '<div class="pm-grande">' + plata(Math.abs(queda)) + '</div></div>'
     +   '<div class="pm-tope"><div class="pm-k">Tope</div><div class="v">' + plata(tope) + '</div>'
     +     (pasado ? '<button class="linkbtn" id="pmEditar">Cambiar</button>' : "") + '</div>'
     + '</div>'
-    + '<div class="pm-barra">'
-    +   (sFijo ? '<div class="s fijo" style="width:' + sFijo + '%"></div>' : "")
-    +   (sPend ? '<div class="s pend" style="width:' + sPend + '%"></div>' : "")
-    +   (sVar  ? '<div class="s dia' + (rojoVar ? " rojo" : "") + '" style="width:' + sVar + '%"></div>' : "")
-    + '</div>'
-    + '<div class="pm-leyenda">'
-    +   (rep.fijo ? '<span><i class="fijo"></i>Fijos <b>' + plata(rep.fijo) + '</b>'
-          + (rep.pendiente
-              ? '<em>' + (rep.pendiente >= rep.fijo ? "por venir"
-                          : plata(rep.pendiente) + " por venir") + '</em>'
-              : "") + '</span>' : "")
-    +   '<span><i class="dia"></i>D\u00eda a d\u00eda <b>' + plata(rep.variable) + '</b></span>'
-    +   '<span><i class="libre"></i>' + (libre < 0 ? "Excedido" : "Libre") + ' <b>'
-    +     plata(Math.abs(libre)) + '</b></span>'
-    + '</div>';
+    + '<div class="pm-barra"><div style="width:' + Math.min(usado, 100) + '%;background:' + color + '"></div></div>'
+    + '<div class="pm-pct"><span>' + plata(rep.gastado) + ' gastados</span><span>'
+    +   (usado >= 1000 ? "+999" : Math.round(usado)) + '%</span></div>'
+    + fijos;
 
   html += cajasRitmo(rep, enCurso, diaHoy, tope, pr, ver);
 
-  /* si todav\u00eda no separa nada, vale contarle una vez para qu\u00e9 sirve */
+  /* si todavía no separa nada, vale contarle una vez para qué sirve */
   if (enCurso && !(estado.recurrentes || []).length){
     html += '<div class="pm-tip"><button class="linkbtn" id="pmRec">'
-         +  "\u00bfPagas algo igual todos los meses? Anotarlo como recurrente lo separa ac\u00e1."
+         +  "¿Pagas algo igual todos los meses? Anotarlo como recurrente lo separa del ritmo diario."
          +  '</button></div>';
   }
 
-  if (libre < 0){
+  var faltan = Math.max(0, diasDelMes(mesActual) - diaHoy + 1);
+  if (queda < 0){
     html += '<div class="pm-aviso"><svg viewBox="0 0 24 24"><path d="M12 8.5v5M12 17h.01M10.3 3.9L2.6 17.2A2 2 0 004.3 20h15.4a2 2 0 001.7-2.8L13.7 3.9a2 2 0 00-3.4 0z"/></svg>'
-         +  '<div>Te pasaste del presupuesto por <b>' + plata(-libre) + '</b>.'
-         +  (enCurso && faltan ? " Y todav\u00eda quedan " + faltan + (faltan===1?" d\u00eda":" d\u00edas") + " de mes." : "") + '</div></div>';
+         +  '<div>Te pasaste del presupuesto por <b>' + plata(-queda) + '</b>.'
+         +  (enCurso && faltan ? " Y todavía quedan " + faltan + (faltan===1?" día":" días") + " de mes." : "") + '</div></div>';
   }
   $("pmCuerpo").innerHTML = html;
   if ($("pmEditar")) $("pmEditar").addEventListener("click", abrirEdicionTope);
@@ -2778,30 +2758,33 @@ function cajaPm(clase, k, v, sub, ancha){
 }
 function cajasRitmo(rep, enCurso, diaHoy, tope, pr, ver){
   var dias = diasDelMes(mesActual), faltan = Math.max(0, dias - diaHoy + 1);
+  /* lo que queda para el día a día descuenta también los fijos que aún no se cobran */
   var libre = tope ? tope - rep.fijo - rep.variable : 0;
   var html = '<div class="pm-grid">';
 
   if (enCurso){
-    var permitido = (tope && faltan > 0 && libre > 0) ? libre / faltan : 0;
     if (tope){
-      html += cajaPm(ver, "Puedes gastar", permitido ? plata(permitido) : "$0",
-        faltan > 1 ? "por d\u00eda \u00b7 quedan " + faltan : "hoy, \u00faltimo d\u00eda");
+      var permitido = (faltan > 0 && libre > 0) ? libre / faltan : 0;
+      html += cajaPm("", "Puedes gastar", permitido ? plata(permitido) : "$0",
+        faltan > 1 ? "por día · quedan " + faltan : "hoy, último día");
     }
-    html += pr.ritmo === null
-      ? cajaPm("", "Vas gastando", "\u2014", "primer d\u00eda del mes")
-      : cajaPm(tope ? ver : "", "Vas gastando", plata(pr.ritmo), "por d\u00eda \u00b7 sin contar hoy");
+    html += cajaPm(tope ? ver : "", "Vas gastando", plata(ritmoMes(mesActual, diaHoy)),
+      "por día · " + diaHoy + (diaHoy === 1 ? " día" : " días"));
     if (!tope){
-      html += cajaPm("", "Quedan", faltan + (faltan === 1 ? " d\u00eda" : " d\u00edas"),
+      html += cajaPm("", "Quedan", faltan + (faltan === 1 ? " día" : " días"),
         "de " + dias + " del mes");
     }
-    var dif = tope ? pr.valor - tope : 0;
-    html += cajaPm(ver, "Terminar\u00edas el mes en", plata(pr.valor),
-      tope ? (dif > 0 ? plata(dif) + " sobre el tope" : plata(-dif) + " bajo el tope")
-           : "si sigues a este ritmo", true);
+    if (pr){
+      var dif = tope ? pr.valor - tope : 0;
+      html += cajaPm(ver, "Terminarías el mes en", plata(pr.valor),
+        tope ? (dif > 0 ? plata(dif) + " sobre el tope" : plata(-dif) + " bajo el tope")
+             : "si sigues a este ritmo", true);
+    }
   } else {
-    html += cajaPm("", "Ritmo del mes", plata(rep.variable / dias), "por d\u00eda, sin los fijos");
+    html += cajaPm("", "Ritmo del mes", plata(rep.variable / dias), "por día · sin los fijos");
     if (tope){
-      html += cajaPm(libre >= 0 ? "ok" : "mal", "Cierre", libre >= 0 ? "Dentro" : "Excedido",
+      var q = tope - rep.gastado;
+      html += cajaPm(q >= 0 ? "ok" : "mal", "Cierre", q >= 0 ? "Dentro" : "Excedido",
         plata(rep.gastado) + " de " + plata(tope));
     } else {
       html += cajaPm("", "Gastos", itemsDe(mesActual).length, "en el mes");
@@ -2809,6 +2792,7 @@ function cajasRitmo(rep, enCurso, diaHoy, tope, pr, ver){
   }
   return html + '</div>';
 }
+
 
 function abrirEdicionTope(){
   var t = topeDe(mesActual);
@@ -5012,13 +4996,10 @@ function pasosTour(){
     }).join("") + '</div>');
   };
   var reparto = function(){
-    return mock('<div class="pm-barra" style="margin:2px 0 11px">'
-      + '<div class="s fijo" style="width:53%"></div>'
-      + '<div class="s dia" style="width:22%"></div></div>'
-      + '<div class="pm-leyenda" style="margin:0;font-size:11.5px">'
-      +   '<span><i class="fijo"></i>Fijos <b>$320.000</b></span>'
-      +   '<span><i class="dia"></i>D\u00eda a d\u00eda <b>$132.000</b></span>'
-      +   '<span><i class="libre"></i>Libre <b>$148.000</b></span></div>');
+    return mock('<div class="pm-barra" style="margin:2px 0 6px">'
+      + '<div style="width:72%;background:var(--barra)"></div></div>'
+      + '<div class="pm-pct" style="margin:0 0 7px"><span>$452.000 gastados</span><span>72%</span></div>'
+      + '<div class="pm-fijos" style="margin:0">Fijos <b>$320.000</b> · Día a día <b>$132.000</b></div>');
   };
   var colores = function(){
     return '<div class="tour-tiles" style="margin:0 0 16px">'
@@ -5093,16 +5074,16 @@ function pasosTour(){
       d:"Abajo, si vas sobre o bajo tu <b>promedio</b> de meses completos \u2014 comparado a la misma altura del mes." },
     { abre:"mes", sel:"#cardPresu", cap:"Este mes", t:"Tu presupuesto",
       d: reparto()
-       + "El tope se parte en dos: lo <b>fijo</b>, que ya est\u00e1 comprometido aunque no se haya "
-       + "cobrado, y lo que queda para el <b>d\u00eda a d\u00eda</b>." },
+       + "La barra es lo gastado contra el tope. Abajo, el reparto: lo <b>fijo</b> que se repite todos "
+       + "los meses y lo que es <b>d\u00eda a d\u00eda</b>." },
     { abre:"mes", sel:"#cardPresu", cap:"Este mes", t:"Los tres n\u00fameros",
       d: tiles([["Puedes","$7.567"], ["Vas","$5.400"], ["Terminas en","$516.188"]])
        + "Cu\u00e1nto te queda por d\u00eda de hoy en adelante, a qu\u00e9 ritmo vienes, y d\u00f3nde cerrar\u00edas el mes.<br><br>"
-       + "El ritmo mide solo los <b>d\u00edas cerrados</b>: as\u00ed un gasto de hoy no lo dispara." },
+       + "Los fijos no entran en el ritmo: suman <b>una vez</b> a la proyecci\u00f3n, no todos los d\u00edas." },
     { abre:"mes", sel:"#cardPresu", cap:"Este mes", t:"Los colores",
       d: colores()
-       + "Los tres cuadros se pintan juntos y nunca se contradicen. <b>Amarillo</b> es que llegas, "
-       + "pero sin margen para un imprevisto." },
+       + "<b>Amarillo</b> es que hoy te pasas, pero si no anotas nada m\u00e1s en el d\u00eda, "
+       + "ma\u00f1ana amaneces cumpliendo." },
     { abre:"mes", sel:"#rank", cap:"Este mes", t:"El desglose",
       d:"En qu\u00e9 se fue, de mayor a menor. El chico de al lado dice c\u00f3mo vas en esa categor\u00eda "
        + "frente a <b>tu promedio</b>. <b>Toca una</b>." },
