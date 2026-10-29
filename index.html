@@ -711,8 +711,7 @@ select.inp{appearance:none;-webkit-appearance:none;padding-right:38px;
 /* amarillo: vas a cumplir, pero con menos de un día de margen */
 .pm-caja.medio{border-color:rgba(227,187,102,.45)}
 .pm-caja.medio .v{color:var(--gold)}
-.pm-tip{margin-top:15px}
-.pm-tip .linkbtn{font-size:13px;color:var(--gold);text-align:left;padding:0;line-height:1.45}
+
 .pm-aviso{display:flex;align-items:flex-start;gap:12px;margin-top:14px;padding:14px 16px;border-radius:var(--r-md);
   border:1px solid rgba(240,121,143,.38);background:linear-gradient(180deg,var(--danger-soft),transparent);font-size:14.5px;line-height:1.5}
 .pm-aviso svg{width:19px;height:19px;flex:none;margin-top:1px;fill:none;stroke:var(--danger);stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
@@ -1160,7 +1159,6 @@ body.acceso-on #winInstalar{z-index:100}
 <div class="win" id="winPresu" hidden role="dialog" aria-label="Categorías">
   <div id="catVista">
     <div class="win-top"><h2><button class="volver" id="cerrarPresu" aria-label="Volver">‹</button>Categorías</h2></div>
-    <p class="bajada">Toca una categoría para cambiarle el nombre, el logo o su tope mensual.</p>
     <div class="presu-mes">
       <div class="k">Presupuesto mensual</div>
       <div class="campo"><span class="sig">$</span>
@@ -1279,7 +1277,7 @@ body.acceso-on #winInstalar{z-index:100}
   </div>
 
   <div id="cxEntesVista" hidden>
-    <p class="bajada">Las personas y empresas con las que tienes cuentas. Puedes agregarlas acá o al crear una cuenta.</p>
+    <p class="bajada">Las personas y empresas con las que tienes cuentas.</p>
     <div id="cxEnLista"></div>
     <button class="nueva-cat" id="cxEnNuevo"><b>+</b>Nuevo ente</button>
   </div>
@@ -1354,7 +1352,7 @@ body.acceso-on #winInstalar{z-index:100}
 <div class="win" id="winCal" hidden role="dialog" aria-label="Calendario">
   <div class="win-top"><h2><button class="volver" id="cerrarCal" aria-label="Volver">‹</button><span id="calTitulo">Calendario</span></h2>
     <button class="pill-top" id="calVerMovs" type="button">Ver movimientos</button></div>
-  <p class="bajada" id="calBajada">Mientras más fuerte el azul, más gastaste ese día. Toca uno para ver qué anotaste.</p>
+  <p class="bajada" id="calBajada">Mientras más fuerte el azul, más gastaste ese día.</p>
 
   <div class="cal-nav" id="calNav">
     <button id="calPrev" aria-label="Mes anterior">‹</button>
@@ -1956,13 +1954,8 @@ function tagMov(g){
 }
 var ICO_TARRO = '<svg viewBox="0 0 20 20"><path d="M4 6h12M8 6V4h4v2M7 6l.8 10h4.4L13 6"/></svg>';
 /* la misma fila en el mes, el calendario y la categoría: tocar edita, el tarro borra */
-function filaMov(g, conFecha, enCat){
-  /* si ya estamos dentro de la categoría y el gasto no tiene detalle,
-     el título pasa a ser la fecha: repetir el nombre no aporta nada */
-  var porFecha = enCat && !g.nota && !g.ente;
-  var cuerpo = porFecha
-    ? '<b>' + esc(fechaLarga(g.fecha)) + '</b>' + subMov(g, false)
-    : tituloHTML(g) + subMov(g, conFecha);
+function filaMov(g, conFecha){
+  var cuerpo = tituloHTML(g) + subMov(g, conFecha);
   return '<div class="mov">'
     + '<button class="mov-main" ' + (g.cx ? 'data-cuentagasto="' + g.cx + '"' : 'data-id="' + g.id + '"') + '>'
     +   insignia(g.cat) + '<span class="d">' + cuerpo + '</span>'
@@ -2734,12 +2727,7 @@ function pintarPresuMes(total, enCurso, diaHoy){
 
   html += cajasRitmo(rep, enCurso, diaHoy, tope, pr, ver);
 
-  /* si todavía no separa nada, vale contarle una vez para qué sirve */
-  if (enCurso && !(estado.recurrentes || []).length){
-    html += '<div class="pm-tip"><button class="linkbtn" id="pmRec">'
-         +  "¿Pagas algo igual todos los meses? Anotarlo como recurrente lo separa del ritmo diario."
-         +  '</button></div>';
-  }
+
 
   var faltan = Math.max(0, diasDelMes(mesActual) - diaHoy + 1);
   if (queda < 0){
@@ -2749,7 +2737,7 @@ function pintarPresuMes(total, enCurso, diaHoy){
   }
   $("pmCuerpo").innerHTML = html;
   if ($("pmEditar")) $("pmEditar").addEventListener("click", abrirEdicionTope);
-  if ($("pmRec")) $("pmRec").addEventListener("click", function(){ abrirWin("winPresu"); });
+
 }
 function cajaPm(clase, k, v, sub, ancha){
   return '<div class="pm-caja ' + (clase || "") + '"' + (ancha ? ' style="grid-column:1 / -1"' : "") + '>'
@@ -2885,9 +2873,7 @@ function barrasCat(cat, mes, ref, diaHoy){
 function pintarCatMovs(){
   if (!cmCat) return;
   $("cmTitulo").textContent = cmCat;
-  $("cmBajada").textContent = cmMes
-    ? nombreMes(cmMes) + " \u00B7 toca un gasto para editarlo; el tarro lo elimina."
-    : "\u00daltimos 12 meses \u00B7 toca un gasto para editarlo; el tarro lo elimina.";
+  $("cmBajada").textContent = cmMes ? nombreMes(cmMes) : "\u00daltimos 12 meses";
   var meses = (cmMes ? [cmMes] : mesesConDatos().slice().reverse());
   var total = 0, n = 0, html = "";
   meses.forEach(function(m){
@@ -2898,7 +2884,7 @@ function pintarCatMovs(){
     total += t; n += items.length;
     if (!cmMes) html += '<div class="cm-mes"><span>' + esc(nombreMes(m)) + '</span><span>'
       + plata(t) + '</span></div>';
-    items.forEach(function(g){ html += filaMov(g, true, true); });
+    items.forEach(function(g){ html += filaMov(g, true); });
   });
   /* si la categor\u00eda tiene alerta en ese mes, aparece ac\u00e1 mismo */
   var avi = "";
@@ -3863,8 +3849,17 @@ function textoFiltro(){
   return "";
 }
 
+/* del día más nuevo al más viejo y, dentro del mismo día, el último anotado primero */
+function ordenarMovs(items){
+  return items.map(function(g, i){ return { g: g, i: i }; })
+    .sort(function(a, b){
+      if (a.g.fecha !== b.g.fecha) return a.g.fecha < b.g.fecha ? 1 : -1;
+      return b.i - a.i;
+    })
+    .map(function(x){ return x.g; });
+}
 function pintarMovs(){
-  var items = itemsDe(calMes), ver = filtrados(items);
+  var items = itemsDe(calMes), ver = ordenarMovs(filtrados(items));
 
   $("movChip").innerHTML = movFiltro.tipo === "todos" ? ""
     : '<div class="fchip"><span>' + esc(textoFiltro()) + '</span>'
@@ -5305,10 +5300,8 @@ function calIr(v, titulo){
   $("calNav").hidden = (v === "calDia");
   $("calVerMovs").hidden = (v !== "calVista");
   $("calTitulo").textContent = titulo || "Calendario";
-  $("calBajada").hidden = (v === "calDia");
-  $("calBajada").textContent = v === "calMovs"
-    ? "Todo lo del mes, del m\u00e1s nuevo al m\u00e1s viejo. Toca uno para editarlo; el tarro lo elimina."
-    : "Mientras m\u00e1s fuerte el azul, m\u00e1s gastaste ese d\u00eda. Toca uno para ver qu\u00e9 anotaste.";
+  $("calBajada").hidden = (v !== "calVista");
+  $("calBajada").textContent = "Mientras m\u00e1s fuerte el azul, m\u00e1s gastaste ese d\u00eda.";
   $("winCal").scrollTop = 0;
 }
 function calAtras(){
