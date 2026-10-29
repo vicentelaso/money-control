@@ -282,6 +282,33 @@ sup{font-family:"Inter Tight",system-ui,sans-serif;font-size:.54em;font-weight:6
 .r2{display:flex;align-items:baseline;gap:12px;margin-top:9px;padding-left:44px}
 .val{font-size:17px;font-weight:600;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .pct{white-space:nowrap;font-size:15px;font-weight:600;color:var(--muted);margin-left:auto;margin-right:38px;flex:none}
+/* el chico de "vs tu promedio": acompaña, no protagoniza */
+.dcat{display:inline-flex;align-items:center;gap:4px;border-radius:99px;padding:2px 7px;
+  font-size:11.5px;font-weight:700;flex:none;white-space:nowrap;
+  background:var(--bg-2);border:1px solid var(--line);color:var(--faint)}
+.dcat.sube{background:rgba(240,121,143,.12);border-color:rgba(240,121,143,.28);color:#F0A0AE}
+.dcat.baja{background:rgba(95,199,154,.11);border-color:rgba(95,199,154,.26);color:#79CEAC}
+.dcat svg{width:9px;height:9px;fill:none;stroke:currentColor;stroke-width:3;
+  stroke-linecap:round;stroke-linejoin:round}
+.dcat svg.igual{stroke-width:1.6}
+.dcat.g svg.igual{stroke-width:1.3}
+.dcat.g{font-size:13px;padding:4px 11px;gap:6px}
+.dcat.g svg{width:11px;height:11px}
+/* la historia de una categoría, mes a mes */
+.cat-ref{font-size:13.5px;color:var(--muted);margin:14px 0 0}
+.cat-ref b{color:var(--ink);font-weight:600;font-family:"Fraunces",Georgia,serif}
+.cat-hist{margin:16px 0 22px}
+.cat-hist .barras{display:flex;align-items:flex-end;gap:6px;height:58px;position:relative}
+.cat-hist .bm{flex:1;min-width:0;height:100%;display:flex;align-items:flex-end}
+.cat-hist .bm i{display:block;width:100%;border-radius:5px 5px 2px 2px;
+  background:rgba(94,146,236,.32);min-height:3px;transition:height .4s cubic-bezier(.2,.8,.3,1)}
+.cat-hist .bm.act i{background:var(--barra)}
+.cat-hist .prom{position:absolute;left:0;right:0;height:0;z-index:2;
+  border-top:1px dashed rgba(233,238,247,.55);pointer-events:none}
+.cat-hist .pies{display:flex;gap:6px;margin-top:7px}
+.cat-hist .pies span{flex:1;min-width:0;text-align:center;font-size:10.5px;
+  color:var(--faint);font-weight:600;text-transform:uppercase;letter-spacing:.03em}
+.cat-hist .pies span.act{color:var(--gold)}
 .track{height:6px;margin-top:10px;border-radius:99px;background:var(--line-soft);overflow:hidden}
 .track div{height:100%;border-radius:99px;transition:width .4s cubic-bezier(.2,.8,.3,1)}
 
@@ -583,7 +610,7 @@ body.conf-abierta .backdrop{opacity:1;pointer-events:auto;z-index:80}
 .pill-top{background:var(--bg-2);border:1px solid var(--line);color:var(--muted);
   font:inherit;font-size:13.5px;font-weight:600;padding:9px 15px;border-radius:99px;flex:none;
   display:flex;align-items:center;gap:7px}
-.pill-top:hover{color:var(--ink);border-color:var(--line-2)}
+.pill-top:hover{color:var(--ink);border-color:var(--faint)}
 .pill-top .chip{--s:19px}
 .pill-top.ico{padding:9px 11px}
 .pill-top.ico svg{width:20px;height:20px;fill:none;stroke:currentColor;stroke-width:1.9;
@@ -1918,10 +1945,16 @@ function tagMov(g){
 }
 var ICO_TARRO = '<svg viewBox="0 0 20 20"><path d="M4 6h12M8 6V4h4v2M7 6l.8 10h4.4L13 6"/></svg>';
 /* la misma fila en el mes, el calendario y la categoría: tocar edita, el tarro borra */
-function filaMov(g, conFecha){
+function filaMov(g, conFecha, enCat){
+  /* si ya estamos dentro de la categoría y el gasto no tiene detalle,
+     el título pasa a ser la fecha: repetir el nombre no aporta nada */
+  var porFecha = enCat && !g.nota && !g.ente;
+  var cuerpo = porFecha
+    ? '<b>' + esc(fechaLarga(g.fecha)) + '</b>' + subMov(g, false)
+    : tituloHTML(g) + subMov(g, conFecha);
   return '<div class="mov">'
     + '<button class="mov-main" ' + (g.cx ? 'data-cuentagasto="' + g.cx + '"' : 'data-id="' + g.id + '"') + '>'
-    +   insignia(g.cat) + '<span class="d">' + tituloHTML(g) + subMov(g, conFecha) + '</span>'
+    +   insignia(g.cat) + '<span class="d">' + cuerpo + '</span>'
     +   '<span class="m">' + plata(g.monto) + '</span>'
     + '</button>'
     + (g.cx ? '' : '<button class="mov-del" data-del="' + g.id + '" aria-label="Eliminar gasto">'
@@ -2158,6 +2191,38 @@ function mesesCompletos(){
     if (k === pm && !estado.primerMesCompleto) return false;
     return true;
   });
+}
+/* lo gastado en una categoría dentro de un mes, opcionalmente hasta cierto día */
+function hastaDiaCat(mes, dia, cat){
+  return itemsDe(mes).reduce(function(a, g){
+    if (!mismaCat(g.cat, cat)) return a;
+    return a + (!dia || +g.fecha.slice(8, 10) <= dia ? g.monto : 0);
+  }, 0);
+}
+/* la referencia de una categoría: su promedio en los meses completos.
+   Con el mes en curso se compara a la misma altura del mes, que es lo único justo. */
+function refCat(cat, mes, diaHoy){
+  var base = mesesCompletos().filter(function(m){ return m !== mes; });
+  if (!base.length) return null;
+  var suma = base.reduce(function(a, m){ return a + hastaDiaCat(m, diaHoy, cat); }, 0);
+  var ref = suma / base.length;
+  return ref > 0 ? { ref: ref, n: base.length } : null;
+}
+function flechaDelta(sube){
+  return '<svg viewBox="0 0 12 12"><path d="'
+    + (sube ? "M6 10V2M2.5 5.5L6 2l3.5 3.5" : "M6 2v8M2.5 6.5L6 10l3.5-3.5") + '"/></svg>';
+}
+function pctDelta(valor, ref){
+  var v = (valor - ref) / ref * 100, r = Math.abs(Math.round(v));
+  return { v: v, sube: v >= 0, nulo: r === 0,
+           txt: (Math.abs(v) >= 1000 ? "+999" : r) + "%" };
+}
+var ICO_IGUAL = '<svg class="igual" viewBox="0 0 12 12"><path d="M2 4.2h8M2 7.8h8"/></svg>';
+/* el chip de comparación: sube, baja, o justo en el promedio */
+function chipDelta(valor, ref, grande){
+  var d = pctDelta(valor, ref);
+  return '<span class="dcat' + (grande ? " g" : "") + (d.nulo ? "" : (d.sube ? " sube" : " baja")) + '">'
+    + (d.nulo ? ICO_IGUAL + "igual" : flechaDelta(d.sube) + d.txt) + '</span>';
 }
 function porCategoria(items){
   var m = {};
@@ -2475,7 +2540,7 @@ function pintar(){
 
   var alertasMes = mapaAlertas(mesActual);
   $("rank").innerHTML = grupos.length
-    ? grupos.map(function(g){ return filaRank(g, total, alertasMes); }).join("")
+    ? grupos.map(function(g){ return filaRank(g, total, alertasMes, diaHoy); }).join("")
     : '<li class="vacio"><p>Nada todavía.</p></li>';
 
   if (!$("winCal").hidden && !$("calMovs").hidden) pintarMovs();
@@ -2488,8 +2553,10 @@ function pintar(){
 }
 
 /* el desglose va en un solo tono: el color vive en la insignia */
-function filaRank(g, total, alertas){
+function filaRank(g, total, alertas, diaHoy){
   var pct = total ? g.monto/total*100 : 0;
+  var r = refCat(g.cat, mesActual, diaHoy);
+  var chip = r ? chipDelta(g.monto, r.ref, false) : "";
   var al = alertas ? alertas[g.cat.toLowerCase()] : null;
   var color = al === "pasado" ? "var(--danger)"
             : al === "cerca"  ? "linear-gradient(90deg,#C9475F,#F0798F)"
@@ -2497,7 +2564,7 @@ function filaRank(g, total, alertas){
   return '<li><button type="button" class="rk" data-rcat="' + esc(g.cat) + '">'
     + '<div class="r1"><div class="nom">' + insignia(g.cat, "sm")
     +   '<span>' + esc(g.cat) + '</span></div><span class="ch">\u203A</span></div>'
-    + '<div class="r2"><span class="val">' + plata(g.monto) + '</span>'
+    + '<div class="r2"><span class="val">' + plata(g.monto) + '</span>' + chip
     +   '<span class="pct">' + Math.round(pct) + '%</span></div>'
     + '<div class="track"><div style="width:'+pct+'%;background:'+color+'"></div></div></button></li>';
 }
@@ -2599,7 +2666,7 @@ function pintarPresuMes(total, enCurso, diaHoy){
     + '<div class="pm-pct"><span>' + plata(total) + ' gastados</span><span>'
     + (usado >= 1000 ? "+999" : Math.round(usado)) + '%</span></div>';
 
-  var faltan = Math.max(0, diasDelMes(mesActual) - diaHoy);
+  var faltan = Math.max(0, diasDelMes(mesActual) - diaHoy + 1);
   html += cajasRitmo(total, enCurso, diaHoy, tope);
 
   if (queda < 0){
@@ -2613,7 +2680,9 @@ function pintarPresuMes(total, enCurso, diaHoy){
 
 /* Ritmo y proyección. Con tope se pintan en verde o rojo; sin tope, en gris. */
 function cajasRitmo(total, enCurso, diaHoy, tope){
-  var dias = diasDelMes(mesActual), faltan = Math.max(0, dias - diaHoy);
+  var dias = diasDelMes(mesActual);
+  /* hoy todavía se puede gastar, así que el día en curso entra en el reparto */
+  var faltan = Math.max(0, dias - diaHoy + 1);
   var queda = tope ? tope - total : 0;
   var pr = enCurso ? proyeccionMes(total, diaHoy) : null;
   var html = '<div class="pm-grid">';
@@ -2624,8 +2693,8 @@ function cajasRitmo(total, enCurso, diaHoy, tope){
       var permitido = (queda > 0 && faltan > 0) ? queda / faltan : 0;
       html += '<div class="pm-caja"><div class="k">Puedes gastar</div><div class="v">'
            +  (permitido ? plata(permitido) : "$0")
-           +  ' <small>' + (faltan ? "por día, quedan " + faltan + (faltan===1?" día":" días")
-                                   : "último día del mes") + '</small></div></div>';
+           +  ' <small>' + (faltan > 1 ? "por día, quedan " + faltan + " días"
+                                         : "hoy, último día del mes") + '</small></div></div>';
       html += '<div class="pm-caja ' + (permitido && ritmo <= permitido ? "ok" : "mal") + '">'
            +  '<div class="k">Vas gastando</div><div class="v">' + plata(ritmo)
            +  ' <small>por día, en ' + diaHoy + (diaHoy===1?" día":" días") + '</small></div></div>';
@@ -2723,6 +2792,28 @@ function volverACatMovs(){
     pintarCatMovs();
   };
 }
+/* seis meses de la categoría, con tu promedio como línea punteada.
+   Si el mes va en curso, todos se miden al mismo día para que sea comparable. */
+function barrasCat(cat, mes, ref, diaHoy){
+  var win = mesesVentana(), i = win.indexOf(mes);
+  var lista = (i >= 0 ? win.slice(0, i + 1) : win).slice(-6);
+  if (lista.length < 2) return "";
+  var vals = lista.map(function(m){ return { m: m, v: hastaDiaCat(m, diaHoy, cat) }; });
+  var max = Math.max.apply(null, vals.map(function(x){ return x.v; }).concat([ref]));
+  if (max <= 0) return "";
+  return '<div class="cat-hist"><div class="barras">'
+    + '<span class="prom" style="bottom:' + (ref / max * 100) + '%"></span>'
+    + vals.map(function(x){
+        return '<span class="bm' + (x.m === mes ? " act" : "") + '" title="'
+          + esc(nombreMes(x.m)) + ": " + plataTxt(x.v) + '">'
+          + '<i style="height:' + Math.max(3, Math.round(x.v / max * 100)) + '%"></i></span>';
+      }).join("")
+    + '</div><div class="pies">'
+    + vals.map(function(x){
+        return '<span' + (x.m === mes ? ' class="act"' : "") + '>' + esc(mesCorto(x.m)) + '</span>';
+      }).join("")
+    + '</div></div>';
+}
 function pintarCatMovs(){
   if (!cmCat) return;
   $("cmTitulo").textContent = cmCat;
@@ -2739,7 +2830,7 @@ function pintarCatMovs(){
     total += t; n += items.length;
     if (!cmMes) html += '<div class="cm-mes"><span>' + esc(nombreMes(m)) + '</span><span>'
       + plata(t) + '</span></div>';
-    items.forEach(function(g){ html += filaMov(g, true); });
+    items.forEach(function(g){ html += filaMov(g, true, true); });
   });
   /* si la categor\u00eda tiene alerta en ese mes, aparece ac\u00e1 mismo */
   var avi = "";
@@ -2747,10 +2838,25 @@ function pintarCatMovs(){
     var ale = alertasDe(cmMes).filter(function(x){ return mismaCat(x.cat, cmCat); })[0];
     if (ale) avi = '<div style="margin:0 0 16px">' + bloqueAlerta(ale) + '</div>';
   }
+  /* la referencia: cómo va esta categoría contra tu promedio de meses completos */
+  var enCurso = cmMes === claveMes(hoyISO());
+  var diaHoy = enCurso ? +hoyISO().slice(8, 10) : 0;
+  var r = cmMes ? refCat(cmCat, cmMes, diaHoy) : null;
+  var chip = "", refBloque = "";
+  if (r){
+    chip = chipDelta(total, r.ref, true);
+    refBloque = '<div class="cat-ref">Tu promedio' + (enCurso ? " al día " + diaHoy : "")
+      + ': <b>' + plata(r.ref) + '</b> · ' + r.n
+      + (r.n === 1 ? " mes completo" : " meses completos") + '</div>'
+      + barrasCat(cmCat, cmMes, r.ref, diaHoy);
+  }
+
   $("cmCuerpo").innerHTML =
       '<div class="cm-tot"><span class="v">' + plata(total) + '</span>'
     + '<span class="k">' + n + (n === 1 ? " gasto" : " gastos")
-    + (cmMes ? " en " + esc(nombreMes(cmMes).split(" ")[0]) : " en total") + '</span></div>'
+    + (cmMes ? " en " + esc(nombreMes(cmMes).split(" ")[0]) : " en total") + '</span>'
+    + chip + '</div>'
+    + refBloque
     + avi
     + (html || '<div class="vacio"><p>Sin movimientos.</p></div>');
 }
@@ -4890,9 +4996,11 @@ function pasosTour(){
       d: tiles([["Puedes","$7.567"], ["Vas","$30.406"], ["Terminas en","$516.188"]])
        + "Por d\u00eda. La barra se pone roja pasado el 75%." },
     { abre:"mes", sel:"#rank", cap:"Este mes", t:"El desglose",
-      d:"En qu\u00e9 se fue, de mayor a menor. <b>Toca una</b> categor\u00eda." },
+      d:"En qu\u00e9 se fue, de mayor a menor. El chico de al lado dice c\u00f3mo vas en esa categor\u00eda "
+       + "frente a <b>tu promedio</b>. <b>Toca una</b>." },
     { abre:"desglose", sel:"#cmCuerpo", cap:"Este mes", t:"Sus gastos",
-      d:"Los de esa categor\u00eda, con su alerta. Tocas uno y lo editas; el tarro lo borra." },
+      d:"Sus seis \u00faltimos meses, con tu promedio en la l\u00ednea punteada. Abajo, cada gasto: "
+       + "lo tocas y lo editas; el tarro lo borra." },
     { abre:"mes", sel:"#avisos", cap:"Este mes", t:"Las alertas",
       d:"Las categor\u00edas que van cerca del tope o ya se pasaron." },
 
