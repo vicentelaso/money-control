@@ -3947,13 +3947,18 @@ function pintarMenu(){
       + '</div></div>';
     return;
   }
-  var ult = calveUltimoDia();
+  /* el rango va del 1 al último día DEL MES QUE ESTÁS MIRANDO. Si apuntara al mes
+     en curso, al revisar un mes pasado quedaba min > max y el campo se volvía loco. */
+  var pri = calMes + "-01", ult = calveUltimoDia();
+  var dentro = function(f, porDefecto){
+    return (f && f >= pri && f <= ult) ? f : porDefecto;
+  };
   caja.innerHTML = '<div class="fmenu">'
     + '<button class="fback" data-f="atras">‹ <b>Por fechas</b></button>'
     + '<div class="ffechas">'
     +   '<div class="par">'
-    +     '<div><label for="fDesde">Desde</label><input class="inp" type="date" id="fDesde" min="'+mesActual+'-01" max="'+ult+'" value="'+(movFiltro.desde || mesActual+"-01")+'"></div>'
-    +     '<div><label for="fHasta">Hasta</label><input class="inp" type="date" id="fHasta" min="'+mesActual+'-01" max="'+ult+'" value="'+(movFiltro.hasta || ult)+'"></div>'
+    +     '<div><label for="fDesde">Desde</label><input class="inp" type="date" id="fDesde" min="'+pri+'" max="'+ult+'" value="'+dentro(movFiltro.desde, pri)+'"></div>'
+    +     '<div><label for="fHasta">Hasta</label><input class="inp" type="date" id="fHasta" min="'+pri+'" max="'+ult+'" value="'+dentro(movFiltro.hasta, ult)+'"></div>'
     +   '</div>'
     +   '<div class="btnrow"><button class="btn2" id="fAplicar" style="background:var(--deep);color:var(--on-deep);border-color:var(--deep)">Aplicar</button>'
     +   '<button class="btn2" id="fQuitar">Quitar filtro</button></div>'
@@ -5454,14 +5459,15 @@ $("calGrid").addEventListener("click", function(e){
 $("calDet").addEventListener("click", function(e){ clickMov(e, volverAlCal("calDia", calSel)); });
 $("movs").addEventListener("click", function(e){ clickMov(e, volverAlCal("calMovs")); });
 $("calVerMovs").addEventListener("click", function(){ calIr("calMovs", "Movimientos"); pintarMovs(); });
-$("calPrev").addEventListener("click", function(){
-  calMes = mesVecino(calMes, -1); calSel = null; pintarCal();
+/* un rango de fechas pertenece a un mes: al cambiarse de mes, se suelta */
+function calIrMes(paso){
+  calMes = mesVecino(calMes, paso); calSel = null;
+  if (movFiltro.tipo === "fechas") movFiltro = { tipo:"todos", cat:"", desde:"", hasta:"" };
+  movMenu = null; pintarMenu(); pintarCal();
   if (calVistaAct === "calMovs") pintarMovs(); else calIr("calVista");
-});
-$("calNext").addEventListener("click", function(){
-  calMes = mesVecino(calMes, 1); calSel = null; pintarCal();
-  if (calVistaAct === "calMovs") pintarMovs(); else calIr("calVista");
-});
+}
+$("calPrev").addEventListener("click", function(){ calIrMes(-1); });
+$("calNext").addEventListener("click", function(){ calIrMes(1); });
 $("cerrarCal").addEventListener("click", calAtras);
 
 /* ============================================================
