@@ -1,0 +1,172 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Rescate</title>
+<style>
+  :root{--bg:#070B14;--card:#101A2E;--gold:#E3BB66;--azul:#5E92EC;--ok:#5FC79A;
+        --danger:#F0798F;--txt:#EAF0FF;--mute:#9AA6C2;--line:rgba(255,255,255,.10)}
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--txt);
+       font:15px/1.5 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;
+       padding:24px 16px 60px;-webkit-text-size-adjust:100%}
+  .wrap{max-width:620px;margin:0 auto}
+  h1{font-size:25px;margin:0 0 6px;letter-spacing:-.02em}
+  .sub{color:var(--mute);margin:0 0 22px;font-size:14px}
+  .nota{background:rgba(95,199,154,.09);border:1px solid rgba(95,199,154,.3);color:#BFEBD8;
+        border-radius:14px;padding:12px 14px;font-size:13.5px;margin:0 0 22px}
+  .card{background:var(--card);border:1px solid var(--line);border-radius:18px;padding:18px;margin:0 0 14px}
+  .card.mejor{border-color:rgba(227,187,102,.55);box-shadow:0 0 0 1px rgba(227,187,102,.18)}
+  .tag{display:inline-block;background:var(--gold);color:#1B1403;font-weight:700;font-size:11px;
+       padding:3px 9px;border-radius:99px;margin-bottom:10px;letter-spacing:.03em}
+  .clave{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:12px;color:var(--azul);
+         word-break:break-all;margin:0 0 12px}
+  .cifras{display:flex;gap:22px;flex-wrap:wrap;margin:0 0 12px}
+  .cifra b{display:block;font-size:22px;line-height:1.2}
+  .cifra span{font-size:12px;color:var(--mute)}
+  .fecha{font-size:13px;color:var(--mute);margin:0 0 14px}
+  .meses{display:flex;flex-wrap:wrap;gap:6px;margin:0 0 16px}
+  .mes{background:rgba(94,146,236,.14);border:1px solid rgba(94,146,236,.22);border-radius:8px;
+       padding:4px 9px;font-size:12px;white-space:nowrap}
+  .mes i{font-style:normal;color:var(--mute)}
+  button{font:inherit;font-weight:600;border-radius:12px;padding:11px 16px;cursor:pointer;border:1px solid var(--line)}
+  .bajar{background:var(--gold);color:#1B1403;border:none;width:100%}
+  .vacio{color:var(--mute);font-size:13.5px}
+  textarea{width:100%;min-height:110px;background:#0A1222;color:var(--txt);border:1px solid var(--line);
+           border-radius:12px;padding:12px;font-family:ui-monospace,Menlo,monospace;font-size:12px;resize:vertical}
+  h2{font-size:17px;margin:30px 0 10px}
+  .msg{font-size:13px;margin-top:10px;min-height:18px}
+  .msg.ok{color:var(--ok)} .msg.mal{color:var(--danger)}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>Rescate de datos</h1>
+  <p class="sub">Lee lo que hay guardado en este teléfono. No escribe ni borra nada.</p>
+  <div class="nota">Descarga el que tenga más gastos y restáuralo en la app: Ajustes → Respaldo → Restaurar.</div>
+
+  <div id="lista"></div>
+
+  <h2>Desde Supabase</h2>
+  <p class="sub">Si la copia buena está en la nube, pega aquí el <b>payload</b> y lo convierto en un respaldo restaurable.</p>
+  <textarea id="pega" placeholder='{"meses":{...},"cats":[...]}'></textarea>
+  <div style="margin-top:10px"><button class="bajar" id="btnPega">Convertir y descargar</button></div>
+  <div class="msg" id="msgPega"></div>
+</div>
+
+<script>
+(function(){
+  var $ = function(i){ return document.getElementById(i); };
+  var nf = new Intl.NumberFormat("es-CL");
+  var CAMPOS = ["cats","colores","iconos","presupuestos","primerMesCompleto","tutorial","presupuestoMes",
+                "topes","recurrentes","recOmitidos","monedas","tasas","cuentas","entes","notif","resumen",
+                "horaResumen","presuVisto","meses"];
+
+  function mirar(obj){
+    var meses = obj.meses || {}, claves = Object.keys(meses).sort();
+    var n = 0, plata = 0, detalle = [];
+    claves.forEach(function(k){
+      var arr = meses[k] || [];
+      n += arr.length;
+      var t = arr.reduce(function(a,g){ return a + (+g.monto || 0); }, 0);
+      plata += t;
+      detalle.push({ mes:k, n:arr.length, t:t });
+    });
+    return { meses:claves.length, gastos:n, plata:plata, detalle:detalle,
+             cats:(obj.cats||[]).length, cuentas:(obj.cuentas||[]).length,
+             rec:(obj.recurrentes||[]).length, ts:obj.ts || 0 };
+  }
+
+  function respaldo(obj){
+    var out = { app:"money-control", version:2, fecha:new Date().toISOString() };
+    CAMPOS.forEach(function(c){ if (obj[c] !== undefined) out[c] = obj[c]; });
+    if (!out.meses) out.meses = {};
+    return JSON.stringify(out, null, 2);
+  }
+
+  function descargar(texto, nombre){
+    var b = new Blob([texto], {type:"application/json"});
+    var a = document.createElement("a");
+    a.href = URL.createObjectURL(b); a.download = nombre;
+    document.body.appendChild(a); a.click(); a.remove();
+    setTimeout(function(){ URL.revokeObjectURL(a.href); }, 2000);
+  }
+
+  function fecha(ts){
+    if (!ts) return "sin fecha guardada";
+    try{
+      return new Date(ts).toLocaleString("es-CL", {dateStyle:"full", timeStyle:"short"});
+    }catch(e){ return new Date(ts).toString(); }
+  }
+
+  /* ---- todo lo que haya en este origen ---- */
+  var hallados = [];
+  for (var i = 0; i < localStorage.length; i++){
+    var k = localStorage.key(i), crudo;
+    try{ crudo = localStorage.getItem(k); }catch(e){ continue; }
+    if (!crudo || crudo.length < 2) continue;
+    var obj = null;
+    try{ obj = JSON.parse(crudo); }catch(e){ continue; }
+    if (!obj || typeof obj !== "object" || !obj.meses) continue;
+    hallados.push({ clave:k, obj:obj, info:mirar(obj), bytes:crudo.length });
+  }
+  hallados.sort(function(a,b){ return b.info.gastos - a.info.gastos; });
+
+  var cont = $("lista");
+  if (!hallados.length){
+    cont.innerHTML = '<div class="card"><p class="vacio">No hay nada guardado de Money Control en este '
+      + 'navegador. Si la app está instalada como aplicación, abre esta página <b>desde la app</b> '
+      + '(el mismo sitio de GitHub Pages), no desde otro navegador.</p></div>';
+  } else {
+    cont.innerHTML = hallados.map(function(h, idx){
+      var f = h.info;
+      return '<div class="card' + (idx === 0 && f.gastos ? ' mejor' : '') + '">'
+        + (idx === 0 && f.gastos ? '<div class="tag">EL MÁS COMPLETO</div>' : '')
+        + '<p class="clave">' + h.clave + '</p>'
+        + '<div class="cifras">'
+        +   '<div class="cifra"><b>' + nf.format(f.gastos) + '</b><span>gastos</span></div>'
+        +   '<div class="cifra"><b>' + f.meses + '</b><span>meses</span></div>'
+        +   '<div class="cifra"><b>$' + nf.format(Math.round(f.plata)) + '</b><span>en total</span></div>'
+        + '</div>'
+        + '<p class="fecha">Guardado: ' + fecha(f.ts) + '<br>'
+        +   f.cats + ' categorías · ' + f.cuentas + ' cuentas · ' + f.rec + ' pagos recurrentes</p>'
+        + (f.detalle.length
+            ? '<div class="meses">' + f.detalle.map(function(d){
+                return '<span class="mes">' + d.mes + ' <i>' + d.n + '</i></span>'; }).join("") + '</div>'
+            : '<p class="vacio" style="margin-bottom:16px">Sin meses con gastos.</p>')
+        + '<button class="bajar" data-i="' + idx + '">Descargar este respaldo</button>'
+        + '</div>';
+    }).join("");
+    cont.addEventListener("click", function(e){
+      var b = e.target.closest("[data-i]"); if (!b) return;
+      var h = hallados[+b.dataset.i];
+      descargar(respaldo(h.obj), "rescate-" + h.clave.replace(/[^a-z0-9]+/gi, "-") + ".json");
+      b.textContent = "Descargado ✓";
+      setTimeout(function(){ b.textContent = "Descargar este respaldo"; }, 2500);
+    });
+  }
+
+  /* ---- pegar el payload de Supabase ---- */
+  $("btnPega").addEventListener("click", function(){
+    var m = $("msgPega"), txt = $("pega").value.trim();
+    m.className = "msg";
+    if (!txt){ m.className = "msg mal"; m.textContent = "Pega el contenido de payload."; return; }
+    var obj;
+    try{ obj = JSON.parse(txt); }catch(err){
+      m.className = "msg mal"; m.textContent = "Eso no es JSON válido: " + err.message; return;
+    }
+    if (obj && obj.payload) obj = obj.payload;              /* por si pegó la fila entera */
+    if (Array.isArray(obj) && obj.length) obj = obj[0].payload || obj[0];
+    if (!obj || !obj.meses){
+      m.className = "msg mal"; m.textContent = "No encuentro 'meses' adentro. Pega el payload completo."; return;
+    }
+    var f = mirar(obj);
+    descargar(respaldo(obj), "rescate-nube.json");
+    m.className = "msg ok";
+    m.textContent = "Listo: " + f.gastos + " gastos en " + f.meses + " meses. Restáuralo en Ajustes → Respaldo.";
+  });
+})();
+</script>
+</body>
+</html>
