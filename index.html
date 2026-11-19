@@ -172,7 +172,16 @@ sup{font-family:"Inter Tight",system-ui,sans-serif;font-size:.54em;font-weight:6
   background:linear-gradient(170deg,#FFFFFF 10%,#D9E2F7 92%);
   -webkit-background-clip:text;background-clip:text;color:transparent;
 }
-.meta{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-top:14px;position:relative}
+.total-row{display:flex;align-items:center;gap:12px;cursor:pointer}
+.total-row .total{flex:1 1 auto;min-width:0}
+.total-ch{
+  flex:none;width:34px;height:34px;border-radius:99px;display:grid;place-items:center;
+  background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.1);color:var(--on-deep-mute);
+  font-size:19px;line-height:1;transition:background .15s,color .15s,transform .15s;
+}
+.total-row:hover .total-ch{background:rgba(255,255,255,.16);color:var(--on-deep);transform:translateX(2px)}
+.total-row:focus-visible{outline:2px solid rgba(227,187,102,.55);outline-offset:7px;border-radius:16px}
+.meta{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-top:14px;position:relative;cursor:pointer}
 .meta .txt{color:var(--on-deep-mute);font-size:14.5px}
 .meta .txt b{color:var(--on-deep);font-weight:600}
 .delta{
@@ -1038,7 +1047,7 @@ body.acceso-on #winInstalar{z-index:100}
 <main class="wrap">
 
   <section id="vistaMes">
-    <div class="panel">
+    <div class="panel" id="panel">
       <div class="panel-top">
         <div class="mes-nav">
           <button id="prev" aria-label="Mes anterior">‹</button>
@@ -1049,7 +1058,10 @@ body.acceso-on #winInstalar{z-index:100}
           <button class="hoy-btn" id="btnHoy" hidden>Hoy</button>
         </div>
       </div>
-      <span class="total num" id="total">$0</span>
+      <div class="total-row" id="verMes" role="button" tabindex="0" aria-label="Ver el detalle del mes">
+        <span class="total num" id="total">$0</span>
+        <span class="total-ch" aria-hidden="true">›</span>
+      </div>
       <div class="meta">
         <span class="delta" id="delta" hidden></span>
         <span class="txt" id="metaTxt"></span>
@@ -2210,14 +2222,15 @@ function mesesCompletos(){
     return true;
   });
 }
-/* lo gastado en una categoría dentro de un mes, opcionalmente hasta cierto día */
+/* lo gastado en un mes, opcionalmente hasta cierto día y de una sola categoría.
+   Sin categoría cuenta todas, que es lo que mira el bloque del total. */
 function hastaDiaCat(mes, dia, cat){
   return itemsDe(mes).reduce(function(a, g){
-    if (!mismaCat(g.cat, cat)) return a;
+    if (cat && !mismaCat(g.cat, cat)) return a;
     return a + (!dia || +g.fecha.slice(8, 10) <= dia ? g.monto : 0);
   }, 0);
 }
-/* la referencia de una categoría: su promedio en los meses completos.
+/* la referencia: el promedio de los meses completos (de una categoría o de todo).
    Con el mes en curso se compara a la misma altura del mes, que es lo único justo. */
 function refCat(cat, mes, diaHoy){
   var base = mesesCompletos().filter(function(m){ return m !== mes; });
@@ -2460,6 +2473,7 @@ function confirmar(o){
     $("confTitulo").textContent = o.titulo;
     $("confTexto").textContent = o.texto || "";
     $("confSi").textContent = o.ok || "Confirmar";
+    $("confNo").textContent = o.no || "Cancelar";
     $("confSi").className = "save" + (o.peligro ? " peligro" : "");
     $("winConfirm").hidden = false;
     document.body.classList.add("conf-abierta");
@@ -2794,25 +2808,63 @@ function cajasRitmo(rep, enCurso, diaHoy, tope, pr, ver){
 }
 
 
-function abrirEdicionTope(){
+/* global: en vez de tocar solo este mes, mueve el presupuesto de aqu\u00ed en adelante */
+var pmGlobal = false;
+function abrirEdicionTope(global, sinFoco){
+  pmGlobal = !!global && mesActual === claveMes(hoyISO());
   var t = topeDe(mesActual);
   $("pmTopeInp").value = t ? nf.format(t) : "";
   $("pmEdit").hidden = false;
-  $("pmTopeInp").focus();
+  if (!sinFoco) $("pmTopeInp").focus();
 }
 $("pmTopeInp").addEventListener("input", function(){
   var d = limitarDigitos(this.value); this.value = d ? nf.format(parseInt(d,10)) : "";
 });
-$("pmCancelar").addEventListener("click", function(){ $("pmEdit").hidden = true; });
+$("pmCancelar").addEventListener("click", function(){ pmGlobal = false; $("pmEdit").hidden = true; });
 $("pmGuardar").addEventListener("click", function(){
   estado.topes = estado.topes || {};
-  var v = parseInt(soloDigitos($("pmTopeInp").value) || "0", 10);
-  estado.topes[mesActual] = v;
+  var v = parseInt(soloDigitos($("pmTopeInp").value) || "0", 10), global = pmGlobal;
+  pmGlobal = false;
+  if (global){
+    estado.presupuestoMes = v;
+    delete estado.topes[mesActual];            /* el mes sigue al presupuesto nuevo */
+    if ($("presuMes")) { $("presuMes").value = v ? nf.format(v) : ""; syncPresuMesAcc(); }
+  } else {
+    estado.topes[mesActual] = v;
+  }
   guardarCache(true);
   $("pmEdit").hidden = true;
   pintar();
-  avisar("Tope de " + nombreMes(mesActual).split(" ")[0] + " actualizado");
+  avisar(global ? "Presupuesto actualizado"
+                : "Tope de " + nombreMes(mesActual).split(" ")[0] + " actualizado");
 });
+
+/* Al estrenar mes, una sola vez, se pregunta por el tope. La primera corrida
+   solo anota el mes: as\u00ed no aparece a mitad de mes al instalar ni al restaurar. */
+function preguntarTopeMes(){
+  if (demo || !estado) return;
+  var m = claveMes(hoyISO());
+  if (estado.presuVisto === m) return;
+  var primera = !estado.presuVisto;
+  estado.presuVisto = m;
+  guardarCache();
+  if (primera) return;
+  var tope = topeDe(m);
+  if (!tope) return;
+  if (!mesesConDatos().some(function(k){ return k < m; })) return;
+  var nm = nombreMes(m).split(" ")[0];
+  confirmar({
+    titulo: "Empez\u00f3 " + nm,
+    texto: "Vienes con un tope de " + plataTxt(tope) + " al mes.",
+    ok: "Dejarlo igual", no: "Cambiarlo"
+  }).then(function(si){
+    if (si) return;
+    cerrarWins(true); cerrarHoja();
+    verTab("mes"); mesActual = m; pintar();
+    abrirEdicionTope(true, true);
+    $("cardPresu").scrollIntoView({ behavior: lento ? "auto" : "smooth", block: "center" });
+  });
+}
 
 /* aviso al cruzar el 80% del tope del mes */
 function avisarTopeMes(mes){
@@ -2847,32 +2899,38 @@ function pintarCumplimiento(){
 }
 
 /* ---- movimientos de una categoría, mes por mes ---- */
-var cmCat = "", cmMes = "";
+var cmCat = "", cmMes = "", cmDia = 0, cmTodo = false;
 /* mes vac\u00edo = todos los meses (desde el hist\u00f3rico); con mes, solo ese (desde el desglose) */
 /* cada barra abre su mes como un paso más: la flecha de arriba devuelve
    al punto donde estabas, no al principio */
 var cmPila = [];
+/* hasta qué día se mide: el de hoy si el mes va en curso. Ese corte se mantiene
+   al saltar a otro mes por una barra, así lo que listas es exactamente lo que
+   mide la barra que tocaste: el mes a la fecha, no el mes entero. */
+function corteDe(mes){
+  return mes && mes === claveMes(hoyISO()) ? +hoyISO().slice(8, 10) : 0;
+}
 function abrirCatMovs(cat, mes){
   cmPila = [];
-  cmCat = cat; cmMes = mes || "";
+  cmTodo = !cat; cmCat = cat || ""; cmMes = mes || ""; cmDia = corteDe(cmMes);
   abrirWinReal("winCatMovs");
   pintarCatMovs();
 }
-function cmEntrar(cat, mes){
-  if (cat === cmCat && mes === cmMes) return;
-  cmPila.push({ cat: cmCat, mes: cmMes });
-  cmCat = cat; cmMes = mes;
+function cmEntrar(mes){
+  if (mes === cmMes) return;
+  cmPila.push({ cat: cmCat, mes: cmMes, dia: cmDia, todo: cmTodo });
+  cmMes = mes;
   pintarCatMovs();
   $("winCatMovs").scrollTop = 0;
 }
 function cmAtras(){
   if (cmPila.length){
     var a = cmPila.pop();
-    cmCat = a.cat; cmMes = a.mes;
+    cmCat = a.cat; cmMes = a.mes; cmDia = a.dia; cmTodo = a.todo;
     pintarCatMovs(); $("winCatMovs").scrollTop = 0;
     return;
   }
-  salirDe(function(){ cmCat = ""; cmMes = ""; cmPila = []; cerrarWins(); });
+  salirDe(function(){ cmCat = ""; cmMes = ""; cmTodo = false; cmPila = []; cerrarWins(); });
 }
 function volverACatMovs(){
   return function(){
@@ -2907,14 +2965,21 @@ function barrasCat(cat, mes, ref, diaHoy){
     + '</div></div>';
 }
 function pintarCatMovs(){
-  if (!cmCat) return;
-  $("cmTitulo").textContent = cmCat;
-  $("cmBajada").textContent = cmMes ? nombreMes(cmMes) : "\u00daltimos 12 meses";
+  if (!cmCat && !cmTodo) return;
+  var corte = cmDia, enCurso = cmMes === claveMes(hoyISO());
+  var recorte = corte && !enCurso ? " \u00b7 al d\u00eda " + corte : "";
+  /* el mes en curso se lista entero, igual que el bloque del total que lo abri\u00f3;
+     el corte recorta los meses de atr\u00e1s, que es lo que mide la barra que tocaste */
+  var filtro = recorte ? corte : 0;
+  $("cmTitulo").textContent = cmTodo ? "Todo el mes" : cmCat;
+  $("cmBajada").textContent = (cmMes ? nombreMes(cmMes) : "\u00daltimos 12 meses") + recorte;
   var meses = (cmMes ? [cmMes] : mesesConDatos().slice().reverse());
   var total = 0, n = 0, html = "";
   meses.forEach(function(m){
-    var items = itemsDe(m).filter(function(g){ return mismaCat(g.cat, cmCat); })
-      .sort(function(a, b){ return a.fecha < b.fecha ? 1 : -1; });
+    var items = ordenarMovs(itemsDe(m).filter(function(g){
+      if (cmCat && !mismaCat(g.cat, cmCat)) return false;
+      return !filtro || +g.fecha.slice(8, 10) <= filtro;
+    }));
     if (!items.length) return;
     var t = items.reduce(function(a, b){ return a + b.monto; }, 0);
     total += t; n += items.length;
@@ -2924,27 +2989,27 @@ function pintarCatMovs(){
   });
   /* si la categor\u00eda tiene alerta en ese mes, aparece ac\u00e1 mismo */
   var avi = "";
-  if (cmMes){
+  if (cmMes && cmCat){
     var ale = alertasDe(cmMes).filter(function(x){ return mismaCat(x.cat, cmCat); })[0];
     if (ale) avi = '<div style="margin:0 0 16px">' + bloqueAlerta(ale) + '</div>';
   }
-  /* la referencia: cómo va esta categoría contra tu promedio de meses completos */
-  var enCurso = cmMes === claveMes(hoyISO());
-  var diaHoy = enCurso ? +hoyISO().slice(8, 10) : 0;
-  var r = cmMes ? refCat(cmCat, cmMes, diaHoy) : null;
+  /* la referencia: c\u00f3mo vas contra tu promedio de meses completos, medido al mismo d\u00eda */
+  var r = cmMes ? refCat(cmCat, cmMes, corte) : null;
   var chip = "", refBloque = "";
   if (r){
     chip = chipDelta(total, r.ref, true);
-    refBloque = '<div class="cat-ref"><i class="ln"></i>Tu promedio' + (enCurso ? " al día " + diaHoy : "")
-      + ': <b>' + plata(r.ref) + '</b> · ' + r.n
+    refBloque = '<div class="cat-ref"><i class="ln"></i>Tu promedio' + (corte ? " al d\u00eda " + corte : "")
+      + ': <b>' + plata(r.ref) + '</b> \u00b7 ' + r.n
       + (r.n === 1 ? " mes completo" : " meses completos") + '</div>'
-      + barrasCat(cmCat, cmMes, r.ref, diaHoy);
+      + barrasCat(cmCat, cmMes, r.ref, corte);
   }
 
   $("cmCuerpo").innerHTML =
       '<div class="cm-tot"><span class="v">' + plata(total) + '</span>'
     + '<span class="k">' + n + (n === 1 ? " gasto" : " gastos")
-    + (cmMes ? " en " + esc(nombreMes(cmMes).split(" ")[0]) : " en total") + '</span>'
+    + (!cmMes ? " en total"
+       : recorte ? " hasta el d\u00eda " + corte
+       : " en " + esc(nombreMes(cmMes).split(" ")[0])) + '</span>'
     + chip + '</div>'
     + refBloque
     + avi
@@ -2952,7 +3017,7 @@ function pintarCatMovs(){
 }
 $("cmCuerpo").addEventListener("click", function(e){
   var bm = e.target.closest("[data-barmes]");
-  if (bm) return cmEntrar(cmCat, bm.dataset.barmes);
+  if (bm) return cmEntrar(bm.dataset.barmes);
   clickMov(e, volverACatMovs());
 });
 $("cerrarCatMovs").addEventListener("click", cmAtras);
@@ -2961,6 +3026,15 @@ $("cerrarCatMovs").addEventListener("click", cmAtras);
 $("rank").addEventListener("click", function(e){
   var b = e.target.closest("[data-rcat]"); if (!b) return;
   abrirCatMovs(b.dataset.rcat, mesActual);
+});
+/* el bloque grande del mes: tu promedio a la fecha, las barras y todos los gastos */
+function abrirMesTodo(){ abrirCatMovs(null, mesActual); }
+$("panel").addEventListener("click", function(e){
+  if (e.target.closest(".panel-top")) return;
+  abrirMesTodo();
+});
+$("verMes").addEventListener("keydown", function(e){
+  if (e.key === "Enter" || e.key === " "){ e.preventDefault(); abrirMesTodo(); }
 });
 /* en el histórico, tocar una categoría abre todos sus movimientos */
 $("rankHist").addEventListener("click", function(e){
@@ -5146,12 +5220,17 @@ function pasosTour(){
     /* ---------- 3. este mes ---------- */
     Object.assign(cap(3, "Este mes", "La foto de c\u00f3mo vas.",
       tiles([["Total","$486.500"], ["Promedio","\u21934%"], ["Gastos","23"]])), { abre:"mes" }),
-    { abre:"mes", sel:"#total", cap:"Este mes", t:"El total",
-      d:"Abajo, si vas sobre o bajo tu <b>promedio</b> de meses completos \u2014 comparado a la misma altura del mes." },
+    { abre:"mes", sel:"#verMes", cap:"Este mes", t:"El total",
+      d:"Abajo, si vas sobre o bajo tu <b>promedio</b> de meses completos \u2014 comparado a la misma "
+       + "altura del mes. <b>T\u00f3calo.</b>" },
+    { abre:"mestodo", sel:"#cmCuerpo", cap:"Este mes", t:"El mes a la fecha",
+      d:"Tus seis \u00faltimos meses medidos <b>al mismo d\u00eda</b>. Tocas una barra y te vas a ese mes, "
+       + "tambi\u00e9n a la fecha; la flecha de arriba te trae de vuelta." },
     { abre:"mes", sel:"#cardPresu", cap:"Este mes", t:"Tu presupuesto",
       d: reparto()
        + "La barra es lo gastado contra el tope. Abajo, el reparto: lo <b>fijo</b> que se repite todos "
-       + "los meses y lo que es <b>d\u00eda a d\u00eda</b>." },
+       + "los meses y lo que es <b>d\u00eda a d\u00eda</b>.<br><br>"
+       + "Al estrenar mes te pregunta una vez si lo dejas igual o lo cambias." },
     { abre:"mes", sel:"#cardPresu", cap:"Este mes", t:"Los tres n\u00fameros",
       d: tiles([["Puedes","$7.567"], ["Vas","$5.400"], ["Terminas en","$516.188"]])
        + "Cu\u00e1nto te queda por d\u00eda de hoy en adelante, a qu\u00e9 ritmo vienes, y d\u00f3nde cerrar\u00edas el mes.<br><br>"
@@ -5163,9 +5242,8 @@ function pasosTour(){
     { abre:"mes", sel:"#rank", cap:"Este mes", t:"El desglose",
       d:"En qu\u00e9 se fue, de mayor a menor. <b>Toca una</b> y ves su detalle." },
     { abre:"desglose", sel:"#cmCuerpo", cap:"Este mes", t:"Sus gastos",
-      d:"Arriba, c\u00f3mo vas frente a <b>tu promedio</b> y tus seis \u00faltimos meses. "
-       + "<b>Toca una barra</b> y te vas a ese mes; la flecha de arriba te trae de vuelta.<br><br>"
-       + "Abajo, cada gasto: lo tocas y lo editas; el tarro lo borra." },
+      d:"Lo mismo para esta categor\u00eda: c\u00f3mo vas frente a <b>tu promedio</b> y sus seis \u00faltimos "
+       + "meses a la fecha.<br><br>Abajo, cada gasto: lo tocas y lo editas; el tarro lo borra." },
     { abre:"mes", sel:"#avisos", cap:"Este mes", t:"Las alertas",
       d:"Las categor\u00edas que van cerca del tope o ya se pasaron." },
 
@@ -5268,6 +5346,7 @@ function prepararPaso(p){
     cal:   function(){ abrirWinReal("winCal"); },
     calmovs: function(){ abrirWinReal("winCal"); calIr("calMovs"); pintarMovs(); },
     desglose: function(){ cerrarWins(true); cerrarHoja(); verTab("mes"); abrirCatMovs("Carrete", mesActual); },
+    mestodo: function(){ cerrarWins(true); cerrarHoja(); verTab("mes"); abrirMesTodo(); },
     cx:    function(){ cxTipo = "cobrar"; cerrarCxForm(); abrirWinReal("winCx"); },
     cxpagar: function(){ cxTipo = "pagar"; cerrarCxForm(); abrirWinReal("winCx"); },
     cxgrupo: function(){ cxTipo = "cobrar"; cerrarCxForm(); abrirWinReal("winCx"); abrirCxGrupo("Pancho"); },
@@ -5591,7 +5670,7 @@ function respaldoJSON(){
     presupuestoMes:estado.presupuestoMes, topes:estado.topes, recurrentes:estado.recurrentes, recOmitidos:estado.recOmitidos,
     monedas:estado.monedas, tasas:estado.tasas, cuentas:estado.cuentas, entes:estado.entes,
     notif:estado.notif, resumen:estado.resumen, horaResumen:estado.horaResumen,
-    meses:estado.meses
+    presuVisto:estado.presuVisto, meses:estado.meses
   }, null, 2);
 }
 function notaResp(t){
@@ -5657,7 +5736,7 @@ function aplicarReemplazo(d){
     recurrentes: Array.isArray(d.recurrentes) ? d.recurrentes : [],
     recOmitidos: Array.isArray(d.recOmitidos) ? d.recOmitidos : [], avisoMes: {},
     notif: !!d.notif, resumen: !!d.resumen, horaResumen: d.horaResumen || "09:00",
-    pendientes: [], ultimoResumen: ""
+    presuVisto: d.presuVisto || "", pendientes: [], ultimoResumen: ""
   };
   normColores(); catSel = "";
   guardarCache(true);
@@ -5733,7 +5812,10 @@ function ponerseAlDia(){
   diaDeHoy = hoy;
   if (!document.body.classList.contains("hoja-abierta") && !editandoId) $("fecha").value = hoy;
   var m = claveMes(hoy);
-  if (m !== mesDeHoy){ mesDeHoy = m; mesActual = m; congelarTopes(); pintar(); }
+  if (m !== mesDeHoy){
+    mesDeHoy = m; mesActual = m; congelarTopes(); pintar();
+    setTimeout(preguntarTopeMes, 400);
+  }
 }
 function latido(){
   ponerseAlDia(); revisarPendientes(); revisarResumen();
@@ -6016,7 +6098,7 @@ function arrancarApp(){
     tutorial: !!cache.tutorial, notif: !!cache.notif,
     resumen: !!cache.resumen, horaResumen: cache.horaResumen || "09:00",
     pendientes: cache.pendientes || [], ultimoResumen: cache.ultimoResumen || "",
-    ts: cache.ts || 0
+    presuVisto: cache.presuVisto || "", ts: cache.ts || 0
   } : estadoVacio();
   var cambio = normColores();
   congelarTopes();
@@ -6028,7 +6110,10 @@ function arrancarApp(){
   latido();
   if (cambio) guardarCache();
   /* la primera vez de cada cuenta, el tour se ofrece solo */
-  setTimeout(function(){ if (!estado.tutorial && tourPaso < 0) iniciarTour(); }, 1400);
+  setTimeout(function(){
+    if (!estado.tutorial && tourPaso < 0) return iniciarTour();
+    preguntarTopeMes();
+  }, 1400);
 }
 iniciarCuenta();
 })();
