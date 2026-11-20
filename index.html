@@ -894,6 +894,12 @@ body.acceso-on #winInstalar{z-index:100}
 
 .sync{display:inline-flex;align-items:center;gap:9px;font-size:13.5px;color:var(--muted)}
 .sync i{width:8px;height:8px;border-radius:99px;background:var(--faint);flex:none}
+.copia{display:flex;align-items:center;gap:12px;padding:12px 0;border-top:1px solid var(--line-soft)}
+.copia:first-child{border-top:none}
+.copia .q{flex:1;min-width:0}
+.copia .q b{display:block;font-size:14px;font-weight:650}
+.copia .q span{font-size:12.5px;color:var(--faint)}
+.copia button{flex:none}
 .sync.ok i{background:var(--ok);box-shadow:0 0 10px rgba(95,199,154,.7)}
 .sync.pend i{background:var(--gold);box-shadow:0 0 10px rgba(227,187,102,.7)}
 .sync.mal i{background:var(--danger)}
@@ -1421,7 +1427,6 @@ body.acceso-on #winInstalar{z-index:100}
     </div>
     <div class="cuenta-fila" style="margin-top:12px">
       <span class="sync" id="syncEstado"><i></i>—</span>
-      <button class="linkbtn" id="btnSync">Sincronizar ahora</button>
     </div>
   </div>
 
@@ -1465,6 +1470,11 @@ body.acceso-on #winInstalar{z-index:100}
       </div>
     </div>
     <div class="nota" id="notaResp">El plan gratis de Supabase no guarda copias de seguridad, así que conviene bajar un respaldo cada tanto.</div>
+  </div>
+
+  <div class="sec">
+    <h3>Copias en este equipo</h3>
+    <div id="copiasLista"></div>
   </div>
 
   <div class="sec">
@@ -2174,8 +2184,177 @@ function estadoVacio(){
   return { cats:[], meses:{}, colores:{}, iconos:{}, presupuestos:{}, presupuestoMes:0, topes:{},
            monedas:["CLP"], tasas:{}, cuentas:[], entes:[],
            recurrentes:[], recOmitidos:[], avisoMes:{}, primerMesCompleto:false, tutorial:false,
-           notif:false, resumen:false, horaResumen:"09:00",
+           notif:false, resumen:false, horaResumen:"09:00", borrados:{},
            pendientes:[], ultimoResumen:"", ts:0 };
+}
+
+/* ============================================================
+   L\u00e1pidas
+   Lo \u00fanico que puede quitarte datos es que t\u00fa borres algo a prop\u00f3sito.
+   Cuando eso pasa queda anotado ac\u00e1, y la fusi\u00f3n lo respeta. Todo lo dem\u00e1s
+   \u2014 que un equipo venga atrasado, que falle la red, que choquen dos copias \u2014
+   nunca borra: en la duda, se suma.
+   ============================================================ */
+function enterrar(id){
+  if (!id) return;
+  estado.borrados = estado.borrados || {};
+  estado.borrados[String(id)] = Date.now();
+}
+function desenterrar(id){
+  if (id && estado.borrados) delete estado.borrados[String(id)];
+}
+/* ------------------------------------------------------------
+   Fusionar dos copias. Antes ganaba entera la que tuviera la fecha
+   m\u00e1s nueva, y por eso un equipo atrasado pod\u00eda borrarle los gastos
+   a otro. Ahora se unen gasto por gasto: si est\u00e1 en cualquiera de las
+   dos y no tiene l\u00e1pida, queda.
+   ------------------------------------------------------------ */
+function unirPorId(a, b, hayLapida){
+  var out = [], vistos = {};
+  (b || []).concat(a || []).forEach(function(x){
+    if (!x || !x.id || vistos[x.id] || hayLapida(x.id)) return;
+    vistos[x.id] = true; out.push(x);
+  });
+  return out;
+}
+function unirNombres(a, b, hayLapida, pre){
+  var out = [], vistos = {};
+  (b || []).concat(a || []).forEach(function(x){
+    var k = String(x || "").toLowerCase();
+    if (!k || vistos[k] || hayLapida(pre + k)) return;
+    vistos[k] = true; out.push(x);
+  });
+  return out;
+}
+/* los abonos de una cuenta tambi\u00e9n se unen: si cada equipo anot\u00f3 uno,
+   quedan los dos en vez de perderse el del que lleg\u00f3 segundo */
+function unirPagos(a, b){
+  var out = [], vistos = {};
+  (a || []).concat(b || []).forEach(function(pg){
+    if (!pg) return;
+    var k = pg.gid || pg.id || JSON.stringify(pg);
+    if (vistos[k]) return;
+    vistos[k] = true; out.push(pg);
+  });
+  return out.sort(function(x, y){ return (x.fecha || "") < (y.fecha || "") ? -1 : 1; });
+}
+function fusionar(a, b){
+  var nuevo = (b.ts || 0) >= (a.ts || 0) ? b : a;
+  var viejo = nuevo === a ? b : a;
+  var out = Object.assign(estadoVacio(), viejo, nuevo);
+  out.borrados = podarLapidas(Object.assign({}, viejo.borrados || {}, nuevo.borrados || {}));
+  var lapida = function(id){
+    return Object.prototype.hasOwnProperty.call(out.borrados, String(id));
+  };
+  /* gastos: uni\u00f3n por id; si est\u00e1 en las dos manda la copia m\u00e1s nueva */
+  var porId = {}, mesDe = {};
+  [viejo, nuevo].forEach(function(e){
+    Object.keys(e.meses || {}).forEach(function(m){
+      (e.meses[m] || []).forEach(function(g){
+        if (!g || !g.id || lapida(g.id)) return;
+        porId[g.id] = g; mesDe[g.id] = m;
+      });
+    });
+  });
+  out.meses = {};
+  Object.keys(porId).forEach(function(id){
+    var m = mesDe[id];
+    (out.meses[m] = out.meses[m] || []).push(porId[id]);
+  });
+  Object.keys(out.meses).forEach(function(m){
+    out.meses[m].sort(function(x, y){ return (x.fecha || "") < (y.fecha || "") ? -1 : 1; });
+  });
+  /* cuentas: uni\u00f3n por id, y adentro los abonos tambi\u00e9n se unen */
+  var pagosDe = {};
+  [viejo, nuevo].forEach(function(e){
+    (e.cuentas || []).forEach(function(c){
+      if (c && c.id) pagosDe[c.id] = unirPagos(pagosDe[c.id], c.pagos);
+    });
+  });
+  out.cuentas = unirPorId(viejo.cuentas, nuevo.cuentas, lapida).map(function(c){
+    var copia = Object.assign({}, c);
+    if (pagosDe[c.id]) copia.pagos = pagosDe[c.id];
+    return copia;
+  });
+  out.recurrentes = unirPorId(viejo.recurrentes, nuevo.recurrentes, lapida);
+  out.cats    = unirNombres(viejo.cats,    nuevo.cats,    lapida, "cat:");
+  out.entes   = unirNombres(viejo.entes,   nuevo.entes,   lapida, "ente:");
+  out.monedas = unirNombres(viejo.monedas, nuevo.monedas, function(){ return false; }, "");
+  var om = {};
+  out.recOmitidos = (viejo.recOmitidos || []).concat(nuevo.recOmitidos || [])
+    .filter(function(x){ return om[x] ? false : (om[x] = true); });
+  ["colores","iconos","presupuestos","topes","tasas","avisoMes"].forEach(function(k){
+    out[k] = Object.assign({}, viejo[k] || {}, nuevo[k] || {});
+  });
+  out.ts = Math.max(a.ts || 0, b.ts || 0);
+  return out;
+}
+/* una firma estable del contenido, para saber si una fusi\u00f3n cambi\u00f3 algo
+   de verdad sin depender del orden en que qued\u00f3 el objeto */
+function huella(e){
+  var ids = [];
+  Object.keys(e.meses || {}).forEach(function(m){
+    (e.meses[m] || []).forEach(function(g){ ids.push(g.id + ":" + g.monto + ":" + g.cat + ":" + g.fecha + ":" + (g.nota||"")); });
+  });
+  ids.sort();
+  var cu = (e.cuentas || []).map(function(c){
+    return c.id + ":" + c.monto + ":" + (c.pagos || []).length;
+  }).sort();
+  return [ids.join("|"), cu.join("|"), (e.cats||[]).slice().sort().join(","),
+          (e.entes||[]).slice().sort().join(","),
+          (e.recurrentes||[]).map(function(r){ return r.id; }).sort().join(","),
+          Object.keys(e.borrados||{}).sort().join(","),
+          e.presupuestoMes, JSON.stringify(e.topes||{}), JSON.stringify(e.presupuestos||{}),
+          (e.recOmitidos||[]).slice().sort().join(",")].join("#");
+}
+
+/* ------------------------------------------------------------
+   Copias locales. Viven en llaves aparte que la sincronizaci\u00f3n
+   nunca toca, as\u00ed que son el \u00faltimo piso: pase lo que pase con la
+   nube, ac\u00e1 queda de d\u00f3nde volver.
+   ------------------------------------------------------------ */
+var MAX_COPIAS = 8;
+function llaveCopia(i){ return "mc-copia-" + i; }
+function listarCopias(){
+  var out = [];
+  for (var i = 0; i < MAX_COPIAS; i++){
+    try{
+      var v = JSON.parse(localStorage.getItem(llaveCopia(i)));
+      if (v && v.meses) out.push({ i: i, d: v });
+    }catch(e){}
+  }
+  return out.sort(function(a, b){ return (b.d.copiaTs || 0) - (a.d.copiaTs || 0); });
+}
+function copiaDeSeguridad(motivo){
+  if (demo || !usuario && !Object.keys(estado.meses || {}).length) return;
+  var n = 0;
+  Object.keys(estado.meses || {}).forEach(function(m){ n += estado.meses[m].length; });
+  if (!n) return;
+  var previas = listarCopias();
+  if (previas.length && huella(previas[0].d) === huella(estado)) return;   /* ya est\u00e1 guardada */
+  var copia = JSON.parse(JSON.stringify(estado));
+  copia.copiaTs = Date.now(); copia.copiaDe = motivo || "";
+  var txt = JSON.stringify(copia);
+  var sig = 0;
+  try{ sig = (+(localStorage.getItem("mc-copia-n") || 0)) % MAX_COPIAS; }catch(e){}
+  for (var intento = 0; intento < MAX_COPIAS; intento++){
+    try{
+      localStorage.setItem(llaveCopia(sig), txt);
+      localStorage.setItem("mc-copia-n", String((sig + 1) % MAX_COPIAS));
+      return;
+    }catch(e){
+      /* sin espacio: se suelta la m\u00e1s vieja y se reintenta */
+      var viejas = listarCopias();
+      if (!viejas.length) return;
+      try{ localStorage.removeItem(llaveCopia(viejas[viejas.length - 1].i)); }catch(e2){ return; }
+    }
+  }
+}
+
+function podarLapidas(b){
+  var limite = Date.now() - 730*24*3600*1000, out = {};   /* dos a\u00f1os */
+  Object.keys(b || {}).forEach(function(k){ if (b[k] > limite) out[k] = b[k]; });
+  return out;
 }
 var estado = estadoVacio();
 var mesActual = claveMes(hoyISO());
@@ -2350,6 +2529,7 @@ function unirCat(viejo, otra){
 }
 function renombrarCat(viejo, nuevo){
   var kv = viejo.toLowerCase(), kn = nuevo.toLowerCase();
+  if (kv !== kn){ enterrar("cat:" + kv); desenterrar("cat:" + kn); }
   estado.cats = estado.cats.map(function(c){ return mismaCat(c,viejo) ? nuevo : c; });
   if (kv !== kn){
     estado.colores[kn] = estado.colores[kv]; delete estado.colores[kv];
@@ -2365,12 +2545,14 @@ function renombrarCat(viejo, nuevo){
 }
 function eliminarCat(nombre){
   var antes = { cats: estado.cats.slice(), sel: catSel, presu: Object.assign({}, estado.presupuestos) };
+  enterrar("cat:" + String(nombre).toLowerCase());
   estado.cats = estado.cats.filter(function(c){ return c !== nombre; });
   delete estado.presupuestos[nombre.toLowerCase()];
   if (catSel === nombre) catSel = "";
   catEditando = null;
   guardarCache(true); pintar();
   avisar('Eliminaste "' + nombre + '"', function(){
+    desenterrar("cat:" + String(nombre).toLowerCase());
     estado.cats = antes.cats; catSel = antes.sel; estado.presupuestos = antes.presu;
     guardarCache(true); pintar();
   });
@@ -2841,8 +3023,12 @@ $("pmGuardar").addEventListener("click", function(){
 
 /* Al estrenar mes, una sola vez, se pregunta por el tope. La primera corrida
    solo anota el mes: as\u00ed no aparece a mitad de mes al instalar ni al restaurar. */
+var intentosTope = 0;
 function preguntarTopeMes(){
   if (demo || !estado) return;
+  /* si todav\u00eda no se fusion\u00f3 con la nube, esperar: escribir antes de eso
+     fue justo lo que en la v49 dej\u00f3 ganar a la copia atrasada */
+  if (usuario && !sincronizado && intentosTope++ < 20) return setTimeout(preguntarTopeMes, 1500);
   var m = claveMes(hoyISO());
   if (estado.presuVisto === m) return;
   var primera = !estado.presuVisto;
@@ -3135,6 +3321,7 @@ function quitarAbono(c, pagoId){
 /* eliminar borra lo que falta. Lo que ya abonaste pas\u00f3 de verdad, as\u00ed que queda:
    en las por pagar como gasto con su fecha, y en las por cobrar ya estaba descontado. */
 function eliminarCuenta(c){
+  enterrar(c.id); enterrar("cx_" + c.id);
   quitarGastoId("cx_" + c.id);
   estado.cuentas = (estado.cuentas || []).filter(function(x){ return x.id !== c.id; });
   guardarCache(true);
@@ -3143,6 +3330,7 @@ function eliminarCuenta(c){
    deja de ser "por cobrar" y queda como gasto tuyo, en el mes en que lo pusiste. */
 function darPorPerdida(c){
   var pend = pendienteDe(c), nuevo = null;
+  enterrar(c.id); enterrar("cx_" + c.id);
   quitarGastoId("cx_" + c.id);
   if (pend > 0){
     var k = claveMes(c.fecha);
@@ -3197,6 +3385,8 @@ function renombrarEnte(viejo, nuevo){
     return e.toLowerCase() === nuevo.toLowerCase() && e.toLowerCase() !== vk;
   })[0];
   var destino = choque || nuevo;
+  enterrar("ente:" + vk);
+  desenterrar("ente:" + destino.toLowerCase());
   estado.entes = (estado.entes || []).filter(function(e){ return e.toLowerCase() !== vk; });
   if (!choque) estado.entes = estado.entes.concat([nuevo]);
   (estado.cuentas || []).forEach(function(c){ if ((c.ente || "").toLowerCase() === vk) c.ente = destino; });
@@ -3208,6 +3398,7 @@ function renombrarEnte(viejo, nuevo){
 }
 function borrarEnte(n){
   var k = String(n || "").toLowerCase();
+  enterrar("ente:" + k);
   estado.entes = (estado.entes || []).filter(function(e){ return e.toLowerCase() !== k; });
   guardarCache(true);
 }
@@ -3267,6 +3458,7 @@ function moverNeto(ente, deCobrar, dePagar, fecha){
    (ya no es gasto tuyo) y la por pagar se va dejando sus gastos hechos */
 function cerrarSiSaldada(c){
   if (pendienteDe(c) > 0) return false;
+  enterrar(c.id);
   estado.cuentas = (estado.cuentas || []).filter(function(x){ return x.id !== c.id; });
   sincronizarCuentas(); guardarCache(true);
   return true;
@@ -3276,6 +3468,7 @@ function cerrarConAviso(c, alVolver){
   var cobrar = c.tipo === "cobrar";
   if (!cerrarSiSaldada(c)) return false;
   avisar(cobrar ? "Recuperado. La cuenta se borró." : "Saldada. Queda como gasto.", function(){
+    desenterrar(copia.id);
     estado.cuentas = (estado.cuentas || []).concat([copia]);
     sincronizarCuentas(); guardarCache(true);
     pintarCx(); pintar();
@@ -4471,10 +4664,11 @@ function eliminarGasto(id, repintar){
     ok: "Eliminar", peligro: true
   }).then(function(si){
     if (!si) return;
-    quitarGasto(id);
+    enterrar(id); quitarGasto(id);
     if (editandoId === id) { cerrarHoja(); }
     pintar(); if (repintar) repintar();
     avisar("Gasto eliminado", function(){
+      desenterrar(id);
       estado.meses[r.mes] = itemsDe(r.mes).concat([r.g]);
       estado.recOmitidos = (estado.recOmitidos || []).filter(function(x){ return x !== id; });
       guardarCache(true); pintar(); if (repintar) repintar();
@@ -4536,7 +4730,7 @@ function guardar(){
   var alerta = mensajePresu(cat, k);
   sorpresas(cat, k, alerta);
   avisar(alerta || (plata(monto) + " en " + cat), function(){
-    quitarGasto(g.id); pintar();
+    enterrar(g.id); quitarGasto(g.id); pintar();
   });
   if (alerta) programarAviso(alerta);
   avisarTopeMes(k);
@@ -4668,7 +4862,7 @@ function salirDe(hacer){
 function abrirWin(id){ salirDe(function(){ cerrarHoja(); abrirWinReal(id); }); }
 $("btnPresu").addEventListener("click", function(){ abrirWin("winPresu"); });
 $("btnCal").addEventListener("click", function(){ abrirWin("winCal"); });
-$("btnCfg").addEventListener("click", function(){ abrirWin("winCfg"); });
+$("btnCfg").addEventListener("click", function(){ pintarCopias(); abrirWin("winCfg"); });
 $("cerrarPresu").addEventListener("click", function(){ salirDe(function(){ cerrarWins(); }); });
 $("cerrarCfg").addEventListener("click", cerrarWins);
 $("backdrop").addEventListener("click", function(){
@@ -4924,7 +5118,7 @@ $("recLista").addEventListener("click", function(e){
     estado.meses[mm] = itemsDe(mm).concat([g]);
     guardarCache(true); pintarRec(); pintar();
     avisar("Anotado en " + nombreMes(mm).split(" ")[0], function(){
-      quitarGasto(gid); guardarCache(true); pintarRec(); pintar();
+      enterrar(gid); quitarGasto(gid); guardarCache(true); pintarRec(); pintar();
     });
     return;
   }
@@ -4962,6 +5156,7 @@ $("recBorrar").addEventListener("click", function(){
     ok: "Eliminar", peligro: true
   }).then(function(si){
     if (!si) return;
+    enterrar(r.id);
     estado.recurrentes = (estado.recurrentes || []).filter(function(x){ return x.id !== r.id; });
     guardarCache(true); cerrarRecForm(); pintarRec(); pintar();
     avisar("Pago recurrente eliminado");
@@ -5305,6 +5500,12 @@ function pasosTour(){
 
     { abre:"cfg", centro:true, cap:"Ajustes", t:"Lo \u00faltimo",
       d:"Notificaciones, monedas, respaldo, tu cuenta y este tutorial para repetirlo." },
+
+    { abre:"cfg", sel:"#copiasLista", cap:"Ajustes", t:"Tus copias",
+      d:"La app guarda una copia en este equipo cada d\u00eda y antes de cualquier cambio grande. "
+       + "<b>Traer</b> devuelve lo que ten\u00edas sin borrar lo de ahora.<br><br>"
+       + "Entre equipos nunca se pisa nada: lo que anotes en cada uno se suma. Lo \u00fanico que "
+       + "quita un gasto es que t\u00fa lo borres." },
 
     { centro:true, abre:"mes", t:"Eso es todo",
       d: ilu(["estrella"]) + "Vuelven tus datos reales. Empieza creando tus categor\u00edas y anotando lo de hoy." }
@@ -5670,7 +5871,7 @@ function respaldoJSON(){
     presupuestoMes:estado.presupuestoMes, topes:estado.topes, recurrentes:estado.recurrentes, recOmitidos:estado.recOmitidos,
     monedas:estado.monedas, tasas:estado.tasas, cuentas:estado.cuentas, entes:estado.entes,
     notif:estado.notif, resumen:estado.resumen, horaResumen:estado.horaResumen,
-    presuVisto:estado.presuVisto, meses:estado.meses
+    presuVisto:estado.presuVisto, borrados:estado.borrados, meses:estado.meses
   }, null, 2);
 }
 function notaResp(t){
@@ -5707,6 +5908,54 @@ $("impAbrir").addEventListener("click", function(){
   if (!$("impBox").hidden) $("impTxt").focus();
 });
 $("impCancelar").addEventListener("click", function(){ $("impBox").hidden = true; $("impTxt").value = ""; });
+
+/* ---------- copias de este equipo ---------- */
+function pintarCopias(){
+  var cont = $("copiasLista"); if (!cont) return;
+  var lista = listarCopias();
+  if (!lista.length){
+    cont.innerHTML = '<div class="nota" style="margin-top:0">La app guarda una copia aquí cada día y antes de cualquier '
+      + 'cambio grande. Todavía no hay ninguna.</div>';
+    return;
+  }
+  cont.innerHTML = lista.map(function(c){
+    var n = 0, meses = Object.keys(c.d.meses || {});
+    meses.forEach(function(m){ n += c.d.meses[m].length; });
+    var f = new Date(c.d.copiaTs || 0);
+    var cuando = isNaN(f.getTime()) ? "" :
+      f.toLocaleDateString("es-CL", { day:"numeric", month:"long" }) + ", " +
+      f.toLocaleTimeString("es-CL", { hour:"2-digit", minute:"2-digit" });
+    return '<div class="copia"><div class="q"><b>' + esc(cuando) + '</b><span>'
+      + n + (n === 1 ? " gasto" : " gastos") + " · " + meses.length
+      + (meses.length === 1 ? " mes" : " meses")
+      + (c.d.copiaDe ? " · " + esc(c.d.copiaDe) : "") + '</span></div>'
+      + '<button class="btn2" data-copia="' + c.i + '">Traer</button></div>';
+  }).join("");
+}
+$("copiasLista").addEventListener("click", function(e){
+  var b = e.target.closest("[data-copia]"); if (!b) return;
+  var hit = listarCopias().filter(function(c){ return c.i === +b.dataset.copia; })[0];
+  if (!hit) return;
+  var d = hit.d, n = 0;
+  Object.keys(d.meses || {}).forEach(function(m){ n += d.meses[m].length; });
+  confirmar({
+    titulo: "¿Traer esta copia?",
+    texto: "Se suman sus " + n + (n === 1 ? " gasto" : " gastos") + " a lo que tienes ahora. "
+         + "No se borra nada de lo actual.",
+    ok: "Traerla"
+  }).then(function(si){
+    if (!si) return;
+    copiaDeSeguridad("antes de traer una copia");
+    var antes = huella(estado);
+    var limpia = Object.assign({}, d);
+    delete limpia.copiaTs; delete limpia.copiaDe;
+    limpia.ts = 0;                              /* lo de ahora manda en los choques */
+    estado = fusionar(limpia, estado);
+    estado.ts = Date.now();
+    normColores(); guardarCache(true); pintar(); pintarCopias();
+    avisar(huella(estado) === antes ? "Ya tenías todo eso" : "Copia recuperada");
+  });
+});
 function leerRespaldo(){
   var d;
   try{ d = JSON.parse($("impTxt").value); }catch(e){ notaResp("Ese texto no es un respaldo válido."); return null; }
@@ -5722,6 +5971,19 @@ $("impReemplazar").addEventListener("click", function(){
   }).then(function(si){ if (si) aplicarReemplazo(d); });
 });
 function aplicarReemplazo(d){
+  copiaDeSeguridad("antes de reemplazar");
+  /* reemplazar es una decisi\u00f3n tuya, as\u00ed que lo que no venga en el respaldo
+     queda con l\u00e1pida: sin eso, la pr\u00f3xima fusi\u00f3n lo traer\u00eda todo de vuelta */
+  var quedan = {}, lapidas = Object.assign({}, estado.borrados || {}), ahora = Date.now();
+  Object.keys(d.meses || {}).forEach(function(m){
+    (d.meses[m] || []).forEach(function(g){ if (g && g.id) quedan[g.id] = 1; });
+  });
+  (Array.isArray(d.cuentas) ? d.cuentas : []).forEach(function(c){ if (c && c.id) quedan[c.id] = 1; });
+  Object.keys(estado.meses || {}).forEach(function(m){
+    (estado.meses[m] || []).forEach(function(g){ if (g && g.id && !quedan[g.id]) lapidas[g.id] = ahora; });
+  });
+  (estado.cuentas || []).forEach(function(c){ if (c && c.id && !quedan[c.id]) lapidas[c.id] = ahora; });
+  Object.keys(d.borrados || {}).forEach(function(k){ lapidas[k] = d.borrados[k]; });
   estado = {
     cats: Array.isArray(d.cats) ? d.cats : [], meses: d.meses,
     colores: (d.colores && typeof d.colores === "object") ? d.colores : {},
@@ -5736,9 +5998,10 @@ function aplicarReemplazo(d){
     recurrentes: Array.isArray(d.recurrentes) ? d.recurrentes : [],
     recOmitidos: Array.isArray(d.recOmitidos) ? d.recOmitidos : [], avisoMes: {},
     notif: !!d.notif, resumen: !!d.resumen, horaResumen: d.horaResumen || "09:00",
-    presuVisto: d.presuVisto || "", pendientes: [], ultimoResumen: ""
+    presuVisto: d.presuVisto || "", borrados: lapidas, pendientes: [], ultimoResumen: ""
   };
   normColores(); catSel = "";
+  pintarCopias();
   guardarCache(true);
   $("impBox").hidden = true; $("impTxt").value = "";
   cerrarWins(); pintar();
@@ -5746,6 +6009,7 @@ function aplicarReemplazo(d){
 }
 $("impSumar").addEventListener("click", function(){
   var d = leerRespaldo(); if (!d) return;
+  copiaDeSeguridad("antes de sumar un respaldo");
   var nuevos = 0;
   Object.keys(d.meses).forEach(function(k){
     var actuales = itemsDe(k), vistos = {};
@@ -5817,17 +6081,32 @@ function ponerseAlDia(){
     setTimeout(preguntarTopeMes, 400);
   }
 }
+/* una copia al día, pero solo después de haber fusionado: guardar una copia
+   de datos atrasados no sirve de nada y empuja fuera a las buenas */
+function copiaDiaria(){
+  if (demo) return;
+  if (usuario && !sincronizado) return;
+  var hoy = hoyISO();
+  try{
+    if (localStorage.getItem("mc-copia-dia") === hoy) return;
+    copiaDeSeguridad("copia del día");
+    localStorage.setItem("mc-copia-dia", hoy);
+  }catch(e){}
+}
 function latido(){
-  ponerseAlDia(); revisarPendientes(); revisarResumen();
+  ponerseAlDia(); revisarPendientes(); revisarResumen(); copiaDiaria();
   if (generarRecurrentes()) pintar();
-  if (sb && usuario && (hayPendiente || sinRed)) subir();
+  if (sb && usuario){
+    if (!sincronizado) bajar();                      /* mientras no haya fusionado, nada sube */
+    else if (hayPendiente || sinRed) subir();
+  }
 }
 document.addEventListener("visibilitychange", function(){
   if (document.visibilityState !== "visible") return;
   latido();
   if (sb && usuario) bajar();            /* trae lo que se haya anotado en otro dispositivo */
 });
-window.addEventListener("online", function(){ sinRed = false; if (sb && usuario) subir().then(bajar); });
+window.addEventListener("online", function(){ sinRed = false; if (sb && usuario) bajar(); });
 window.addEventListener("offline", function(){ sinRed = true; estadoSync(); });
 window.addEventListener("focus", latido);
 setInterval(latido, 30000);
@@ -5904,8 +6183,13 @@ function programarSubida(){
   clearTimeout(subTm);
   subTm = setTimeout(subir, 1200);
 }
+/* La regla de oro: este equipo no le manda nada a la nube hasta haber
+   fusionado con ella al menos una vez. Sin esto, un equipo que arranca
+   atrasado le pisa los datos a los dem\u00e1s. */
+var sincronizado = false;
 function subir(){
   if (!sb || !usuario || subiendo) return Promise.resolve();
+  if (!sincronizado) { estadoSync(); return Promise.resolve(); }
   subiendo = true; estadoSync();
   var copia = JSON.parse(JSON.stringify(estado));
   return sb.from("datos").upsert({ user_id: usuario.id, payload: copia, ts: copia.ts || Date.now() })
@@ -5928,6 +6212,7 @@ function bajar(){
         /* cuenta nueva: si este dispositivo ya tenía gastos sueltos, se ofrecen */
         var viejo = leerCache(LS);
         var nGastos = viejo ? Object.keys(viejo.meses).reduce(function(a,k){ return a + viejo.meses[k].length; },0) : 0;
+        sincronizado = true;
         if (nGastos && !Object.keys(estado.meses).length){
           confirmar({
             titulo: "¿Traer tus gastos a esta cuenta?",
@@ -5943,15 +6228,26 @@ function bajar(){
         }
         return subir();
       }
-      if (tsR > (estado.ts || 0)){
-        estado = Object.assign(estadoVacio(), remoto, {ts: tsR});
-        normColores();
-        try{ localStorage.setItem(claveLS(), JSON.stringify(estado)); }catch(e){}
-        limpiarForm(); pintar();
-        estadoSync();
-      } else if ((estado.ts || 0) > tsR){
-        subir();
-      } else estadoSync();
+      /* Antes ganaba entera la copia con la fecha m\u00e1s nueva. Ahora se unen las
+         dos: lo que est\u00e9 en cualquiera de ellas y no tenga l\u00e1pida se queda. */
+      remoto = Object.assign(estadoVacio(), remoto);
+      remoto.ts = remoto.ts || tsR;
+      sincronizado = true;
+      var mezcla = fusionar(estado, remoto);
+      var hLocal = huella(estado), hMezcla = huella(mezcla), hRemoto = huella(remoto);
+      if (hMezcla === hLocal){
+        if (hMezcla !== hRemoto){ estado.ts = Date.now(); escribir(); }   /* la nube va atrasada */
+        else { hayPendiente = false; estadoSync(); }
+        copiaDiaria();
+        return;
+      }
+      copiaDeSeguridad("antes de traer de la nube");
+      estado = mezcla;
+      normColores();
+      estado.ts = Date.now();
+      try{ localStorage.setItem(claveLS(), JSON.stringify(estado)); }catch(e){}
+      limpiarForm(); pintar(); estadoSync();
+      subir(); copiaDiaria();
     })
     .catch(function(){ sinRed = true; estadoSync(); });
 }
@@ -6050,11 +6346,7 @@ $("btnSalir").addEventListener("click", function(){
       });
     });
 });
-$("btnSync").addEventListener("click", function(){
-  if (!usuario) return;
-  pintarSync("pend","Sincronizando…");
-  subir().then(bajar);
-});
+
 
 function iniciarCuenta(){
   if (!nubeOn){ arrancarApp(); return; }           /* sin configurar: modo local de siempre */
@@ -6098,7 +6390,7 @@ function arrancarApp(){
     tutorial: !!cache.tutorial, notif: !!cache.notif,
     resumen: !!cache.resumen, horaResumen: cache.horaResumen || "09:00",
     pendientes: cache.pendientes || [], ultimoResumen: cache.ultimoResumen || "",
-    presuVisto: cache.presuVisto || "", ts: cache.ts || 0
+    presuVisto: cache.presuVisto || "", borrados: cache.borrados || {}, ts: cache.ts || 0
   } : estadoVacio();
   var cambio = normColores();
   congelarTopes();
@@ -6114,6 +6406,7 @@ function arrancarApp(){
     if (!estado.tutorial && tourPaso < 0) return iniciarTour();
     preguntarTopeMes();
   }, 1400);
+  setTimeout(copiaDiaria, 3000);          /* sin cuenta no hay nada que esperar */
 }
 iniciarCuenta();
 })();
